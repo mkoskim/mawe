@@ -29,7 +29,7 @@ from tkinter import *
 import tkinter.ttk
 from tkinter.scrolledtext import ScrolledText
 
-print(TkVersion, TclVersion)
+#print(TkVersion, TclVersion)
 
 ###############################################################################
 #
@@ -56,7 +56,14 @@ class SceneGroupText(ScrolledText):
 
         self.config(kw)
         
-        #----------------------------------------------------------------------
+        self.bind_tags()
+        self.bind_keys()
+
+        self.pack(fill = "both", expand = "yes")
+
+    #--------------------------------------------------------------------------
+
+    def bind_tags(self):
 
         self.tag_config("scene", 
             font = ("Times New Roman", "12", "bold"),
@@ -102,8 +109,10 @@ class SceneGroupText(ScrolledText):
 
         self.tag_raise("sel")
 
-        #----------------------------------------------------------------------
+    #--------------------------------------------------------------------------
 
+    def bind_keys(self):
+        
         self.bind("<Prior>", lambda e: self.key_pgup(e))
         self.bind("<Next>", lambda e: self.key_pgdn(e))
         self.bind("<BackSpace>", lambda e: self.key_bksp(e))
@@ -129,12 +138,10 @@ class SceneGroupText(ScrolledText):
         self.bind("<Control-r>", lambda e: self.report(e))        
         #self.bind("<Key>", lambda e: self.trace_key(e))
 
-        self.pack(fill = "both", expand = "yes")
-
     #--------------------------------------------------------------------------
 
     def trace_key(self, event):
-        print(event.keycode, event.state)
+        print("Key:", event.keycode, event.state)
         
     def tag_ranges(self, tag):
         ranges = super(SceneGroupText, self).tag_ranges(tag)
@@ -149,8 +156,22 @@ class SceneGroupText(ScrolledText):
 
     #--------------------------------------------------------------------------
 
-    def isShiftDown(self, event):
-        return (event.state & 0x0001) != 0
+    modifiers = {
+        "Shift":    0x0001,
+        "Control":  0x0004,
+    }
+
+    def key_modifiers(self, event):
+        mods = modifiers.keys()
+        return filter(lambda m: event.state & modifiers[m], mods)
+
+    def hasModifier(self, event, modifier):
+        return modifier in key_modifiers(event)
+
+    def addModifiers(self, event, *mods):
+        state = event.state
+        for m in mods.split(): state = state | modifiers[m]
+        return state
 
     #--------------------------------------------------------------------------
 
@@ -200,8 +221,8 @@ class SceneGroupText(ScrolledText):
     #--------------------------------------------------------------------------
 
     def emit(self, text = None, tag = None):
+        start = self.index(INSERT)
         if text:
-            start = self.index(INSERT)
             self.insert(INSERT, text)
             if tag: self.tag_add(tag, start, INSERT)
         self.see(INSERT)
@@ -221,15 +242,42 @@ class SceneGroupText(ScrolledText):
         vbpos = self.vbar.get()
         
         if(vbpos[0] == 0.0):
-            self.event_generate("<Key-Home>", state = event.state | 4)
+            self.event_generate("<Key-Home>", state = self.addModifiers(event, "Control"))
             return "break"
 
     def key_pgdn(self, event):
         endat = self.Position("end -1 char")
 
         if(endat.isVisible()):
-            self.event_generate("<Key-End>", state = event.state | 4)
+            self.event_generate("<Key-End>", state = self.addModifiers(event, "Control"))
             return "break"
+
+    #--------------------------------------------------------------------------
+
+    def block_range(self, block, index = INSERT):
+
+        class _Block:
+
+            def __init__(self, hdr, content):
+                self.header  = hdr
+                self.content = content
+
+            def __str__(self):
+                return "Block: (%s - %s) + (%s - %s)" % (
+                    self.header.start, self.header.end,
+                    self.content.start, self.content.end
+                )
+
+        prev = self.tag_prevrange("scene", index)
+        if not prev: return None
+
+        next = self.tag_nextrange("scene", prev[1])
+        if not next: next = (END, END)
+
+        return _Block(
+            self.Range(prev[0], prev[1]),
+            self.Range(prev[1], next[0])
+        )
 
     #--------------------------------------------------------------------------
 
@@ -251,9 +299,9 @@ class SceneGroupText(ScrolledText):
 
     def key_enter(self, event):
         if(self.hasTag("scene")):
-            #self.event_generate("<Key-Down>")
-            self.mark_set("insert", "insert lineend + 1 char")
-            if self.hasTag("scene"): self.insert("\n")
+            scene = self.block_range("scene", "insert lineend")
+            self.tag_remove("folded", scene.content.start, scene.content.end)
+            self.mark_set("insert", scene.content.start)
             return "break"
 
     #--------------------------------------------------------------------------
@@ -262,7 +310,7 @@ class SceneGroupText(ScrolledText):
         for tag in override.split():
             self.tag_remove(tag, "insert linestart", "insert lineend+1c")
             
-        isblock = self.hasTag(block)
+        isblock = self.hasTag(block, "insert linestart")
         print(isblock)
         if isblock:
             self.tag_remove(block, "insert linestart", "insert lineend+1c")
@@ -277,20 +325,16 @@ class SceneGroupText(ScrolledText):
             self.tag_config(tag, elide = not hide)
         
     def scene_fold(self, event):
-        start = self.tag_prevrange("scene", INSERT)
-        if not start: return
+        scene = self.block_range("scene", "insert lineend")
+        #print(self.index(INSERT), self.index("insert lineend"), str(scene))
 
-        end   = self.tag_nextrange("scene", start[1])
-        if not end: end = (END, END)
-
-        start, end = start[1], end[0]
-
-        if self.hasTag("folded", start):
-            self.tag_remove("folded", start, end)
-        else:
-            self.tag_add("folded", start, end)
-
-        print(start, end)
+        if scene:
+            start, end = scene.content.start, scene.content.end
+            if self.hasTag("folded", start):
+                self.tag_remove("folded", start, end)
+            else:
+                self.tag_add("folded", start, end)
+                self.mark_set("insert", scene.header.start)
         pass
 
     #--------------------------------------------------------------------------
@@ -317,13 +361,70 @@ class SceneGroupText(ScrolledText):
             "culpa qui officia deserunt mollit anim id est laborum.\n"
         )
         self.edit_separator()
+
+###############################################################################
+#
+# SceneGroupEditor
+#
+###############################################################################
+
+class SceneGroupEditor(Frame):
+
+    def __init__(self, parent, **kw):
+        super(SceneGroupEditor, self).__init__(parent)
+        self.configure(kw)
     
-#------------------------------------------------------------------------------
+        self.filename  = Label(self, text = "Filename:")
+        self.filename.pack()
+        self.groupname = Label(self, text = "Group:")
+        self.groupname.pack()
+        self.textbox   = SceneGroupText(self)
+        self.textbox.pack()
+        self.textbox.focus()
+
+        self.pack()
+
+
+###############################################################################
+#
+# Command line arguments
+#
+###############################################################################
+
+import argparse
+
+parser = argparse.ArgumentParser(
+    description = "MAWE Advanced Writer's Editor"
+)
+
+parser.add_argument("file", type=str, nargs="*", help="File or folder", default=["test/test.mawe"])
+
+args = parser.parse_args()
+
+from storage import ProjectManager
+print(args.file)
+ProjectManager.mount(*args.file)
+
+sys.exit(0)
+
+###############################################################################
+#
+# Main
+#
+###############################################################################
 
 root = Tk()
 root.title("mawesome")
 
-st = SceneGroupText(root)
+def quit(event = None):
+    print("Quit")
+    global root
+    root.destroy()
+
+root.bind("<Control-q>", quit)
+root.bind("<Alt-F4>", quit)
+
+st = SceneGroupEditor(root)
 st.focus()
 
 root.mainloop()
