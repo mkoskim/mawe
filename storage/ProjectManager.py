@@ -55,6 +55,10 @@ def _scandir(drive):
 
 	print("Scanned/pruned: %d / %d" % (len(scanned), len(pruned)))
 
+#------------------------------------------------------------------------------
+# Use extension to decide the loader for a file
+#------------------------------------------------------------------------------
+
 reMoeMawe   = re.compile(r".*\.((moe)|(mawe))$")
 reLaTeX     = re.compile(r"^Makefile$")
 
@@ -64,13 +68,28 @@ def _loadfile(filename, dirname = "", drive = ""):
 	elif reLaTeX.match(filename):
 		_loadLaTeX(filename, dirname, drive)
 
+#------------------------------------------------------------------------------
+# We let XML content to decide, which file format this actually was.
+# File extension is basically just preventing moe project manager to look
+# for files the editor can not handle.
+#------------------------------------------------------------------------------
+
 def _loadMoeMawe(filename, dirname, drive):
 	#print("Loading Moe/Mawe:", os.path.join(drive, dirname, filename))
 	pass
 
+#------------------------------------------------------------------------------
+
 def _loadLaTeX(filename, dirname, drive):
 	#print("Loading LaTeX:", os.path.join(drive, dirname, filename))
 	pass
+
+#------------------------------------------------------------------------------
+# Other formats? It would be nice to get .sxw, .odt, .doc, .docx and
+# .rtf formats to get scanned, but the problem is to know if they are stories
+# or background info / generated files. Lets think about it.
+#------------------------------------------------------------------------------
+
 
 ###############################################################################
 #
