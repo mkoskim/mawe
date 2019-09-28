@@ -60,16 +60,29 @@ separate stories.
 Simplified structure of a file:
 
     <story>
-        <!-- Story information -->
-        <head> ... </head>
-
-        <!-- Ordered list of scenes -->
+        <!-- Story itself -->
         <body>
-            <scene> ... </scene>
-            <scene> ... </scene>
-            <scene> ... </scene>
-            ...
+            <head> ... </head>
+            <part>
+                <!-- Ordered list of scenes -->
+                <scene> ... </scene>
+                <scene> ... </scene>
+                <scene> ... </scene>
+                ...
+            </part>
+            <part> ... </part>
+            <part> ... </part>
         </body>
+        
+        <!-- older versions of the story -->
+        <version name="A"> ... </version>
+        <version name="B"> ... </version>
+
+        <!-- Story meta text (plans, sketches, clips) -->
+        <meta>
+            <part> ... </part>
+            <part> ... </part>
+        </meta>            
     </story>
 
 NOTE: We remove the scene "visibility" attribute. Every scene in body is visible.
@@ -78,16 +91,24 @@ wants to make some scenes hidden, s/he cuts them to another group. If writer
 wants to make some scenes visible, s/he cuts them to body group.
 
 NOTE! I need to think closer, if <scene>, <chapter> and <part> elements are
-groups, or if they are breaks. More about this later. <scene> is a group by
-nature, because it is somewhat individible piece of text - when you move scene,
-you want all the content to move with that. <part> and <chapter> are different
-in that sense, that it is very, very rare you move entire chapters or parts to
-different location. What you usually do, is to reorganize scenes inside of them
-(moving them in slightly different order, moving scenes between chapters and
-such). Lets think about this very, very closely.
+groups, or if they are breaks. This is how I think it at the moment:
+
+    <scene>     Group, to move content around
+    <chapter>   Break.
+    <part>      Group.
+
+<scene> is a group by nature, because it is somewhat individible piece
+of text - when you move scene, you want all the content to move with
+that.
+
+<part> and <chapter> are different in that sense, that it is very, very
+rare you move entire chapters or parts to different location. What you
+usually do, is to reorganize scenes inside of them (moving them in slightly
+different order, moving scenes between chapters and such). Lets think
+about this very, very closely.
 
 I would really like to emphasize the nature of a story as a sequence of scenes.
-Chapters and sections are tools for you to keep your story organized, not the
+Chapters and parts are tools for you to keep your story organized, not the
 content you work for.
 
 -------------------------------------------------------------------------------
@@ -102,10 +123,6 @@ Alternatives:
             </version>
         <version name="B"> ... </version>
         <version name="C"> ... </version>
-        ...
-
-        <group> ... </group>
-        <group> ... </group>
         ...
     </story>
 
@@ -132,12 +149,7 @@ certain version. So, we keep the <body> block. But we might do better to move
         <version name="B"> ... </version>
         <version name="C"> ... </version>
         ...
-
-        <group> ... </group>
-        <group> ... </group>
-        ...
     </story>
-
 
 -------------------------------------------------------------------------------
 

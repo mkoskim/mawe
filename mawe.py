@@ -7,23 +7,11 @@
 ###############################################################################
 ###############################################################################
 
-#------------------------------------------------------------------------------
-
 import sys
 
 if sys.version_info < (3, 0):
     print("You need Python 3.0 or higher.")
     sys.exit(-1)
-
-#------------------------------------------------------------------------------
-#
-# Objectives:
-#
-# - Integrate project manager to editor
-# - Work with draft view
-# - Work with multiple files
-#
-#------------------------------------------------------------------------------
 
 ###############################################################################
 #
@@ -37,15 +25,24 @@ parser = argparse.ArgumentParser(
     description = "MAWE Advanced Writer's Editor"
 )
 
-parser.add_argument("file", type=str, nargs="*", help="File or folder", default=["test/test.mawe"])
+parser.add_argument(
+    "file", help="File or folder", 
+    type=str, nargs="*",
+    default=["test/test.mawe"]
+)
 
 args = parser.parse_args()
 
-from storage import ProjectManager
-print(args.file)
-ProjectManager.mount(*args.file)
+#------------------------------------------------------------------------------
+# NOTE: At startup, first load files (command line or config), then start
+# scanning directories at background.
+#------------------------------------------------------------------------------
 
-#sys.exit(0)
+import project
+
+project.Manager.mount(*args.file)
+
+sys.exit(0)
 
 ###############################################################################
 #

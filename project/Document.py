@@ -1,24 +1,11 @@
 ###############################################################################
 #
-# Handling storage - load, save, import, export
+# MAWE Document Format
 #
 ###############################################################################
 
-import sys
-#import ProjectManager
-
-#------------------------------------------------------------------------------
-# XML parser; use C parser, if available.
-#------------------------------------------------------------------------------
-
-try:
-    import cElementTree as ET
-    class ExpatError(Exception): pass
-    print("Using: cElementTree", file=sys.stderr)
-except ImportError:
-    import xml.etree.ElementTree as ET
-    from xml.parsers.expat import ExpatError 
-    print("Using: xml.etree.ElementTree", file=sys.stderr)
+import xml.etree.ElementTree as ET
+from xml.parsers.expat import ExpatError 
 
 #------------------------------------------------------------------------------
 # Adding tails to elements to make files looking prettier
@@ -37,4 +24,10 @@ def prettyFormat(elem, level = 0):
             prettyFormat(child, level + 1)
     elem.tail = "\n" + "    " * level
             
+#------------------------------------------------------------------------------
+
+class Document:
+
+    def __init__(self):
+        pass
 

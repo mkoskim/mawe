@@ -9,8 +9,24 @@ from gui.Tkinter import *
 #------------------------------------------------------------------------------
 #
 # Text edit box:
+#
 # - TODO: Make it work also if editing single scene
 # - TODO: Lots of quirks caused by Tkinter
+# - TODO: Autoformat: When pressing enter, check the contents of the
+#   line and format it, for example:
+#
+#   URL => clickable link
+#   --- => Scene break
+#
+#   ...and so on.
+#
+# - TODO: Spellchecking
+# - TODO: Search & Replace
+# - TODO: Auto-tagging? Check the contents of the scenes and propose
+#         tagging? Maybe writer can make some regular expressions for
+#         autotagging?
+#         
+# - TODO: Make some sort of style library to move element/tag configs out.
 #
 #------------------------------------------------------------------------------
 
