@@ -13,6 +13,8 @@ if sys.version_info < (3, 0):
     print("You need Python 3.0 or higher.")
     sys.exit(-1)
 
+from tools.error import *
+
 ###############################################################################
 #
 # Command line arguments

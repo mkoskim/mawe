@@ -4,8 +4,10 @@
 #
 ###############################################################################
 
-import os
-from project.Document import ET
+import os, re
+from project.Document import ET, FormatError
+import tools
+#from tools.error import *
 
 ###############################################################################
 #
@@ -13,31 +15,135 @@ from project.Document import ET
 #
 ###############################################################################
 
+#------------------------------------------------------------------------------
+
 class Project:
 
-    def __init__(self, filename, drive):
-	    self.filename = filename
-	    self.drive = drive
+    #--------------------------------------------------------------------------
 
     @staticmethod
-    def MoeOrMawe(filename, dirname, drive):
-        fullname = os.path.join(drive, dirname, filename)
-        tree = ET.parse(fullname)
-        root = tree.getroot()
+    def open(drive, path):
+        fullname = os.path.join(drive, path)
+        dirname  = os.path.dirname(fullname)
+        filename = os.path.basename(fullname)
         
-        if root.tag != "story":
-            print("Not a moe/mawe file")
-            return None
+        if os.path.splitext(path)[1] in [".moe", ".mawe"]:
+            tree = ET.parse(fullname)
+            root = tree.getroot()
             
-        return fullname
-    
-    Mawe = MoeOrMawe
-    Moe  = MoeOrMawe
+            if root.tag != "story":
+                raise FormatError("%s: Not a moe/mawe file." % fullname)
+            
+            format = root.get("format", "moe")
+            if format == "mawe":
+                return Project.Mawe(drive, path, ET)
+            elif format == "moe":
+                return Project.Moe(drive, path, ET)
 
-    @staticmethod
-    def LaTeX(filename, dirname, drive):
-        fullname = os.path.join(drive, dirname, filename)
-        return fullname
+            raise FormatError("%s: Unknown story format '%s'" % (fullname, format))
+                
+        elif filename == "Makefile":
+            content = tools.readfile(fullname)
+            mainfile = Project.LaTeX.reMainFile.search(content)
+            if not mainfile:
+                mainfile = Project.LaTeX.reDocName.search(content)
+                if not mainfile: return None
+            mainfile = mainfile.group("filename")
+
+            mainfile, ext = os.path.splitext(mainfile)
+            if os.path.isfile(os.path.join(dirname, mainfile) + ".moe"): return
+            if os.path.isfile(os.path.join(dirname, mainfile) + ".mawe"): return
+            
+            return Project.LaTeX(
+                drive,
+                os.path.join(os.path.relpath(dirname, drive), mainfile + ".tex")
+            )
+
+        return None
+
+    #--------------------------------------------------------------------------
+
+    class Base:
+        def __init__(self, drive, path, format = None):
+            self.drive    = drive
+            self.path     = path
+            self.fullname = os.path.join(drive, path)
+            self.format   = format
+            
+        def __str__(self): return self.fullname
+
+    #--------------------------------------------------------------------------
+
+    class Mawe(Base):
+
+	    def __init__(self, drive, path, ET):
+		    super(Project.Mawe, self).__init__(drive, path, "mawe")
+
+    #--------------------------------------------------------------------------
+
+    class Moe(Base):
+
+	    def __init__(self, drive, path, ET):
+		    super(Project.Moe, self).__init__(drive, path, "moe")
+
+    #--------------------------------------------------------------------------
+
+    class LaTeX(Base):
+
+        reMainFile = re.compile(r"^MAINFILE=(?P<filename>.*?)$", re.MULTILINE|re.UNICODE)
+        reDocName  = re.compile(r"^DOCNAME=(?P<filename>.*?)$", re.MULTILINE|re.UNICODE)
+
+        reTEXcomment = re.compile("\%(.*?)$", re.MULTILINE|re.UNICODE)
+        reTEXExtractHeader = re.compile(
+            r"\\(?P<type>shortstory|longstory|novel|collection)" +
+            r"\s*\{(?P<title>.*?)\}" +
+            r"\s*\{(?P<subtitle>.*?)\}" +
+            r"\s*\{(?P<status>.*?)\}" +
+            r"\s*\{(?P<author>.*?)\}" +
+            r"\s*\{(?P<website>.*?)\}" +
+            r"\s*\{(?P<year>.*?)\}", re.MULTILINE|re.DOTALL|re.UNICODE
+        )
+
+        reTEXExtractResearchHeader = re.compile(
+            r"\\(?P<type>research)" +
+            r"\s*\{(?P<imag_authors>.*?)\}" +
+            r"\s*\{(?P<title>.*?)\}" +
+            r"\s*\{(?P<subtitle>.*?)\}" +
+            r"\s*\{(?P<imag_published>.*?)\}" +
+            r"\s*\{(?P<status>.*?)\}" +
+            r"\s*\{(?P<author>.*?)\}" +
+            r"\s*\{(?P<website>.*?)\}" +
+            r"\s*\{(?P<year>.*?)\}", re.MULTILINE|re.DOTALL|re.UNICODE
+        )
+
+        def __init__(self, drive, path):
+            super(Project.LaTeX, self).__init__(drive, path, "latex")
+
+            #tools.log(self.fullname)
+            content = tools.readfile(self.fullname)
+
+            content = self.reTEXcomment.sub("", content)
+            docinfo = self.reTEXExtractHeader.search(content)
+
+            if not docinfo:
+                docinfo = self.reTEXExtractResearchHeader.search(content)
+                if not docinfo: return
+
+            # wc = extractStats(dirname)
+
+            #year = docinfo.group("year")
+            #if year == "": year = "-"
+
+            #return mainfile, Project(
+            #    "LaTeX",
+            #    docinfo.group("type"),
+            #    docinfo.group("title"),
+            #    docinfo.group("subtitle"),
+            #    year,
+            #    docinfo.group("status"),
+            #    "-",
+            #    wc
+            #)
 
 #------------------------------------------------------------------------------
 #
@@ -86,25 +192,4 @@ class Project:
 # .epub, .pdf, .html: These are publishing formats.
 #
 #------------------------------------------------------------------------------
-
-#------------------------------------------------------------------------------
-
-class ProjectMawe(Project):
-
-	def __init__(self, filename, drive):
-		super(ProjectMawe, self).__init__(filename, drive)
-
-#------------------------------------------------------------------------------
-
-class ProjectMoe(Project):
-
-	def __init__(self, filename, drive):
-		super(ProjectMoe, self).__init__(filename, drive)
-
-#------------------------------------------------------------------------------
-
-class ProjectLaTeX(Project):
-
-	def __init__(self, filename, drive):
-		super(ProjectMawe, self).__init__(filename, drive)
 

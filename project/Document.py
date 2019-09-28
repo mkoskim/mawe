@@ -5,7 +5,21 @@
 ###############################################################################
 
 import xml.etree.ElementTree as ET
-from xml.parsers.expat import ExpatError 
+from tools.error import *
+
+#------------------------------------------------------------------------------
+
+class FormatError(Exception):
+
+    def __init__(self, *msg):
+        super(FormatError, self).__init__(*msg)
+        
+#------------------------------------------------------------------------------
+
+class Document:
+
+    def __init__(self):
+        pass
 
 #------------------------------------------------------------------------------
 # Adding tails to elements to make files looking prettier
@@ -25,9 +39,4 @@ def prettyFormat(elem, level = 0):
     elem.tail = "\n" + "    " * level
             
 #------------------------------------------------------------------------------
-
-class Document:
-
-    def __init__(self):
-        pass
 

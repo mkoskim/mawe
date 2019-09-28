@@ -7,6 +7,7 @@
 import os, re
 
 from project.Project import Project
+from tools.error import *
 
 #------------------------------------------------------------------------------
 #
@@ -19,6 +20,10 @@ from project.Project import Project
 #
 # - Load files at startup so that you can continue where you left
 #
+# - Feature: Scan folders for other types (.txt, .rtf, .doc) and choose
+#   projects from those. That is, we need a list of files that where
+#   manually added as projects by user.
+#
 #------------------------------------------------------------------------------
 
 def mount(*files):
@@ -26,25 +31,9 @@ def mount(*files):
 		if os.path.isdir(filename):
 			_scandir(filename)
 		elif os.path.isfile(filename):
-			_addproject(filename)
+			Project.open(os.getcwd(), filename)
 		else:
-			print("%s: Not a file/folder." % filename)
-
-#------------------------------------------------------------------------------
-
-reMawe  = re.compile(r".*\.mawe$")
-reMoe   = re.compile(r".*\.moe$")
-reLaTeX = re.compile(r"^Makefile$")
-
-def _addproject(filename, dirname = "", drive = ""):
-    if reMawe.match(filename):
-	    return Project.Mawe(filename, dirname, drive), False
-    elif reMoe.match(filename):
-	    return Project.Moe(filename, dirname, drive), False
-    elif reLaTeX.match(filename):
-	    return Project.LaTeX(filename, dirname, drive), True
-    else:
-        return None, False
+			ERROR("%s: Not a file/folder." % filename)
 
 #------------------------------------------------------------------------------
 
@@ -61,16 +50,18 @@ def _scandir(drive):
 
         rpath = os.path.relpath(dir, drive)
         subdirs = []
-        isLeaf = False
         
         for f in os.listdir(dir):
             path = os.path.join(dir, f)
             if os.path.islink(path):
 	            links.append(path)
             elif os.path.isfile(path):
-	            project, leaf = _addproject(f, rpath, drive)
-	            if project: projects.append(project)
-	            isLeaf = isLeaf or leaf
+	            try:
+	                project = Project.open(drive, os.path.join(rpath, f))
+	                if project: projects.append(project)
+	            except Exception as e:
+	                log(e.__class__.__name__ + ":", str(e))
+	                pass
             elif os.path.isdir(path):
 	            if f in ["defaults", "moe", ".moerc", "figures"]:
 		            pruned.append(path)
@@ -79,7 +70,6 @@ def _scandir(drive):
 	            else:
 		            subdirs.append(path)
 
-        #if isLeaf: return []
         return subdirs
 
     def _walk(*dirs):
@@ -90,7 +80,7 @@ def _scandir(drive):
     _walk(drive)
 
     #for path in links: print("Link:", path)
-    #for path in projects: print("Project:", path)
+    for project in projects: print("Project:", str(project))
     #for path in scanned:  print("Scanned:", path)
     #for path in pruned:   print("Pruned.:", path)
 
