@@ -15,11 +15,7 @@ if sys.version_info < (3, 0):
 
 from tools.error import *
 
-###############################################################################
-#
-# Command line arguments
-#
-###############################################################################
+#------------------------------------------------------------------------------
 
 import argparse
 
@@ -49,31 +45,13 @@ else:
     doc = project.Mawe(None, None).load()
 
 print(str(doc))
-doc.saveas("test.xml")
+doc.saveas("local/test.xml")
 
 #sys.exit(0)
 
-###############################################################################
-#
-# Main
-#
-###############################################################################
+#------------------------------------------------------------------------------
 
 import gui
 
-root = gui.Tk()
-root.title("mawesome")
-
-def quit(event = None):
-    print("Quit")
-    global root
-    root.destroy()
-
-root.bind("<Control-q>", quit)
-root.bind("<Alt-F4>", quit)
-
-st = gui.SceneGroupEditor(root)
-st.focus()
-
-root.mainloop()
+gui.run()
 

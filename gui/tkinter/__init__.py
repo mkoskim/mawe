@@ -1,9 +1,9 @@
 ###############################################################################
 #
-# MAWE GUI module
+# MAWE Tkinter GUI
 #
 ###############################################################################
 
-#from gui.tkinter.main import run
-from gui.qt.main import run
+from tkinter import Tk
+from gui.tkinter.SceneGroupEdit import SceneGroupEditor
 
