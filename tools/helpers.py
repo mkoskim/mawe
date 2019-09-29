@@ -7,7 +7,8 @@
 from tools.error import *
 
 #-------------------------------------------------------------------------
-# File reading/writing
+# File reading/writing TODO: This is old code, need to check if Python
+# can nowadays detect the file encoding automatically.
 #-------------------------------------------------------------------------
 
 def readfile(filename):

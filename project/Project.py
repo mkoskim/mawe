@@ -5,7 +5,7 @@
 ###############################################################################
 
 import os, re
-from project.Document import ET, FormatError
+from project.Document import ET, FormatError, Document
 import tools
 #from tools.error import *
 
@@ -36,17 +36,17 @@ class Project:
             
             format = root.get("format", "moe")
             if format == "mawe":
-                return Project.Mawe(drive, path, ET)
+                return Mawe(drive, path, root)
             elif format == "moe":
-                return Project.Moe(drive, path, ET)
+                return Moe(drive, path, root)
 
             raise FormatError("%s: Unknown story format '%s'" % (fullname, format))
                 
         elif filename == "Makefile":
             content = tools.readfile(fullname)
-            mainfile = Project.LaTeX.reMainFile.search(content)
+            mainfile = LaTeX.reMainFile.search(content)
             if not mainfile:
-                mainfile = Project.LaTeX.reDocName.search(content)
+                mainfile = LaTeX.reDocName.search(content)
                 if not mainfile: return None
             mainfile = mainfile.group("filename")
 
@@ -54,96 +54,113 @@ class Project:
             if os.path.isfile(os.path.join(dirname, mainfile) + ".moe"): return
             if os.path.isfile(os.path.join(dirname, mainfile) + ".mawe"): return
             
-            return Project.LaTeX(
+            return LaTeX(
                 drive,
                 os.path.join(os.path.relpath(dirname, drive), mainfile + ".tex")
             )
 
         return None
 
-    #--------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
-    class Base:
-        def __init__(self, drive, path, format = None):
-            self.drive    = drive
-            self.path     = path
+class Base:
+    def __init__(self, drive, path, format = None):
+        self.format   = format
+        self.drive    = drive
+        self.path     = path
+
+        if drive and path:
             self.fullname = os.path.join(drive, path)
-            self.format   = format
-            
-        def __str__(self): return self.fullname
+        else:
+            self.fullname = None
+        
+    def __str__(self):
+        if self.fullname: return self.fullname
+        return "<New Project>"
 
-    #--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
 
-    class Mawe(Base):
+class Mawe(Base):
 
-	    def __init__(self, drive, path, ET):
-		    super(Project.Mawe, self).__init__(drive, path, "mawe")
+    def __init__(self, drive, path, root = None):
+        super(Mawe, self).__init__(drive, path, "mawe")
 
-    #--------------------------------------------------------------------------
+    def load(self):
+        if self.fullname:
+            return Document(self, ET.parse(self.fullname))
+        return Document(self)
 
-    class Moe(Base):
+#--------------------------------------------------------------------------
 
-	    def __init__(self, drive, path, ET):
-		    super(Project.Moe, self).__init__(drive, path, "moe")
+class Moe(Base):
 
-    #--------------------------------------------------------------------------
+    def __init__(self, drive, path, root):
+        super(Moe, self).__init__(drive, path, "moe")
 
-    class LaTeX(Base):
+    def load(self):
+        pass
 
-        reMainFile = re.compile(r"^MAINFILE=(?P<filename>.*?)$", re.MULTILINE|re.UNICODE)
-        reDocName  = re.compile(r"^DOCNAME=(?P<filename>.*?)$", re.MULTILINE|re.UNICODE)
+#--------------------------------------------------------------------------
 
-        reTEXcomment = re.compile("\%(.*?)$", re.MULTILINE|re.UNICODE)
-        reTEXExtractHeader = re.compile(
-            r"\\(?P<type>shortstory|longstory|novel|collection)" +
-            r"\s*\{(?P<title>.*?)\}" +
-            r"\s*\{(?P<subtitle>.*?)\}" +
-            r"\s*\{(?P<status>.*?)\}" +
-            r"\s*\{(?P<author>.*?)\}" +
-            r"\s*\{(?P<website>.*?)\}" +
-            r"\s*\{(?P<year>.*?)\}", re.MULTILINE|re.DOTALL|re.UNICODE
-        )
+class LaTeX(Base):
 
-        reTEXExtractResearchHeader = re.compile(
-            r"\\(?P<type>research)" +
-            r"\s*\{(?P<imag_authors>.*?)\}" +
-            r"\s*\{(?P<title>.*?)\}" +
-            r"\s*\{(?P<subtitle>.*?)\}" +
-            r"\s*\{(?P<imag_published>.*?)\}" +
-            r"\s*\{(?P<status>.*?)\}" +
-            r"\s*\{(?P<author>.*?)\}" +
-            r"\s*\{(?P<website>.*?)\}" +
-            r"\s*\{(?P<year>.*?)\}", re.MULTILINE|re.DOTALL|re.UNICODE
-        )
+    reMainFile = re.compile(r"^MAINFILE=(?P<filename>.*?)$", re.MULTILINE|re.UNICODE)
+    reDocName  = re.compile(r"^DOCNAME=(?P<filename>.*?)$", re.MULTILINE|re.UNICODE)
 
-        def __init__(self, drive, path):
-            super(Project.LaTeX, self).__init__(drive, path, "latex")
+    reTEXcomment = re.compile("\%(.*?)$", re.MULTILINE|re.UNICODE)
+    reTEXExtractHeader = re.compile(
+        r"\\(?P<type>shortstory|longstory|novel|collection)" +
+        r"\s*\{(?P<title>.*?)\}" +
+        r"\s*\{(?P<subtitle>.*?)\}" +
+        r"\s*\{(?P<status>.*?)\}" +
+        r"\s*\{(?P<author>.*?)\}" +
+        r"\s*\{(?P<website>.*?)\}" +
+        r"\s*\{(?P<year>.*?)\}", re.MULTILINE|re.DOTALL|re.UNICODE
+    )
 
-            #tools.log(self.fullname)
-            content = tools.readfile(self.fullname)
+    reTEXExtractResearchHeader = re.compile(
+        r"\\(?P<type>research)" +
+        r"\s*\{(?P<imag_authors>.*?)\}" +
+        r"\s*\{(?P<title>.*?)\}" +
+        r"\s*\{(?P<subtitle>.*?)\}" +
+        r"\s*\{(?P<imag_published>.*?)\}" +
+        r"\s*\{(?P<status>.*?)\}" +
+        r"\s*\{(?P<author>.*?)\}" +
+        r"\s*\{(?P<website>.*?)\}" +
+        r"\s*\{(?P<year>.*?)\}", re.MULTILINE|re.DOTALL|re.UNICODE
+    )
 
-            content = self.reTEXcomment.sub("", content)
-            docinfo = self.reTEXExtractHeader.search(content)
+    def __init__(self, drive, path):
+        super(LaTeX, self).__init__(drive, path, "latex")
 
-            if not docinfo:
-                docinfo = self.reTEXExtractResearchHeader.search(content)
-                if not docinfo: return
+        #tools.log(self.fullname)
+        content = tools.readfile(self.fullname)
 
-            # wc = extractStats(dirname)
+        content = self.reTEXcomment.sub("", content)
+        docinfo = self.reTEXExtractHeader.search(content)
 
-            #year = docinfo.group("year")
-            #if year == "": year = "-"
+        if not docinfo:
+            docinfo = self.reTEXExtractResearchHeader.search(content)
+            if not docinfo: return
 
-            #return mainfile, Project(
-            #    "LaTeX",
-            #    docinfo.group("type"),
-            #    docinfo.group("title"),
-            #    docinfo.group("subtitle"),
-            #    year,
-            #    docinfo.group("status"),
-            #    "-",
-            #    wc
-            #)
+        # wc = extractStats(dirname)
+
+        #year = docinfo.group("year")
+        #if year == "": year = "-"
+
+        #return mainfile, Project(
+        #    "LaTeX",
+        #    docinfo.group("type"),
+        #    docinfo.group("title"),
+        #    docinfo.group("subtitle"),
+        #    year,
+        #    docinfo.group("status"),
+        #    "-",
+        #    wc
+        #)
+
+    def load(self):
+        pass
 
 #------------------------------------------------------------------------------
 #

@@ -5,6 +5,7 @@
 ###############################################################################
 
 from gui.Tkinter import *
+from tools.error import *
 
 #------------------------------------------------------------------------------
 #
@@ -111,6 +112,10 @@ class SceneGroupText(ScrolledText):
         self.bind("<BackSpace>", lambda e: self.key_bksp(e))
         self.bind("<Delete>", lambda e: self.key_delete(e))
         self.bind("<Return>", lambda e: self.key_enter(e))
+
+        self.bind("<Control-x>", lambda e: self.cut(e))
+        self.bind("<Control-c>", lambda e: self.copy(e))
+        self.bind("<Control-v>", lambda e: self.paste(e))
 
         #----------------------------------------------------------------------
 
@@ -296,6 +301,20 @@ class SceneGroupText(ScrolledText):
             self.tag_remove("folded", scene.content.start, scene.content.end)
             self.mark_set("insert", scene.content.start)
             return "break"
+
+    #--------------------------------------------------------------------------
+
+    def cut(self, event):
+        #log("Cut")
+        pass
+        
+    def copy(self, event):
+        #log("Copy")
+        pass
+        
+    def paste(self, event):
+        #log("Paste")
+        pass
 
     #--------------------------------------------------------------------------
 

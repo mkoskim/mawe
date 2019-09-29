@@ -29,8 +29,7 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument(
     "file", help="File or folder", 
-    type=str, nargs="*",
-    default=["test/test.mawe"]
+    type=str, nargs="*"
 )
 
 args = parser.parse_args()
@@ -42,9 +41,17 @@ args = parser.parse_args()
 
 import project
 
-project.Manager.mount(*args.file)
+files = project.Manager.mount(*args.file)
 
-sys.exit(0)
+if files:
+    doc = files[0].load()
+else:
+    doc = project.Mawe(None, None).load()
+
+print(str(doc))
+doc.saveas("test.xml")
+
+#sys.exit(0)
 
 ###############################################################################
 #

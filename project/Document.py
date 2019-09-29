@@ -18,25 +18,27 @@ class FormatError(Exception):
 
 class Document:
 
-    def __init__(self):
-        pass
+    def __init__(self, project, tree = None):
+        assert project.format == "mawe"
+        self.project = project
+        if tree is None:
+            tree = ET.ElementTree(ET.fromstring(self.emptydoc))
+        self.tree = tree
+        self.root = tree.getroot()
 
-#------------------------------------------------------------------------------
-# Adding tails to elements to make files looking prettier
-#------------------------------------------------------------------------------
+    def __str__(self):
+        return str(ET.tostring(self.root))
 
-def prettyFormat(elem, level = 0):
-    childs = list(elem)
-    if len(childs) != 0:
-        s = "\n" + "    " * (level+1)
-        if elem.text == None:
-            elem.text = s
-        else:
-            elem.text = string.strip(elem.text) + s
-        
-        for child in elem:
-            prettyFormat(child, level + 1)
-    elem.tail = "\n" + "    " * level
-            
-#------------------------------------------------------------------------------
+    def saveas(self, filename):
+        self.tree.write(filename)
 
+    emptydoc = """
+<story format="mawe">
+    <body>
+        <head>
+        </head>
+        <part>
+        </part>
+    </body>
+</story>
+    """    
