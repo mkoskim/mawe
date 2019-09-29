@@ -98,6 +98,7 @@ class Moe(Base):
         super(Moe, self).__init__(drive, path, "moe")
 
     def load(self):
+        # Create new mawe project, and create mawe tree from moe tree
         pass
 
 #--------------------------------------------------------------------------
@@ -160,6 +161,7 @@ class LaTeX(Base):
         #)
 
     def load(self):
+        # Create new mawe project, and create mawe tree from tex sources
         pass
 
 #------------------------------------------------------------------------------
