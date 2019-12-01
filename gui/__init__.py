@@ -6,7 +6,7 @@
 
 #from gui.tkinter.main import run
 
-from gui.gtk import run
+from gui.gtk.main import run
 
 #------------------------------------------------------------------------------
 # QT: QTextEdit looked promising, but it is crap for my purposes. HTML export

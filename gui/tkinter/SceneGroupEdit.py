@@ -68,7 +68,6 @@ class SceneGroupText(ScrolledText):
         )
 
         self.tag_config("comment", 
-            font = ("Times New Roman", "12"),
             background = "#DDEEDD",
             spacing1 = "6p",
             spacing2 = "4p",
@@ -79,7 +78,6 @@ class SceneGroupText(ScrolledText):
         )
 
         self.tag_config("synopsis", 
-            font = ("Times New Roman", "12"),
             background = "#FFFFCC",
             spacing1 = "8p",
             spacing2 = "4p",
