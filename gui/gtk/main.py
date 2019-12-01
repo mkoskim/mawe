@@ -34,13 +34,15 @@ class SceneGroupEdit(Gtk.Window):
             paragraph_background="#DDFFDD",
             indent = 0,
             #left_margin = 50,
-            pixels_above_lines = 5,
-            pixels_below_lines = 5,
+            pixels_above_lines = 6,
+            pixels_below_lines = 6,
         )
         
         buffer.create_tag("synopsis",
             paragraph_background="#FFFFDD",
             indent = 0,
+            pixels_above_lines = 6,
+            pixels_below_lines = 6,
             #left_margin = 50,
         )
         
