@@ -50,8 +50,8 @@ class SceneGroupEdit(Gtk.Window):
 
         accel = Gtk.AccelGroup()
         accel.connect(*Gtk.accelerator_parse("<Alt>L"), 0, self.lorem)
-        #accel.connect(*Gtk.accelerator_parse("<Alt>C"), 0, self.toggle_comment)
-        #accel.connect(*Gtk.accelerator_parse("<Alt>S"), 0, self.toggle_synopsis)
+        accel.connect(*Gtk.accelerator_parse("<Alt>C"), 0, self.toggle_comment)
+        accel.connect(*Gtk.accelerator_parse("<Alt>S"), 0, self.toggle_synopsis)
         accel.connect(*Gtk.accelerator_parse("<Alt>X"), 0, self.toggle_scenebreak)
         accel.connect(*Gtk.accelerator_parse("<Ctrl>S"), 0, self.save)
         accel.connect(*Gtk.accelerator_parse("<Ctrl>Q"), 0, Gtk.main_quit)
@@ -97,6 +97,36 @@ class SceneGroupEdit(Gtk.Window):
         );
         self.text.scroll_mark_onscreen(self.buffer.get_insert())
         return True
+
+    #--------------------------------------------------------------------------
+
+    def remove_block(self, starts_with):
+        start, end = self.get_line_iter()
+        end = start.copy()
+        end.forward_chars(len(starts_with))
+        
+        if self.buffer.get_text(start, end, True) == starts_with:
+            self.buffer.delete(start, end)
+
+    def toggle_block(self, starts_with):
+        start, end = self.get_line_iter()
+        end = start.copy()
+        end.forward_chars(len(starts_with))
+        
+        if self.buffer.get_text(start, end, True) == starts_with:
+            self.buffer.delete(start, end)
+        else:
+            self.buffer.insert(start, starts_with)
+
+    def toggle_comment(self, accel, widget, keyval, modifiers):
+        self.remove_block("<<")
+        self.remove_block("#")
+        self.toggle_block("//")
+
+    def toggle_synopsis(self, accel, widget, keyval, modifiers):
+        self.remove_block("//")
+        self.remove_block("#")
+        self.toggle_block("<<")
 
     #--------------------------------------------------------------------------
 
