@@ -69,12 +69,8 @@ class SceneGroupEdit(Gtk.Window):
         self.text.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         self.set_tags(self.text)
 
-        #self.text = WebKit2.WebView()
-        #self.text.set_editable(True)
-
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_size_request(600, 800)
-        #scrolled.set_vexpand(True)
         scrolled.add(self.text)
 
         self.add(scrolled)
@@ -88,8 +84,8 @@ class SceneGroupEdit(Gtk.Window):
         accel.connect(*Gtk.accelerator_parse("<Ctrl>Q"), 0, Gtk.main_quit)
         self.add_accel_group(accel)
 
-        self.buffer.connect_after("insert-text", self.onAfterInsertText)
-        self.buffer.connect("delete-range", self.onDeleteRange)
+        #self.buffer.connect_after("insert-text", self.onAfterInsertText)
+        #self.buffer.connect("delete-range", self.onDeleteRange)
         self.buffer.connect("mark-set", self.onMarkSet)
         self.buffer.connect("mark-deleted", self.onMarkDelete)        
         #text.connect("key-press-event", self.edit_shortcuts)
@@ -122,11 +118,11 @@ class SceneGroupEdit(Gtk.Window):
         print(buffer.get_text(start, end, True))
     
     def onMarkSet(self, buffer, iter, mark):
-        if mark.get_name() in ["insert", "selection_bound"]: return
+        if mark.get_name() in [None, "insert", "selection_bound"]: return
         print("Mark set:", mark.get_name(), mark)
         
     def onMarkDelete(self, buffer, mark):
-        if mark.get_name() in ["insert", "selection_bound"]: return
+        if mark.get_name() in [None, "insert", "selection_bound"]: return
         print("Mark deleted:", mark.get_name(), mark)
 
     #--------------------------------------------------------------------------

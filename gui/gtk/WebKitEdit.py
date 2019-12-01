@@ -1,4 +1,4 @@
-from gui.gtk import Gtk, Gdk, Pango, WebKit2
+from gui.gtk import Gtk, Gdk, Pango, WebKit
 
 #------------------------------------------------------------------------------
 
@@ -7,8 +7,10 @@ class SceneGroupEdit(Gtk.Window):
     def __init__(self):
         super(SceneGroupEdit, self).__init__(title = "mawesome")
 
-        self.text = WebKit2.WebView()
+        self.text = WebKit.WebView()
         self.text.set_editable(True)
+
+        self.text.load_html_string("<html><body>test</body></html>", "file:///")
 
         scrolled = Gtk.ScrolledWindow()
         #scrolled.set_size_request(600, 800)
@@ -58,7 +60,10 @@ class SceneGroupEdit(Gtk.Window):
     #--------------------------------------------------------------------------
     
     def save(self, accel, widget, keyval, modifiers):
-        content = self.text.get_dom_document()
-        print(content)
+        #content = self.text.get_dom_document()
+        #help(content)
+        #content = self.text.get_main_frame().get_data_source().get_data().str
+        #print(content)
+
         return True
 
