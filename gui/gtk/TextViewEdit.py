@@ -1,4 +1,4 @@
-from gui.gtk import Gtk, Gdk, Pango
+from gui.gtk import Gtk, Gdk, Pango, GtkSource
 
 #------------------------------------------------------------------------------
 
@@ -64,8 +64,12 @@ class SceneGroupEdit(Gtk.Window):
     def __init__(self):
         super(SceneGroupEdit, self).__init__(title = "mawesome")
 
-        self.buffer = Gtk.TextBuffer()
-        self.text = Gtk.TextView(buffer = self.buffer)
+        #self.buffer = Gtk.TextBuffer()
+        #self.text = Gtk.TextView(buffer = self.buffer)
+        
+        self.buffer = GtkSource.Buffer()
+        self.text = GtkSource.View.new_with_buffer(self.buffer)
+
         self.text.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         self.set_tags(self.text)
 
