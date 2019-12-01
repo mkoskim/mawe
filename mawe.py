@@ -16,6 +16,8 @@ if sys.version_info < (3, 0):
 from tools.error import *
 
 #------------------------------------------------------------------------------
+# Parse command line arguments
+#------------------------------------------------------------------------------
 
 import argparse
 
@@ -44,8 +46,8 @@ if files:
 else:
     doc = project.Mawe(None, None).load()
 
-print(str(doc))
-doc.saveas("local/test.xml")
+#print(str(doc))
+#doc.saveas("local/test.xml")
 
 #sys.exit(0)
 
