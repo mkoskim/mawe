@@ -119,14 +119,18 @@ class SceneGroupEdit(Gtk.Window):
             self.buffer.insert(start, starts_with)
 
     def toggle_comment(self, accel, widget, keyval, modifiers):
+        self.buffer.begin_user_action()
         self.remove_block("<<")
         self.remove_block("#")
         self.toggle_block("//")
+        self.buffer.end_user_action()
 
     def toggle_synopsis(self, accel, widget, keyval, modifiers):
+        self.buffer.begin_user_action()
         self.remove_block("//")
         self.remove_block("#")
         self.toggle_block("<<")
+        self.buffer.end_user_action()
 
     #--------------------------------------------------------------------------
 
