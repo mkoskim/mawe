@@ -13,12 +13,12 @@
     <context id="mawe">
       <include>
 
-        <context id="bold" style-ref="bold">
-          <match>\*.*\*</match>
+        <context id="italic" style-ref="italic">
+            <match>(?&lt;!_)_[^_ \t].*?(?&lt;!\\|_| |\t)_(?!_)</match>
         </context>
 
-        <context id="italic" style-ref="italic">
-          <match>\_.*\_</match>
+        <context id="bold" style-ref="bold">
+            <match>(?&lt;!\*)\*[^\* \t].*?(?&lt;!\\|\*| |\t)\*(?!\*)</match>
         </context>
 
         <context id="scenehdr" style-ref="scenehdr">
