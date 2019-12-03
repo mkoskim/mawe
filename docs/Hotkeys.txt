@@ -28,7 +28,6 @@ Ctrl-X      Cut
 Ctrl-C      Copy
 Ctrl-V      Paste
 Ctrl-Z      Undo
-Ctrl-Y      Redo
 
 -------------------------------------------------------------------------------
 
@@ -70,8 +69,8 @@ Ctrl -  U -
 Ctrl -  V - Paste
 Ctrl -  W - Close
 Ctrl -  X - Cut
-Ctrl -  Y - Redo
-Ctrl -  Z - Undo
+Ctrl -  Y - 
+Ctrl -  Z - Undo            Redo
 
 -------------------------------------------------------------------------------
 
