@@ -3,20 +3,15 @@ import os
 
 #------------------------------------------------------------------------------
 
-def run():
-    langdir = os.path.join(os.path.dirname(__file__), "language-specs")
+def run(filename = None):
 
-    stylemgr = GtkSource.StyleSchemeManager.get_default()
-    path = stylemgr.get_search_path()
-    path.append(langdir)
-    stylemgr.set_search_path(path)
+    print("Filename:", filename)
+    if filename:
+        content = open(filename).read()
+    else:
+        content = None
 
-    langmgr = GtkSource.LanguageManager.get_default()
-    path = langmgr.get_search_path()
-    path.append(langdir)
-    langmgr.set_search_path(path)
-
-    win = SceneGroupEdit()
+    win = SceneGroupEdit(content)
     win.connect("destroy", Gtk.main_quit)
     win.show_all()
     Gtk.main()

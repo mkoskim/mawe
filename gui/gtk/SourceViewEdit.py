@@ -5,7 +5,7 @@ import os
 
 class SceneGroupEdit(Gtk.Window):
 
-    def __init__(self):
+    def __init__(self, content = None):
         super(SceneGroupEdit, self).__init__(title = "mawesome")
 
         self.create_view()
@@ -16,19 +16,12 @@ class SceneGroupEdit(Gtk.Window):
         self.add(scrolled)
         self.set_default_size(600, 800)
 
-        accel = Gtk.AccelGroup()
-        accel.connect(*Gtk.accelerator_parse("<Alt>L"), 0, self.lorem)
-        accel.connect(*Gtk.accelerator_parse("<Alt>C"), 0, self.toggle_comment)
-        accel.connect(*Gtk.accelerator_parse("<Alt>S"), 0, self.toggle_synopsis)
-        accel.connect(*Gtk.accelerator_parse("<Alt>X"), 0, self.toggle_fold)
+        self.set_hotkeys()
 
-        accel.connect(*Gtk.accelerator_parse("<Ctrl>S"), 0, self.save)
-        accel.connect(*Gtk.accelerator_parse("<Ctrl>Q"), 0, Gtk.main_quit)
-
-        accel.connect(*Gtk.accelerator_parse("<Alt>Up"), 0, self.move_line_up)
-        accel.connect(*Gtk.accelerator_parse("<Alt>Down"), 0, self.move_line_down)
-
-        self.add_accel_group(accel)
+        if content:
+            self.buffer.begin_not_undoable_action()
+            self.buffer.insert(self.buffer.get_start_iter(), content)
+            self.buffer.end_not_undoable_action()
 
     def create_view(self):
         self.buffer = GtkSource.Buffer()
@@ -64,7 +57,7 @@ class SceneGroupEdit(Gtk.Window):
         self.text.set_pixels_above_lines(2)
         self.text.set_pixels_below_lines(2)
         
-        self.text.set_show_line_numbers(True)
+        #self.text.set_show_line_numbers(True)
         #self.text.set_show_right_margin(True)
 
         self.create_tags()
@@ -114,6 +107,56 @@ class SceneGroupEdit(Gtk.Window):
         self.buffer.create_tag("debug:update",
             background = "#DDD",
         )
+
+    #--------------------------------------------------------------------------
+
+    def set_hotkeys(self):    
+        #accel = Gtk.AccelGroup()
+        #accel.connect(*Gtk.accelerator_parse("<Alt>L"), 0, self.lorem)
+        #accel.connect(*Gtk.accelerator_parse("<Alt>C"), 0, self.toggle_comment)
+        #accel.connect(*Gtk.accelerator_parse("<Alt>S"), 0, self.toggle_synopsis)
+        #accel.connect(*Gtk.accelerator_parse("<Alt>X"), 0, self.toggle_fold)
+
+        #accel.connect(*Gtk.accelerator_parse("<Ctrl>S"), 0, self.save)
+        #accel.connect(*Gtk.accelerator_parse("<Ctrl>Q"), 0, Gtk.main_quit)
+
+        #accel.connect(*Gtk.accelerator_parse("<Alt>Up"), 0, self.move_line_up)
+        #accel.connect(*Gtk.accelerator_parse("<Alt>Down"), 0, self.move_line_down)
+
+        #self.add_accel_group(accel)
+
+        self.combokeys = {
+            "<Primary>q": lambda: Gtk.main_quit(),
+            "<Alt>a": {
+                "<Alt>f": self.fold_all,
+                "<Alt>u": self.unfold_all,
+            },
+            "<Alt>l": self.lorem,
+            "<Alt>x": self.toggle_fold,
+        }
+        self.combokey = None
+        self.connect("key-press-event", self.onKeyPress)
+
+    def onKeyPress(self, widget, event):
+        keyval = Gdk.keyval_to_lower(event.keyval)
+        mods   = event.state & Gtk.accelerator_get_default_mod_mask()
+        key = Gtk.accelerator_name_with_keycode(
+            None,
+            keyval,
+            event.hardware_keycode,
+            Gdk.ModifierType(mods)
+        )
+        print("Combo:", self.combokey, "Key:", key)
+        if self.combokey == None:
+            if not key in self.combokeys: return
+            if type(self.combokeys[key]) is dict:
+                self.combokey = key
+            else:
+                self.combokeys[key]()
+        else:
+            if key in self.combokeys[self.combokey]:
+                self.combokeys[self.combokey][key]()
+            self.combokey = None
 
     #--------------------------------------------------------------------------
     
@@ -261,6 +304,12 @@ class SceneGroupEdit(Gtk.Window):
     def afterDeleteRange(self, buffer, start, end, *args):
         self.update_tags(start, end)
     
+    def move_line_up(self, accel, widget, keyval, modifiers):
+        print("Move up")
+
+    def move_line_down(self, accel, widget, keyval, modifiers):
+        print("Move down")
+
     #--------------------------------------------------------------------------
     # Scene mark mechanism: If line starts with '##', it is a scene header:
     #
@@ -340,30 +389,70 @@ class SceneGroupEdit(Gtk.Window):
     # Toggle fold marker at the end of the scene header line. Let the
     # update cycle to apply correct tags to buffer.
 
-    def toggle_fold(self, accel, widget, keyval, modifiers):
+    def is_folded(self, iter):
+        return self.line_ends_with(self.fold_marker, iter)
+
+    def fold_off(self, iter):
+        if not self.is_folded(iter): return
+        end   = self.get_line_end_iter(iter)
+        start = self.copy_iter(end, 0, -len(self.fold_marker))
+        self.buffer.delete(start, end)
+
+    def fold_on(self, iter):
+        if self.is_folded(iter): return
+        end = self.get_line_end_iter(iter)
+        self.buffer.insert(end, self.fold_marker)
+
+    def toggle_fold(self):
         cursor = self.get_cursor_iter()
         marks  = self.buffer.get_source_marks_at_iter(cursor, "scene")
         if not marks:
             if not self.buffer.backward_iter_to_source_mark(cursor, "scene"): return
-        end = self.get_line_end_iter(cursor)
 
         self.buffer.begin_user_action()
 
-        if self.line_ends_with(self.fold_marker, end):
-            start = self.copy_iter(end, 0, -len(self.fold_marker))
-            self.buffer.delete(start, end)
+        if self.is_folded(cursor):
+            self.fold_off(cursor)
         else:
-            self.buffer.insert(end, self.fold_marker)
-            self.buffer.place_cursor(self.get_line_start_iter(end))
+            self.fold_on(cursor)
+            self.buffer.place_cursor(self.get_line_start_iter(cursor))
 
         self.buffer.end_user_action()
 
-    def move_line_up(self, accel, widget, keyval, modifiers):
-        print("Move up")
+    def foreach_scene(self, func, exclude_current = True):
+        marks = self.get_source_marks(
+            "scene",
+            self.buffer.get_start_iter(),
+            self.buffer.get_end_iter()
+        )
+        if not len(marks): return
+        
+        self.buffer.begin_user_action()
 
-    def move_line_down(self, accel, widget, keyval, modifiers):
-        print("Move down")
+        for i in range(len(marks)):
+            start  = self.buffer.get_iter_at_mark(marks[i])
+            
+            if exclude_current:
+                if i < len(marks)-1:
+                    end = self.buffer.get_iter_at_mark(marks[i+1])
+                else:
+                    end = self.buffer.get_end_iter()
+                cursor = self.get_cursor_iter()
+                if cursor.in_range(start, end): continue
+            
+            func(start)
 
+        self.buffer.end_user_action()
+        self.text.scroll_mark_onscreen(self.buffer.get_insert())
+        
+    def fold_all(self):
+        print("Fold all")
+        self.foreach_scene(self.fold_on, True)
+        
+    def unfold_all(self):
+        print("Unfold all")
+        self.foreach_scene(self.fold_off, True)
+        
     #--------------------------------------------------------------------------
     # Updating text tags after changes (insert, delete)
     #--------------------------------------------------------------------------
@@ -509,7 +598,7 @@ class SceneGroupEdit(Gtk.Window):
 
     #--------------------------------------------------------------------------
     
-    def lorem(self, accel, widget, keyval, modifiers):
+    def lorem(self):
         self.buffer.begin_user_action()
         self.buffer.delete_selection(True, self.text.get_editable())
         cursor = self.buffer.get_insert()
