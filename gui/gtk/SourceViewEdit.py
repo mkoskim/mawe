@@ -20,7 +20,7 @@ class SceneGroupEdit(Gtk.Window):
         accel.connect(*Gtk.accelerator_parse("<Alt>L"), 0, self.lorem)
         accel.connect(*Gtk.accelerator_parse("<Alt>C"), 0, self.toggle_comment)
         accel.connect(*Gtk.accelerator_parse("<Alt>S"), 0, self.toggle_synopsis)
-        accel.connect(*Gtk.accelerator_parse("<Alt>X"), 0, self.toggle_scenebreak)
+        accel.connect(*Gtk.accelerator_parse("<Alt>X"), 0, self.toggle_fold)
         accel.connect(*Gtk.accelerator_parse("<Ctrl>S"), 0, self.save)
         accel.connect(*Gtk.accelerator_parse("<Ctrl>Q"), 0, Gtk.main_quit)
         self.add_accel_group(accel)
@@ -64,16 +64,24 @@ class SceneGroupEdit(Gtk.Window):
         )
         self.buffer.create_tag("heading:scene",
             foreground = "#888",
-            justification = Gtk.Justification.CENTER,
+            #justification = Gtk.Justification.CENTER,
             weight = Pango.Weight.BOLD,
             pixels_above_lines = 20,
             pixels_below_lines = 5,
         )
         self.buffer.create_tag("folded",
+            indent = 0,
             editable = False,
+            foreground = "#888",
+            weight = Pango.Weight.BOLD,
+            pixels_above_lines = 20,
+            pixels_below_lines = 5,
+        )
+        self.buffer.create_tag("protected",
+            editable = False,
+            background = "#DAA",
         )
         self.buffer.create_tag("hidden",
-            editable = False,
             invisible = True,
         )
         self.buffer.create_tag("debug:update",
@@ -169,9 +177,19 @@ class SceneGroupEdit(Gtk.Window):
         end.forward_chars(len(text))
         return self.buffer.get_text(start, end, True) == text
         
+    def has_tags(self, iter, *tagnames):
+        for tagname in tagnames:
+            tag = self.buffer.get_tag_table().lookup(tagname)
+            if iter.has_tag(tag): return True
+        return False
+        
     def update_indent(self, start, end):
+        #if self.has_tags(start, "folded", "protected", "hidden"): return
+
         self.buffer.remove_tag_by_name("indent", start, end)
+
         if(start.is_start()): return
+        if self.has_tags(start, "heading:scene"): return 
         
         prev_start = start.copy()
         while True:
@@ -179,12 +197,9 @@ class SceneGroupEdit(Gtk.Window):
             prev_start.backward_line()
             prev_end = self.get_line_end_iter(prev_start)
             if(prev_start.equal(prev_end)): return
-            tags = prev_start.get_tags()
-            tags = map(lambda t: t.get_property("name"), tags)
-            tags = list(tags)
-            if "heading:scene" in tags: return
-            if "comment" in tags: continue
-            if "synopsis" in tags: continue
+            if self.has_tags(prev_start, "heading:scene"): return
+            if self.has_tags(prev_start, "folded", "protected", "hidden"): return
+            if self.has_tags(prev_start, "comment", "synopsis"): continue
             break
             
         self.buffer.apply_tag_by_name("indent", start, end)
@@ -194,7 +209,7 @@ class SceneGroupEdit(Gtk.Window):
         pass
 
     def update_line_tags(self, start, end):
-        #end.forward_char()
+        if self.has_tags(start, "folded", "protected", "hidden"): return
         self.buffer.remove_all_tags(start, end)
         
         if self.line_starts_with("#", start):
@@ -211,11 +226,6 @@ class SceneGroupEdit(Gtk.Window):
             self.buffer.apply_tag_by_name("missing", start, end)
             self.update_indent(start, end)
             self.update_spans(start, end)
-        elif self.line_starts_with("...", start):
-            fold_start = start.copy()
-            fold_start.forward_chars(3)
-            self.buffer.apply_tag_by_name("hidden", fold_start, end)
-            self.update_indent(start, end)
         else:
             self.buffer.apply_tag_by_name("text", start, end)
             self.update_indent(start, end)
@@ -328,7 +338,78 @@ class SceneGroupEdit(Gtk.Window):
 
         #toggle_tag_to_line("folded")
         #apply_source_mark_to_line()
-    
+
+    #--------------------------------------------------------------------------
+
+    def toggle_fold(self, accel, widget, keyval, modifiers):
+        scene_tag = self.buffer.get_tag_table().lookup("heading:scene")
+        prot_tag  = self.buffer.get_tag_table().lookup("protected")
+        hide_tag  = self.buffer.get_tag_table().lookup("hidden")
+        fold_tag  = self.buffer.get_tag_table().lookup("folded")
+        
+        cursor = self.get_cursor_iter()
+
+        def fold_off():
+            mark_start = cursor.copy()
+            
+            if not mark_start.begins_tag(fold_tag):
+                if mark_start.has_tag(fold_tag):
+                    mark_start.backward_to_tag_toggle(fold_tag)
+                else:
+                    mark_start.forward_to_tag_toggle(fold_tag)
+            
+            hide_start = mark_start.copy()
+            hide_start.backward_to_tag_toggle(hide_tag)
+            self.buffer.place_cursor(hide_start)
+            hide_start.backward_to_tag_toggle(prot_tag)
+            
+            mark_end = mark_start.copy()
+            mark_end.forward_to_tag_toggle(fold_tag)
+            
+            self.dump_range("Fold off", hide_start, mark_start)
+            self.dump_range("Mark off", mark_start, mark_end)
+            self.buffer.remove_tag(hide_tag, hide_start, mark_start)
+            self.buffer.remove_tag(prot_tag, hide_start, mark_start)
+            self.buffer.delete(mark_start, mark_end)
+            return
+        
+        def fold_on():
+            end = cursor.copy()
+
+            if end.has_tag(scene_tag) and not end.ends_tag(scene_tag):
+                end.forward_to_tag_toggle(scene_tag)
+            if not end.forward_to_tag_toggle(scene_tag):
+                end = self.buffer.get_end_iter()
+            
+            start = end.copy()
+            if not start.backward_to_tag_toggle(scene_tag): return
+            name_end = start.copy()
+            if not start.backward_to_tag_toggle(scene_tag): return
+            if start.has_tag(prot_tag): return
+
+            self.dump_range("Fold on", start, end)
+
+            name = self.buffer.get_text(start, name_end, False)
+            
+            self.buffer.apply_tag(hide_tag, start, end)
+            start.backward_char()
+            self.buffer.apply_tag(prot_tag, start, end)
+
+            mark = self.buffer.create_mark(None, end, True)
+            self.buffer.insert_with_tags(end, "%s (···)\n" % name.strip(), fold_tag)
+            start = self.buffer.get_iter_at_mark(mark)
+            self.buffer.delete_mark(mark)
+            self.buffer.remove_tag(prot_tag, start, end)
+            self.buffer.remove_tag(hide_tag, start, end)
+            self.buffer.place_cursor(start)
+
+        self.buffer.begin_user_action()
+        if cursor.has_tag(fold_tag):
+            fold_off()
+        else:
+            fold_on()            
+        self.buffer.end_user_action()
+
     #--------------------------------------------------------------------------
     
     def save(self, accel, widget, keyval, modifiers):
