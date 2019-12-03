@@ -44,6 +44,37 @@ Shift-Alt-F to unfold current level
 
 -------------------------------------------------------------------------------
 
+Ctrl:                       Shift-Ctrl:
+
+Ctrl -  A - Select All
+Ctrl -  B -
+Ctrl -  C - Copy
+Ctrl -  D -
+Ctrl -  E -
+Ctrl -  F - Find
+Ctrl -  G - Find next       Find previous
+Ctrl -  H -
+Ctrl -  I -
+Ctrl -  J -
+Ctrl -  K -
+Ctrl -  L -
+Ctrl -  M -
+Ctrl -  N -
+Ctrl -  O -
+Ctrl -  P -
+Ctrl -  Q - Quit
+Ctrl -  R -
+Ctrl -  S -
+Ctrl -  T -
+Ctrl -  U -
+Ctrl -  V - Paste
+Ctrl -  W - Close
+Ctrl -  X - Cut
+Ctrl -  Y - Redo
+Ctrl -  Z - Undo
+
+-------------------------------------------------------------------------------
+
 Alt:
 
 Alt  -  A - 
@@ -73,34 +104,30 @@ Alt  -  X -
 Alt  -  Y - 
 Alt  -  Z - 
 
+Alt  - Up - Move line/selection up
+Alt  - Dn - Move line/selection down
+Alt  - Lt -
+Alt  - Rt -
+
 -------------------------------------------------------------------------------
 
-Ctrl:
+Function keys:
 
-Ctrl -  A - Select All
-Ctrl -  B -
-Ctrl -  C - Copy
-Ctrl -  D -
-Ctrl -  E -
-Ctrl -  F -
-Ctrl -  G -
-Ctrl -  H -
-Ctrl -  I -
-Ctrl -  J -
-Ctrl -  K -
-Ctrl -  L -
-Ctrl -  M -
-Ctrl -  N -
-Ctrl -  O -
-Ctrl -  P -
-Ctrl -  Q -
-Ctrl -  R -
-Ctrl -  S -
-Ctrl -  T -
-Ctrl -  U -
-Ctrl -  V - Paste
-Ctrl -  W -
-Ctrl -  X - Cut
-Ctrl -  Y - Redo
-Ctrl -  Z - Undo
+-------------------------------------------------------------------------------
+
+Other keys:
+
+Tab
+Enter
+Delete
+Insert
+Page up
+Page down
+Cursor up
+Cursor down
+Cursor left
+Cursor right
+Space
+Ctrl - minus
+Ctrl - plus
 

@@ -1,3 +1,11 @@
+SERIOUS ISSUES:
+
+- GtkSourceView crashes randomly!!! Errors like this:
+  (mawe.py:10556): Gtk-WARNING **: /build/gtk+3.0-2Ut_nl/gtk+3.0-3.18.9/./gtk/gtktextbtree.c:4034: byte index off the end of the line
+
+  (mawe.py:10556): Gtk-ERROR **: Byte index 1362 is off the end of the line
+  Trace/breakpoint trap
+
 FIX:
 
 - Move line (Alt-up, alt-down) does not work with markers. Moving
@@ -7,4 +15,10 @@ FIX:
 
 - Cut & paste scene headers has quirks: we might need to remove
   protection tag before cutting
+
+DONE:
+
+- DONE: Key combinations, e.g. Alt-A + Alt-F -> Fold all
+
+- DONE: Fold / Unfold all
 
