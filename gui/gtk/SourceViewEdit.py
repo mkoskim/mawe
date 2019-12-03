@@ -34,8 +34,9 @@ class SceneGroupEdit(Gtk.Window):
         self.buffer = GtkSource.Buffer()
         self.buffer.set_highlight_matching_brackets(False)
 
-        self.buffer.connect_after("insert-text", self.afterInsertText)
+        self.buffer.connect      ("delete-range", self.beforeDeleteRange)
         self.buffer.connect_after("delete-range", self.afterDeleteRange)
+        self.buffer.connect_after("insert-text",  self.afterInsertText)
 
         self.text = GtkSource.View.new_with_buffer(self.buffer)
 
@@ -245,6 +246,21 @@ class SceneGroupEdit(Gtk.Window):
         ))
 
     #--------------------------------------------------------------------------
+
+    def afterInsertText(self, buffer, end, text, length, *args):
+        start = self.copy_iter(end, 0, -length)
+        self.remove_protection(start, end)
+        self.remove_marks(start, end)
+        self.update_tags(start, end)
+    
+    def beforeDeleteRange(self, buffer, start, end, *args):
+        self.remove_protection(start, end)
+        self.remove_marks(start, end)
+        
+    def afterDeleteRange(self, buffer, start, end, *args):
+        self.update_tags(start, end)
+    
+    #--------------------------------------------------------------------------
     # Scene mark mechanism: If line starts with '##', it is a scene header:
     #
     # \n<mark>##
@@ -268,17 +284,20 @@ class SceneGroupEdit(Gtk.Window):
     # which are reapplied to correctly formed header lines. In addition, we scan
     # for marks that are no longer on the valid position, and remove them.
 
-    def fix_scene_marks(self, start, end):
+    def remove_protection(self, start, end):
         start = self.get_line_start_iter(start)
         end = self.get_line_end_iter(end)
 
         self.buffer.remove_tag(self.tag_prot, self.copy_iter(start, 0, -1), end)
 
-        for mark in self.get_source_marks("scene", start, end):
-            iter = self.buffer.get_iter_at_mark(mark)
-            if not iter.starts_line() or not self.expect_forward("##", iter):
-                self.buffer.delete_mark(mark)
-                del self.marks[mark]
+    def remove_marks(self, start, end):
+        start = self.get_line_start_iter(start)
+        end   = self.get_line_end_iter(end)
+
+        for mark in self.get_source_marks(None, start, end):
+            self.dump_mark("Delete", mark)
+            self.buffer.delete_mark(mark)
+            del self.marks[mark]
 
     #--------------------------------------------------------------------------
     # Called from update cycle, when a valid scene header (starting with '##')
@@ -292,14 +311,15 @@ class SceneGroupEdit(Gtk.Window):
         prot_end   = self.copy_iter(start, 0, +1)
         self.buffer.apply_tag(self.tag_prot, prot_start, prot_end)
 
-        # Update scene marker
-        marks = self.get_source_marks("scene", prot_start, prot_end)
-        if marks:
-            #for mark in marks: self.dump_mark("Found", mark)
-            mark = marks[0]
-        else:
-            mark = self.buffer.create_source_mark(None, "scene", start)
-            #self.dump_mark("Created", mark)
+        # Create scene marker
+        #marks = self.get_source_marks("scene", prot_start, prot_end)
+        #if marks:
+        #    #for mark in marks: self.dump_mark("Found", mark)
+        #    mark = marks[0]
+        #else:
+        
+        mark = self.buffer.create_source_mark(None, "scene", start)
+        self.dump_mark("Created", mark)
         self.marks[mark] = self.buffer.get_text(start, end, False)[2:].strip()
 
         # Update folding
@@ -351,15 +371,6 @@ class SceneGroupEdit(Gtk.Window):
     # Updating text tags after changes (insert, delete)
     #--------------------------------------------------------------------------
 
-    def afterInsertText(self, buffer, iter, text, length, *args):
-        start = self.copy_iter(iter, 0, -length)
-        self.update_tags(start, iter)
-    
-    def afterDeleteRange(self, buffer, start, end, *args):
-        # start == end (delete already done)
-        #self.dump_range("Delete", start, end)
-        self.update_tags(start, end)
-    
     def has_tags(self, iter, *tagnames):
         for tagname in tagnames:
             tag = self.tagtbl.lookup(tagname)
@@ -367,8 +378,6 @@ class SceneGroupEdit(Gtk.Window):
         return False
         
     def update_tags(self, start, end):
-        self.fix_scene_marks(start, end)
-
         line = self.get_line_start_iter(start)
         while(line.compare(self.get_line_end_iter(end)) < 1):
             self.update_line_tags(line, self.get_line_end_iter(line))
