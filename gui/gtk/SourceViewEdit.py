@@ -184,7 +184,7 @@ class SceneGroupEdit(Gtk.Window):
         return False
         
     def update_indent(self, start, end):
-        #if self.has_tags(start, "folded", "protected", "hidden"): return
+        if self.has_tags(start, "folded", "protected", "hidden"): return
 
         self.buffer.remove_tag_by_name("indent", start, end)
 
