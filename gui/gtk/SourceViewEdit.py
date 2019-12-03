@@ -150,7 +150,7 @@ class SceneGroupEdit(Gtk.Window):
             prefix,
             category, name,
             line + 1, offset,
-            text
+            text[:20]
         ))
 
     def dump_source_marks(self, category, start, end):
@@ -254,6 +254,7 @@ class SceneGroupEdit(Gtk.Window):
         self.update_tags(start, end)
     
     def beforeDeleteRange(self, buffer, start, end, *args):
+        self.dump_range("Delete", start, end)
         self.remove_protection(start, end)
         self.remove_marks(start, end)
         
@@ -312,17 +313,13 @@ class SceneGroupEdit(Gtk.Window):
         self.buffer.apply_tag(self.tag_prot, prot_start, prot_end)
 
         # Create scene marker
-        #marks = self.get_source_marks("scene", prot_start, prot_end)
-        #if marks:
-        #    #for mark in marks: self.dump_mark("Found", mark)
-        #    mark = marks[0]
-        #else:
-        
+
         mark = self.buffer.create_source_mark(None, "scene", start)
-        self.dump_mark("Created", mark)
         self.marks[mark] = self.buffer.get_text(start, end, False)[2:].strip()
+        self.dump_mark("Created", mark)
 
         # Update folding
+
         next_scene = end.copy()
         if not self.buffer.forward_iter_to_source_mark(next_scene, "scene"):
             next_scene = self.buffer.get_end_iter()
