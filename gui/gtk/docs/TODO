@@ -1,0 +1,10 @@
+FIX:
+
+- Move line (Alt-up, alt-down) does not work with markers. Moving
+  header line over another will duplicate the mark.
+
+- Moving folder scene will leave scene content behind
+
+- Cut & paste scene headers has quirks: we might need to remove
+  protection tag before cutting
+

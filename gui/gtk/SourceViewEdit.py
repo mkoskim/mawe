@@ -10,7 +10,7 @@ class SceneGroupEdit(Gtk.Window):
 
         self.create_view()
         scrolled = Gtk.ScrolledWindow()
-        #scrolled.set_size_request(600, 800)
+        scrolled.set_size_request(500, 500)
         scrolled.add(self.text)
 
         self.add(scrolled)
@@ -24,14 +24,11 @@ class SceneGroupEdit(Gtk.Window):
 
         accel.connect(*Gtk.accelerator_parse("<Ctrl>S"), 0, self.save)
         accel.connect(*Gtk.accelerator_parse("<Ctrl>Q"), 0, Gtk.main_quit)
+
+        accel.connect(*Gtk.accelerator_parse("<Alt>Up"), 0, self.move_line_up)
+        accel.connect(*Gtk.accelerator_parse("<Alt>Down"), 0, self.move_line_down)
+
         self.add_accel_group(accel)
-
-        #self.buffer.connect("highlight-updated", self.onHighlightUpdated)
-        #self.buffer.connect("mark-set", self.onMarkSet)
-        #self.buffer.connect("mark-deleted", self.onMarkDelete)        
-        #text.connect("key-press-event", self.edit_shortcuts)
-
-        #print(self.buffer.get_serialize_formats())
 
     def create_view(self):
         self.buffer = GtkSource.Buffer()
@@ -42,6 +39,22 @@ class SceneGroupEdit(Gtk.Window):
 
         self.text = GtkSource.View.new_with_buffer(self.buffer)
 
+        provider = Gtk.CssProvider()
+        provider.load_from_data(
+            b"""
+            .view {
+                padding-left: 1cm;
+                padding-right: 1cm;
+                padding-top: 0.5cm;
+                padding-bottom: 2cm;
+            }
+            """
+        )
+        self.text.get_style_context().add_provider(
+            provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
+
         self.text.modify_font(Pango.FontDescription("Times 12"))
         #self.text.modify_font(Pango.FontDescription("Sans 12"))
         #self.text.modify_font(Pango.FontDescription("Serif 12"))
@@ -49,7 +62,6 @@ class SceneGroupEdit(Gtk.Window):
         self.text.set_pixels_inside_wrap(4)
         self.text.set_pixels_above_lines(2)
         self.text.set_pixels_below_lines(2)
-        #self.text.set_indent(30)
         
         self.text.set_show_line_numbers(True)
         #self.text.set_show_right_margin(True)
@@ -115,7 +127,7 @@ class SceneGroupEdit(Gtk.Window):
             
         add_category("scene")
         self.marks = {}
-        self.text.set_show_line_marks(True)
+        #self.text.set_show_line_marks(True)
     
     def get_source_marks(self, category, start, end):
         marks = []
@@ -233,8 +245,28 @@ class SceneGroupEdit(Gtk.Window):
         ))
 
     #--------------------------------------------------------------------------
-    # Scene marks
+    # Scene mark mechanism: If line starts with '##', it is a scene header:
+    #
+    # \n<mark>##
+    # |-prot--|
+    #
+    # We place the mark at the beginning of the line, and protect newline
+    # and first '#'. This ensures that the mark moves with line. The second
+    # '#' is not protected, which allows users to remove scene heading.
+    #
+    # Folding is indicated by ending the scene header with special 'tag'.
+    # (see fold_marker). Adding this to the end of the header will protect
+    # the entire header line (to prevent users to split the line), and hide
+    # everything to the next scene header.
+    #
     #--------------------------------------------------------------------------
+
+    fold_marker = " ···"
+
+    #--------------------------------------------------------------------------
+    # Called at the beginning of the update cycle. This removes protection tags,
+    # which are reapplied to correctly formed header lines. In addition, we scan
+    # for marks that are no longer on the valid position, and remove them.
 
     def fix_scene_marks(self, start, end):
         start = self.get_line_start_iter(start)
@@ -247,6 +279,11 @@ class SceneGroupEdit(Gtk.Window):
             if not iter.starts_line() or not self.expect_forward("##", iter):
                 self.buffer.delete_mark(mark)
                 del self.marks[mark]
+
+    #--------------------------------------------------------------------------
+    # Called from update cycle, when a valid scene header (starting with '##')
+    # is found. Reapply protection, update scene name to buffer, and update
+    # scene folding.
 
     def apply_scene(self, start, end):
         self.buffer.apply_tag_by_name("heading:scene", start, end)
@@ -282,7 +319,9 @@ class SceneGroupEdit(Gtk.Window):
                 self.buffer.remove_tag(self.tag_hide, end, next_scene)
                 self.buffer.remove_tag(self.tag_prot, start, prot_to)
 
-    fold_marker = " ···"
+    #--------------------------------------------------------------------------
+    # Toggle fold marker at the end of the scene header line. Let the
+    # update cycle to apply correct tags to buffer.
 
     def toggle_fold(self, accel, widget, keyval, modifiers):
         cursor = self.get_cursor_iter()
@@ -302,8 +341,14 @@ class SceneGroupEdit(Gtk.Window):
 
         self.buffer.end_user_action()
 
+    def move_line_up(self, accel, widget, keyval, modifiers):
+        print("Move up")
+
+    def move_line_down(self, accel, widget, keyval, modifiers):
+        print("Move down")
+
     #--------------------------------------------------------------------------
-    # Updating text tags after changes
+    # Updating text tags after changes (insert, delete)
     #--------------------------------------------------------------------------
 
     def afterInsertText(self, buffer, iter, text, length, *args):
@@ -442,12 +487,18 @@ class SceneGroupEdit(Gtk.Window):
         def dump_source_marks_at(iter = None):
             for mark in self.get_source_marks(iter):
                 print(mark.get_property("category"), mark.get_property("name"))
-   
-        def dump_contexts_at(iter):
-            print(self.buffer.get_context_classes_at_iter(iter))
-            
-        dump_source_marks_at()
+
+        def dump_text():
+            text = self.buffer.get_text(
+                self.buffer.get_start_iter(),
+                self.buffer.get_end_iter(),
+                True
+            )
+            print(text)
+
+        #dump_source_marks_at()
         #dump_contexts_at(self.get_cursor_iter())
+        dump_text()
         return True
 
     #--------------------------------------------------------------------------
@@ -473,5 +524,3 @@ class SceneGroupEdit(Gtk.Window):
         self.text.scroll_mark_onscreen(self.buffer.get_insert())
         self.buffer.end_user_action()
         return True
-
-
