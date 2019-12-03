@@ -138,15 +138,14 @@ class SceneGroupEdit(Gtk.Window):
         self.connect("key-press-event", self.onKeyPress)
 
     def onKeyPress(self, widget, event):
-        keyval = Gdk.keyval_to_lower(event.keyval)
+        keyval = Gdk.keyval_to_upper(event.keyval)
         mods   = event.state & Gtk.accelerator_get_default_mod_mask()
-        key = Gtk.accelerator_name_with_keycode(
-            None,
-            keyval,
-            event.hardware_keycode,
-            Gdk.ModifierType(mods)
+        key = Gtk.accelerator_name(
+            event.keyval, #keyval,
+            mods #Gdk.ModifierType(mods)
         )
-        print("Combo:", self.combokey, "Key:", key)
+        #print("Keyval:", keyval, "Mods:", Gdk.ModifierType(mods))
+        #print("Combo:", self.combokey, "Key:", key)
         if self.combokey == None:
             if not key in self.combokeys: return
             if type(self.combokeys[key]) is dict:
