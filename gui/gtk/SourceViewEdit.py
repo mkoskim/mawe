@@ -22,46 +22,39 @@ class SceneGroupEdit(Gtk.Window):
             self.buffer.begin_not_undoable_action()
             self.buffer.insert(self.buffer.get_start_iter(), content)
             self.buffer.end_not_undoable_action()
+            self.buffer.place_cursor(self.buffer.get_start_iter())
 
     def create_view(self):
+        #self.buffer = Gtk.TextBuffer()
+        #self.text = Gtk.TextView.new_with_buffer(self.buffer)
         self.buffer = GtkSource.Buffer()
         self.buffer.set_highlight_matching_brackets(False)
+        self.text = GtkSource.View.new_with_buffer(self.buffer)
+
+        self.create_source_mark_categories()
+        self.create_tags()
 
         self.buffer.connect      ("delete-range", self.beforeDeleteRange)
         self.buffer.connect_after("delete-range", self.afterDeleteRange)
         self.buffer.connect_after("insert-text",  self.afterInsertText)
 
-        self.text = GtkSource.View.new_with_buffer(self.buffer)
-
-        provider = Gtk.CssProvider()
-        provider.load_from_data(
-            b"""
-            .view {
-                padding-left: 1cm;
-                padding-right: 1cm;
-                padding-top: 0.5cm;
-                padding-bottom: 2cm;
-            }
-            """
-        )
-        self.text.get_style_context().add_provider(
-            provider,
-            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-        )
+        self.text.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
 
         self.text.modify_font(Pango.FontDescription("Times 12"))
         #self.text.modify_font(Pango.FontDescription("Sans 12"))
         #self.text.modify_font(Pango.FontDescription("Serif 12"))
-        self.text.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         self.text.set_pixels_inside_wrap(4)
         self.text.set_pixels_above_lines(2)
         self.text.set_pixels_below_lines(2)
         
+        self.text.set_left_margin(40)
+        self.text.set_right_margin(40)
+        self.text.set_top_margin(40)
+        self.text.set_bottom_margin(80)
+
         #self.text.set_show_line_numbers(True)
         #self.text.set_show_right_margin(True)
-
-        self.create_tags()
-        self.create_source_mark_categories()
+        #self.text.set_show_line_marks(True)
 
     def create_tags(self):
         self.tagtbl = self.buffer.get_tag_table()
@@ -97,7 +90,8 @@ class SceneGroupEdit(Gtk.Window):
         
         self.tag_fold_prot = self.buffer.create_tag("fold:protect",
             editable = False,
-            background = "#CDC",
+            #background = "#EAE",
+            #foreground = "#DDD",
         )
         self.tag_fold_hide = self.buffer.create_tag("fold:hidden",
             editable   = False,
@@ -126,13 +120,23 @@ class SceneGroupEdit(Gtk.Window):
 
         #self.add_accel_group(accel)
 
+        def undo():
+            self.buffer.undo()
+            return True
+
+        def redo():
+            self.buffer.redo()
+            return True
+
         self.combokeys = {
+            "<Primary>z": undo,
+            "<Primary><Shift>z": redo,
             "<Primary>q": lambda: Gtk.main_quit(),
             "<Alt>a": {
                 "<Alt>f": self.fold_all,
                 "<Alt>u": self.unfold_all,
             },
-            #"<Alt>g": self.select_and_fold,
+            "<Alt>g": self.select_and_fold,
             "<Alt>l": self.lorem,
             "<Alt>x": self.toggle_fold,
             
@@ -142,6 +146,9 @@ class SceneGroupEdit(Gtk.Window):
             "<Primary>Down": self.fix_ctrl_down,
             "<Primary><Shift>Up": self.fix_ctrl_shift_up,
             "<Primary><Shift>Down": self.fix_ctrl_shift_down,
+            
+            "<Alt>Up":   self.move_line_up,
+            "<Alt>Down": self.move_line_down,
         }
         self.combokey = None
         self.connect("key-press-event", self.onKeyPress)
@@ -159,6 +166,7 @@ class SceneGroupEdit(Gtk.Window):
             if not key in self.combokeys: return False
             if type(self.combokeys[key]) is dict:
                 self.combokey = key
+                return True
             else:
                 return self.combokeys[key]()
         else:
@@ -172,26 +180,36 @@ class SceneGroupEdit(Gtk.Window):
     def fix_ctrl_shift_up(self):   return self.fix_ctrl_up(True)
     def fix_ctrl_up(self, select = False):
         cursor = self.get_cursor_iter()
-        if cursor.starts_line(): return False
-
-        start = self.get_line_start_iter(cursor)
-        if select:
-            self.buffer.move_mark(self.buffer.get_insert(), start)
+        if cursor.is_start(): return True
+        if not cursor.starts_line():
+            cursor = self.get_line_start_iter(cursor)
         else:
-            self.buffer.place_cursor(start)
+            cursor.backward_line()
+            
+        if select:
+            self.buffer.move_mark(self.buffer.get_insert(), cursor)
+        else:
+            self.buffer.place_cursor(cursor)
+        self.text.scroll_mark_onscreen(self.buffer.get_insert())
         return True
         
     def fix_ctrl_shift_down(self): return self.fix_ctrl_down(True)
     def fix_ctrl_down(self, select = False):
         cursor = self.get_cursor_iter()
-        if cursor.ends_line(): return False
-
-        end = self.get_line_end_iter(cursor)
-        if select:
-            self.buffer.move_mark(self.buffer.get_insert(), end)
+        if cursor.is_end(): return True
+        if not cursor.starts_line():
+            cursor = self.get_line_end_iter(cursor)
+            cursor.forward_char()
         else:
-            self.buffer.place_cursor(end)
+            cursor.forward_line()
+            
+        if select:
+            self.buffer.move_mark(self.buffer.get_insert(), cursor)
+        else:
+            self.buffer.place_cursor(cursor)
+        self.text.scroll_mark_onscreen(self.buffer.get_insert())
         return True
+        
     
     #--------------------------------------------------------------------------
     
@@ -206,7 +224,6 @@ class SceneGroupEdit(Gtk.Window):
             
         add_category("scene")
         self.marks = {}
-        #self.text.set_show_line_marks(True)
     
     def get_source_marks(self, category, start, end):
         marks = []
@@ -235,35 +252,6 @@ class SceneGroupEdit(Gtk.Window):
         print("Marks:")
         for mark in self.get_source_marks(category, start, end):
             self.dump_mark("-", mark)
-
-    #--------------------------------------------------------------------------
-
-    def testkey(self, accel, widget, keyval, modifiers):
-        def insert_label():
-            cursor = self.get_cursor_iter()
-            label = Gtk.Label()
-            label.set_text("...")
-            label.set_visible(True)
-            anchor = self.buffer.create_child_anchor(cursor)
-            self.text.add_child_at_anchor(label, anchor)
-            
-        def toggle_tag_to_line(tagname):
-            tag = self.tagtbl.lookup(tagname)
-            cursor = self.get_cursor_iter()
-            start, end = self.get_line_iter()
-            start.backward_char()
-
-            if cursor.has_tag(tag):
-                self.buffer.remove_tag(tag, start, end)
-            else:
-                self.buffer.apply_tag(tag, start, end)
-
-        def apply_source_mark_to_line():
-            cursor = self.get_line_start_iter()
-            self.toggle_source_mark("scene")
-
-        #toggle_tag_to_line("folded")
-        #apply_source_mark_to_line()
 
     #--------------------------------------------------------------------------
     
@@ -329,12 +317,12 @@ class SceneGroupEdit(Gtk.Window):
 
     def afterInsertText(self, buffer, end, text, length, *args):
         start = self.copy_iter(end, 0, -length)
-        self.dump_range("Insert", start, end)
+        #self.dump_range("Insert", start, end)
         self.remove_scene_marks(start, end)
         self.update_tags(start, end)
     
     def beforeDeleteRange(self, buffer, start, end, *args):
-        self.dump_range("Delete", start, end)
+        #self.dump_range("Delete", start, end)
         self.remove_scene_marks(start, end)
         
     def afterDeleteRange(self, buffer, start, end, *args):
@@ -342,26 +330,38 @@ class SceneGroupEdit(Gtk.Window):
     
     #--------------------------------------------------------------------------
 
+    def has_scene_mark(self, at):
+        marks = self.buffer.get_source_marks_at_iter(at, "scene")
+        return len(marks) > 0
+
+    def scene_first_iter(self):
+        at = self.buffer.get_start_iter()
+        if self.has_scene_mark(at): return at
+        return self.scene_next_iter(at)
+
     def scene_next_iter(self, at):
         at = at.copy()
+        #if self.has_scene_mark(at): at.forward_char()
         if not self.buffer.forward_iter_to_source_mark(at, "scene"):
             return None
         return at
 
     def scene_prev_iter(self, at):
         at = at.copy()
+        #if self.has_scene_mark(at): at.backward_char()
         if not self.buffer.backward_iter_to_source_mark(at, "scene"):
             return None
         return at
 
-    def scene_start_iter(self, at):
-        marks = self.buffer.get_source_marks_at_iter(at, "scene")
-        if marks: return at.copy()
+    def scene_start_iter(self, at = None):
+        if at is None: at = self.get_cursor_iter()
+        if self.has_scene_mark(at): return at.copy()
         return self.scene_prev_iter(at)
         
-    def scene_end_iter(self, at):
+    def scene_end_iter(self, at = None):
+        if at is None: at = self.get_cursor_iter()
         end = self.scene_next_iter(at)
-        if not end: return self.buffer.get_end_iter()
+        if end is None: return self.buffer.get_end_iter()
         return end
 
     def create_scene_mark(self, at):
@@ -369,21 +369,23 @@ class SceneGroupEdit(Gtk.Window):
         start, end = self.get_line_iter(at)
         self.marks[mark] = self.buffer.get_text(start, end, False)[2:].strip()
 
-        self.dump_mark("Created", mark)
-        scene_end = self.scene_end_iter(end)
-        if self.line_ends_with("...", end):
+        #self.dump_mark("Created", mark)
+        if self.is_folded(start):
+            scene_end = self.scene_end_iter(end)
+            self.buffer.apply_tag(self.tag_fold_prot, self.copy_iter(end, 0, -len(self.fold_mark)), scene_end)
             self.buffer.apply_tag(self.tag_fold_hide, end, scene_end)
-            self.dump_range("- Hide", end, scene_end)
+            #self.dump_range("- Hide", end, scene_end)
             
         return mark
 
     def remove_scene_mark(self, mark):
-        self.dump_mark("Delete", mark)
+        #self.dump_mark("Delete", mark)
 
         start = self.buffer.get_iter_at_mark(mark)
         end   = self.scene_end_iter(start)
-        self.dump_range("- Unhide", start, end)
+        #self.dump_range("- Unhide", start, end)
         self.buffer.remove_tag(self.tag_fold_hide, start, end)
+        self.buffer.remove_tag(self.tag_fold_prot, start, end)
         
         self.buffer.delete_mark(mark)
         del self.marks[mark]
@@ -422,6 +424,9 @@ class SceneGroupEdit(Gtk.Window):
             line.forward_line()
         self.update_indent(*self.get_line_iter(line))
 
+        #scene = self.scene_start_iter(start)
+        #self.fold_off(scene)
+
         #self.mark_range("debug:update", start, end)
         #self.dump_source_marks(None, *self.buffer.get_bounds())
 
@@ -450,6 +455,7 @@ class SceneGroupEdit(Gtk.Window):
         self.update_spans(start, end)
         
     def update_indent(self, start, end):
+        self.remove_tags(start, end, "indent")
         if(start.is_start()): return
         if start.has_tag(self.tag_scenehdr): return 
         
@@ -478,77 +484,96 @@ class SceneGroupEdit(Gtk.Window):
     # Folding:
     #--------------------------------------------------------------------------
 
-    fold_mark = "···"
+    #fold_mark = " [folded]"
+    fold_mark = " [⋅⋅⋅]"
+    #fold_mark = " ▶"
+    #fold_mark = " ⋙"
+    #fold_mark = " [•••]"
+    #fold_mark = " [＋]"
 
-    def delete_mark_to_iter(self, mark):
-        at = self.buffer.get_iter_at_mark(mark)
-        self.buffer.delete_mark(mark)
-        return at
+    def is_folded(self, at):
+        return self.line_ends_with(self.fold_mark, at)
 
-    def do_fold(self, start, end):
-        end = self.buffer.create_mark(None, end, False)
-        self.buffer.insert_with_tags(start, self.fold_mark, self.tag_fold_prot)
-        end = self.delete_mark_to_iter(end)
-        self.buffer.apply_tag(self.tag_fold_hide, start, end)
-
-    def do_unfold(self, start, end):
-        self.buffer.remove_tag(self.tag_fold_hide, start, end)
-        self.buffer.remove_tag(self.tag_fold_prot, start, end)
+    def fold_on(self, at):
+        if self.is_folded(at): return
+        end = self.get_line_end_iter(at)
+        self.buffer.insert(end, self.fold_mark)
+        
+    def fold_off(self, at):
+        if not self.is_folded(at): return
+        end = self.get_line_end_iter(at)
+        self.buffer.delete(self.copy_iter(end, 0, -len(self.fold_mark)), end)
 
     def toggle_fold(self):
-        pass
-        #start = self.scene_start_iter(self.get_cursor_iter())
-        #if not start: return
-        #
-        #self.buffer.place_cursor(start)
-        #
-        #self.do_fold(self.get_line_end_iter(start), self.scene_end_iter(start))
+        scene = self.scene_start_iter()
 
-        #cursor = self.get_cursor_iter()
-        # 
-        #marks  = self.buffer.get_source_marks_at_iter(cursor, "scene")
-        #if not marks:
-        #    if not self.buffer.backward_iter_to_source_mark(cursor, "scene"): return
-        #
-        #self.buffer.begin_user_action()
-        #
-        #if self.is_folded(cursor):
-        #    self.fold_off(cursor)
-        #else:
-        #    self.buffer.place_cursor(cursor)
-        #    self.fold_on(cursor)
-        #
-        #self.buffer.end_user_action()
+        if not scene: return
+        
+        self.buffer.begin_user_action()
+        
+        if self.is_folded(scene):
+            self.fold_off(scene)
+        else:
+            if self.buffer.get_has_selection():
+                self.buffer.move_mark(self.buffer.get_insert(), scene)
+            else:
+                self.buffer.place_cursor(scene)
+            self.fold_on(scene)
 
-    #def foreach_scene(self, func, exclude_current = True):
-    #    marks = self.get_source_marks("scene", *self.buffer.get_bounds())
-    #    if not len(marks): return
-    #    
-    #    self.buffer.begin_user_action()
-    #
-    #    for i in range(len(marks)):
-    #        start  = self.buffer.get_iter_at_mark(marks[i])
-    #        
-    #        if exclude_current:
-    #            if i < len(marks)-1:
-    #                end = self.buffer.get_iter_at_mark(marks[i+1])
-    #            else:
-    #                end = self.buffer.get_end_iter()
-    #            cursor = self.get_cursor_iter()
-    #            if cursor.in_range(start, end): continue
-    #        
-    #        func(start)
-    #
-    #    self.buffer.end_user_action()
-    #    self.text.scroll_mark_onscreen(self.buffer.get_insert())
+        self.buffer.end_user_action()
+
+    def foreach_scene(self, func, exclude_current = True):
+        scenes = self.get_source_marks("scene", *self.buffer.get_bounds())
+        for scene in scenes:
+            start = self.buffer.get_iter_at_mark(scene)
+            if exclude_current:
+                end = self.scene_end_iter(start)
+                cursor = self.get_cursor_iter()
+                if cursor.in_range(start, end): continue
+            func(start)
         
     def fold_all(self, exclude_current = True):
-        print("Fold all")
-        #self.foreach_scene(self.fold_on, exclude_current)
+        self.buffer.begin_user_action()
+        self.foreach_scene(self.fold_on, exclude_current)
+        self.buffer.end_user_action()
+        self.text.scroll_mark_onscreen(self.buffer.get_insert())
         
     def unfold_all(self, exclude_current = False):
-        print("Unfold all")
-        #self.foreach_scene(self.fold_off, exclude_current)
+        self.buffer.begin_user_action()
+        self.foreach_scene(self.fold_off, exclude_current)
+        self.buffer.end_user_action()
+        self.text.scroll_mark_onscreen(self.buffer.get_insert())
+
+    def select_and_fold(self):
+        if self.buffer.get_has_selection():
+            _, scene = self.buffer.get_selection_bounds()
+            if(scene.is_end()): return
+        else:
+            scene = self.scene_start_iter()
+            if not scene: return
+
+            self.buffer.move_mark_by_name("insert", self.scene_start_iter())
+        
+        self.buffer.move_mark_by_name("selection_bound", self.scene_end_iter(scene))
+
+        self.buffer.begin_user_action()
+        self.fold_on(scene)
+        self.buffer.end_user_action()
+        self.text.scroll_mark_onscreen(self.buffer.get_insert())
+    
+    def move_line_up(self):
+        prev = self.scene_prev_iter(self.get_cursor_iter())
+        if not prev: prev = self.buffer.get_start_iter()
+        self.buffer.place_cursor(prev)
+        self.text.scroll_mark_onscreen(self.buffer.get_insert())
+        return True
+
+    def move_line_down(self):
+        next = self.scene_next_iter(self.get_cursor_iter())
+        if not next: next = self.buffer.get_end_iter()
+        self.buffer.place_cursor(next)
+        self.text.scroll_mark_onscreen(self.buffer.get_insert())
+        return True
         
     #--------------------------------------------------------------------------
 
@@ -634,6 +659,7 @@ class SceneGroupEdit(Gtk.Window):
             "anim id est laborum.\n",
             -1
         );
-        self.text.scroll_mark_onscreen(self.buffer.get_insert())
         self.buffer.end_user_action()
+        self.text.scroll_mark_onscreen(self.buffer.get_insert())
         return True
+
