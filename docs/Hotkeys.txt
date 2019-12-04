@@ -9,8 +9,32 @@ Lets make a quick plan about hotkeys. Objectives:
 
 - Frequently needed operations are behind easy hotkeys
 
-It is possible that we use hotkey "combinations". The first hotkey opens
-a (context) menu, from where you choose operation. For example, we might
+-------------------------------------------------------------------------------
+
+MOVING SCENES: The editor is mostly about writing text, splitting it to
+scenes and moving scenes around. Here are some ideas what we could do:
+
+- Select the entire scene: For example, Alt-G ("grab")
+
+- Extending selection to next scene
+
+- Moving scenes up and down: Similar to Alt-up/down, which moves selection
+  by one line, this would move selection by one scene
+
+- Moving scenes sideways: it is intended that the editor has two text views,
+  and you could move between those with e.g. Alt-left/right keys, taking the
+  selected text with you. One of the problems is that where do you enter
+  in the second view? The cursor is not necessarily "well positioned"
+
+- "Dropping" selections to side view: this would drop selected text to the
+  end of the text in the side view. This is mainly meant to initially build
+  new "groups/parts", e.g. splitting a long text to parts, moving plans
+  to corresponding containers or merging/splitting stories.
+
+-------------------------------------------------------------------------------
+
+COMBOS: It is possible that we use hotkey "combinations". The first hotkey
+opens a (context) menu, from where you choose operation. For example, we might
 think that Alt-G is "goto", and then you choose where you go:
 
     Alt-G           Goto menu
