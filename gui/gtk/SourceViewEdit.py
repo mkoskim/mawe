@@ -562,6 +562,7 @@ class SceneGroupEdit(Gtk.Window):
         self.text.scroll_mark_onscreen(self.buffer.get_insert())
     
     def move_line_up(self):
+        return False
         prev = self.scene_prev_iter(self.get_cursor_iter())
         if not prev: prev = self.buffer.get_start_iter()
         self.buffer.place_cursor(prev)
@@ -569,6 +570,7 @@ class SceneGroupEdit(Gtk.Window):
         return True
 
     def move_line_down(self):
+        return False
         next = self.scene_next_iter(self.get_cursor_iter())
         if not next: next = self.buffer.get_end_iter()
         self.buffer.place_cursor(next)
