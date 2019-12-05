@@ -4,13 +4,13 @@ import os
 ###############################################################################        
 ###############################################################################        
 #
-class SceneGroupBuffer(GtkSource.Buffer):
+class SceneBuffer(GtkSource.Buffer):
 #
 ###############################################################################        
 ###############################################################################        
 
     def __init__(self, content = None):
-        super(SceneGroupBuffer, self).__init__()
+        super(SceneBuffer, self).__init__()
 
         self.create_tags()
         self.marks = {}
@@ -361,17 +361,23 @@ class SceneGroupBuffer(GtkSource.Buffer):
 ###############################################################################        
 ###############################################################################        
 #
-class SceneGroupEdit(Gtk.Frame):
+class SceneEdit(Gtk.Frame):
 #
 ###############################################################################        
 ###############################################################################        
 
-    def __init__(self, buffer):
-        super(SceneGroupEdit, self).__init__()
+    def __init__(self, buffer, font = None):
+        super(SceneEdit, self).__init__()
 
         self.create_view(buffer)
+
+        if font: self.text.modify_font(Pango.FontDescription(font))
+        #self.text.modify_font(Pango.FontDescription("Times 12"))
+        #self.text.modify_font(Pango.FontDescription("Sans 12"))
+        #self.text.modify_font(Pango.FontDescription("Serif 12"))
+
         scrolled = Gtk.ScrolledWindow()
-        scrolled.set_size_request(500, 500)
+        scrolled.set_size_request(400, 400)
         scrolled.add(self.text)
 
         self.add(scrolled)
@@ -389,9 +395,6 @@ class SceneGroupEdit(Gtk.Frame):
 
         self.text.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
 
-        self.text.modify_font(Pango.FontDescription("Times 12"))
-        #self.text.modify_font(Pango.FontDescription("Sans 12"))
-        #self.text.modify_font(Pango.FontDescription("Serif 12"))
         self.text.set_pixels_inside_wrap(4)
         self.text.set_pixels_above_lines(2)
         self.text.set_pixels_below_lines(2)
