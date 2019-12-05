@@ -78,24 +78,24 @@ def keypress(widget, event):
         buf.remove_tag(hidetag, *buf.get_bounds())
     elif key == "q":
         Gtk.main_quit()
-    #print(key)
-    #    event.keyval,
-    #    mods, #Gdk.ModifierType(mods)
-    #)
-    #print("Keyval:", keyval, "Mods:", Gdk.ModifierType(mods))
-    #print("Combo:", self.combokey, "Key:", key)
 
 #------------------------------------------------------------------------------
 # Create view and window
 #------------------------------------------------------------------------------
 
 view = GtkSource.View.new_with_buffer(buf)
-view.modify_font(Pango.FontDescription("monospace"))
+#view.modify_font(Pango.FontDescription("monospace"))
+view.modify_font(Pango.FontDescription("Times 12"))
 view.set_show_line_numbers(True)
 view.connect("key-press-event", keypress)
 
 win = Gtk.Window()
-win.add(view)
+#win.add(view)
+
+scrolled = Gtk.ScrolledWindow()
+scrolled.set_size_request(500, 500)
+scrolled.add(view)
+win.add(scrolled)
 
 win.connect("destroy", Gtk.main_quit)
 win.show_all()
