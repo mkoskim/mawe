@@ -31,18 +31,16 @@ class SceneBuffer(GtkSource.Buffer):
             print("Empty")
 
     def create_tags(self):
-        self.create_tag("bold",
-            weight = Pango.Weight.BOLD,
-        )
 
+        # Span tags
+        self.create_tag("bold",   weight = Pango.Weight.BOLD)
+        self.create_tag("italic", style  = Pango.Style.ITALIC)
+
+        # Block tags
+        self.create_tag("indent", indent = 30)
         self.create_tag("text")
-        self.create_tag("noindent",
-            indent = 0,
-        )
-        self.create_tag("indent",
-            indent = 30,
-        )
         self.create_tag("comment",
+            #foreground = "#474",
             paragraph_background = "#DFD",
         )
         self.create_tag("synopsis",
@@ -52,14 +50,24 @@ class SceneBuffer(GtkSource.Buffer):
             foreground = "#B22",
         )
 
+        # Heading tags
         self.create_tag("scene:heading",
-            foreground = "#888",
+            foreground = "#777",
             #justification = Gtk.Justification.CENTER,
-            weight = Pango.Weight.NORMAL,
+            #weight = Pango.Weight.HEAVY,
             pixels_above_lines = 20,
             pixels_below_lines = 5,
         )
+        self.create_tag("scene:folded",
+            #foreground = "#777",
+            paragraph_background = "#EEE",
+            pixels_above_lines = 10,
+            pixels_below_lines = 5,
+            indent = -30,
+            editable = False,
+        )
         
+        # Folding tags
         self.create_tag("fold:protect",
             editable = False,
             #background = "#EAE",
@@ -68,7 +76,7 @@ class SceneBuffer(GtkSource.Buffer):
         self.create_tag("fold:hidden",
             editable   = False,
             invisible  = True,
-            background = "#EDD",
+            #background = "#EDD",
         )
 
         self.create_tag("debug:update",
@@ -76,9 +84,15 @@ class SceneBuffer(GtkSource.Buffer):
         )
 
         self.tagtbl = self.get_tag_table()
-        self.tag_scenehdr  = self.tagtbl.lookup("scene:heading")
-        self.tag_fold_prot = self.tagtbl.lookup("fold:protect")
-        self.tag_fold_hide = self.tagtbl.lookup("fold:hidden")
+        self.tag_scenehdr    = self.tagtbl.lookup("scene:heading")
+        self.tag_scenefolded = self.tagtbl.lookup("scene:folded")
+        self.tag_fold_prot   = self.tagtbl.lookup("fold:protect")
+        self.tag_fold_hide   = self.tagtbl.lookup("fold:hidden")
+
+        self.tag_reapplied = [
+            self.tag_scenehdr, self.tag_scenefolded,
+            "comment", "synopsis", "missing", "text",
+        ]
 
     #--------------------------------------------------------------------------
     
@@ -252,7 +266,13 @@ class SceneBuffer(GtkSource.Buffer):
 
     def update_scene(self, start, end):
         self.apply_tag(self.tag_scenehdr, start, end)
-        mark = self.create_scene_mark(start)
+        if self.is_folded(start):
+            self.apply_tag(self.tag_scenefolded,
+                self.copy_iter(start, 0, -1),
+                end
+            )
+
+        self.create_scene_mark(start)
 
     #--------------------------------------------------------------------------
     # Folding:
@@ -308,44 +328,37 @@ class SceneBuffer(GtkSource.Buffer):
         #self.dump_source_marks(None, *self.get_bounds())
 
     def update_line_tags(self, start, end):
-
-        self.remove_tags(start, end,
-            self.tag_scenehdr,
-            "comment", "synopsis", "missing", "text",
-            "indent"
-        )
+        self.remove_tags(start, end, *self.tag_reapplied)
         
         if self.line_starts_with("##", start):
             self.update_scene(start, end)
-            return
-            
-        if self.line_starts_with("//", start):
-            self.apply_tag_by_name("comment", start, end)
-        elif self.line_starts_with("<<", start):
-            self.apply_tag_by_name("synopsis", start, end)
-        elif self.line_starts_with("!!", start):
-            self.apply_tag_by_name("missing", start, end)
-        else:
-            self.apply_tag_by_name("text", start, end)
+        else:            
+            if self.line_starts_with("//", start):
+                self.apply_tag_by_name("comment", start, end)
+            elif self.line_starts_with("<<", start):
+                self.apply_tag_by_name("synopsis", start, end)
+            elif self.line_starts_with("!!", start):
+                self.apply_tag_by_name("missing", start, end)
+            else:
+                self.apply_tag_by_name("text", start, end)
+            self.update_spans(start, end)
 
         self.update_indent(start, end)
-        self.update_spans(start, end)
         
     def update_indent(self, start, end):
         self.remove_tags(start, end, "indent")
         if(start.is_start()): return
         if start.has_tag(self.tag_scenehdr): return 
+        if start.has_tag(self.tag_scenefolded): return 
         
         prev_start = start.copy()
-        while True:
-            if(prev_start.is_start()): return
-            prev_start.backward_line()
-            prev_end = self.get_line_end_iter(prev_start)
-            if(prev_start.equal(prev_end)): return
-            if self.has_tags(prev_start, self.tag_scenehdr): return
-            if self.has_tags(prev_start, "comment", "synopsis"): continue
-            break
-            
+        if(prev_start.is_start()): return
+        prev_start.backward_line()
+        prev_end = self.get_line_end_iter(prev_start)
+        if(prev_start.equal(prev_end)): return
+        if self.has_tags(prev_start, self.tag_scenehdr): return
+        if self.has_tags(prev_start, "comment", "synopsis"):
+            if not self.has_tags(prev_start, "indent"): return
         self.apply_tag_by_name("indent", start, end)
         #self.dump_range("Update indent", start, end)
     
@@ -406,8 +419,8 @@ class SceneEdit(Gtk.Frame):
 
         #self.text.set_show_line_numbers(True)
         #self.text.set_show_right_margin(True)
-        #self.text.set_show_line_marks(True)
-        self.text.set_highlight_current_line(True)
+        self.text.set_show_line_marks(True)
+        #self.text.set_highlight_current_line(True)
 
     #--------------------------------------------------------------------------
     
