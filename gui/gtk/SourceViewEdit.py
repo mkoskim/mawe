@@ -84,7 +84,6 @@ class SceneBuffer(GtkSource.Buffer):
             paragraph_background = "#EEE",
             pixels_above_lines = 10,
             pixels_below_lines = 5,
-            indent = -30,
             editable = False,
         )
         
@@ -93,7 +92,7 @@ class SceneBuffer(GtkSource.Buffer):
             #invisible  = True,
             paragraph_background = "#DDD",
             foreground = "#888",
-            scale = (0.8333333333333),
+            scale = 0.8,
         )
 
         self.create_tag("debug:update",
