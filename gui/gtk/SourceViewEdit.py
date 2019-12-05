@@ -575,13 +575,13 @@ class SceneEdit(Gtk.Frame):
         
     def fold_all(self, exclude_current = True):
         self.buffer.begin_user_action()
-        self.foreach_scene(self.fold_on, exclude_current)
+        self.foreach_scene(self.buffer.fold_on, exclude_current)
         self.buffer.end_user_action()
         self.text.scroll_mark_onscreen(self.buffer.get_insert())
         
     def unfold_all(self, exclude_current = False):
         self.buffer.begin_user_action()
-        self.foreach_scene(self.fold_off, exclude_current)
+        self.foreach_scene(self.buffer.fold_off, exclude_current)
         self.buffer.end_user_action()
         self.text.scroll_mark_onscreen(self.buffer.get_insert())
 
