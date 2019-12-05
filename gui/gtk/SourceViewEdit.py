@@ -84,6 +84,13 @@ class SceneBuffer(GtkSource.Buffer):
         self.tag_scenefolded = self.tagtbl.lookup("scene:folded")
         self.tag_fold_hide   = self.tagtbl.lookup("fold:hidden")
 
+        def event_ignore(widget, event, *args):
+            print("Ignore:", event)
+            return True
+
+        self.tag_scenefolded.connect("event", event_ignore)
+        self.tag_fold_hide.connect("event", event_ignore)
+
         self.tag_reapplied = [
             self.tag_scenehdr, self.tag_scenefolded,
             "comment", "synopsis", "missing", "text",
@@ -384,9 +391,35 @@ class SceneEdit(Gtk.Frame):
         scrolled.add(self.text)
 
         self.add(scrolled)
-        #self.set_default_size(600, 800)
 
         self.set_hotkeys()
+
+        def filter_event(widget, event, *args):
+            # Allow these
+            if event.type == Gdk.EventType.KEY_PRESS: return False
+            if event.type == Gdk.EventType.KEY_RELEASE: return False
+            #if event.type == Gdk.EventType.BUTTON_PRESS: return False
+            #if event.type == Gdk.EventType.BUTTON_RELEASE: return False
+
+            # Block these
+            if event.type == Gdk.EventType.LEAVE_NOTIFY: return True
+            if event.type == Gdk.EventType.MOTION_NOTIFY: return True
+
+            # Print & allow the rest
+            print(event)
+            return False
+
+        self.text.connect("event", filter_event)
+
+        #def ignore_event(widget, event, *args):
+        #    print(event)
+        #    return True
+        #
+        #self.text.connect("button-press-event", ignore_event)
+        #self.text.connect("button-release-event", ignore_event)
+        #self.text.connect("motion-notify-event", ignore_event)
+        #self.text.connect("leave-notify-event", ignore_event)
+        #self.text.connect("enter-notify-event", ignore_event)
 
     def create_view(self, buffer):
         #self.buffer = Gtk.TextBuffer()
