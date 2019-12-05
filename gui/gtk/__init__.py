@@ -13,7 +13,10 @@ from gi.repository import (
 
 #print("Gtk: %d.%d" % (Gtk.get_major_version(), Gtk.get_minor_version()))
 
-from gui.gtk.SourceViewEdit import SceneGroupEdit
+from gui.gtk.SourceViewEdit import SceneGroupEdit, SceneGroupBuffer
 #from gui.gtk.TextViewEdit import SceneGroupEdit
 #from gui.gtk.WebKitEdit import SceneGroupEdit
+
+import os
+guidir = os.path.dirname(__file__)
 
