@@ -11,7 +11,7 @@ from gi.repository import (
     GdkPixbuf
 )
 
-#print("Gtk: %d.%d" % (Gtk.get_major_version(), Gtk.get_minor_version()))
+print("Gtk: %d.%d" % (Gtk.get_major_version(), Gtk.get_minor_version()))
 
 from gui.gtk.SourceViewEdit import SceneEdit, SceneBuffer
 #from gui.gtk.TextViewEdit import SceneGroupEdit
