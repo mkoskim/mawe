@@ -31,6 +31,17 @@ def insert(text): buf.insert_at_cursor(text)
 
 #------------------------------------------------------------------------------
 
+insert(
+    "Test cases for hidden texts in text/sourceview.\n" +
+    "\n" +
+    "   Ctrl - T       Toggle visibility\n" +
+    "   Ctrl - F       Apply hide tag to selection\n" +
+    "   Ctrl - R       Remove hide tags from buffer\n" +
+    "   Ctrl - Q       Quit\n" +
+    "\n"
+)
+
+
 insert("Text with hidden parts in between (no crash):\n\n")
 insert("Hidden text: ")
 insert_hidden("-->", "Hidden text", "<--")
