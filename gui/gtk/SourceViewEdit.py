@@ -17,7 +17,6 @@ class SceneBuffer(GtkSource.Buffer):
 
         self.set_highlight_matching_brackets(False)
 
-        self.connect      ("delete-range", self.beforeDeleteRange)
         self.connect_after("delete-range", self.afterDeleteRange)
         self.connect_after("insert-text",  self.afterInsertText)
 
@@ -54,12 +53,13 @@ class SceneBuffer(GtkSource.Buffer):
         self.create_tag("scene:heading",
             foreground = "#777",
             #justification = Gtk.Justification.CENTER,
-            #weight = Pango.Weight.HEAVY,
+            weight = Pango.Weight.BOLD,
             pixels_above_lines = 20,
             pixels_below_lines = 5,
         )
         self.create_tag("scene:folded",
             #foreground = "#777",
+            #justification = Gtk.Justification.LEFT,
             paragraph_background = "#EEE",
             pixels_above_lines = 10,
             pixels_below_lines = 5,
@@ -67,16 +67,12 @@ class SceneBuffer(GtkSource.Buffer):
             editable = False,
         )
         
-        # Folding tags
-        self.create_tag("fold:protect",
-            editable = False,
-            #background = "#EAE",
-            #foreground = "#DDD",
-        )
         self.create_tag("fold:hidden",
             editable   = False,
             invisible  = True,
-            #background = "#EDD",
+            paragraph_background = "#DDD",
+            foreground = "#888",
+            scale = (0.8333333333333),
         )
 
         self.create_tag("debug:update",
@@ -86,7 +82,6 @@ class SceneBuffer(GtkSource.Buffer):
         self.tagtbl = self.get_tag_table()
         self.tag_scenehdr    = self.tagtbl.lookup("scene:heading")
         self.tag_scenefolded = self.tagtbl.lookup("scene:folded")
-        self.tag_fold_prot   = self.tagtbl.lookup("fold:protect")
         self.tag_fold_hide   = self.tagtbl.lookup("fold:hidden")
 
         self.tag_reapplied = [
@@ -150,11 +145,8 @@ class SceneBuffer(GtkSource.Buffer):
         self.remove_scene_marks(start, end)
         self.update_tags(start, end)
     
-    def beforeDeleteRange(self, buffer, start, end, *args):
-        #self.dump_range("Delete", start, end)
-        self.remove_scene_marks(start, end)
-        
     def afterDeleteRange(self, buffer, start, end, *args):
+        self.remove_scene_marks(start, end)
         self.update_tags(start, end)
     
     #--------------------------------------------------------------------------
@@ -239,7 +231,6 @@ class SceneBuffer(GtkSource.Buffer):
         #self.dump_mark("Created", mark)
         if self.is_folded(start):
             scene_end = self.scene_end_iter(end)
-            self.apply_tag(self.tag_fold_prot, self.copy_iter(end, 0, -len(self.fold_mark)), scene_end)
             self.apply_tag(self.tag_fold_hide, end, scene_end)
             #self.dump_range("- Hide", end, scene_end)
             
@@ -252,7 +243,6 @@ class SceneBuffer(GtkSource.Buffer):
         end   = self.scene_end_iter(start)
         #self.dump_range("- Unhide", start, end)
         self.remove_tag(self.tag_fold_hide, start, end)
-        self.remove_tag(self.tag_fold_prot, start, end)
         
         self.delete_mark(mark)
         del self.marks[mark]
@@ -325,7 +315,7 @@ class SceneBuffer(GtkSource.Buffer):
         #self.fold_off(scene)
 
         #self.mark_range("debug:update", start, end)
-        #self.dump_source_marks(None, *self.get_bounds())
+        self.dump_source_marks(None, *self.get_bounds())
 
     def update_line_tags(self, start, end):
         self.remove_tags(start, end, *self.tag_reapplied)
@@ -593,9 +583,9 @@ class SceneEdit(Gtk.Frame):
             scene = self.buffer.scene_start_iter()
             if not scene: return
 
-            self.buffer.move_mark_by_name("insert", self.scene_start_iter())
+            self.buffer.move_mark_by_name("insert", self.buffer.scene_start_iter())
         
-        self.buffer.move_mark_by_name("selection_bound", self.scene_end_iter(scene))
+        self.buffer.move_mark_by_name("selection_bound", self.buffer.scene_end_iter(scene))
 
         self.buffer.begin_user_action()
         self.buffer.fold_on(scene)
