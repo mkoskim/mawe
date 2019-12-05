@@ -2,6 +2,12 @@ from gui.gtk import Gtk, Gdk, Pango, GtkSource, GdkPixbuf
 import os
 
 ###############################################################################        
+#
+# NOTE! Folding is turned off until I can fix the bug in GtkSource/TextView!
+#
+###############################################################################        
+
+###############################################################################        
 ###############################################################################        
 #
 class SceneBuffer(GtkSource.Buffer):
@@ -29,6 +35,21 @@ class SceneBuffer(GtkSource.Buffer):
         else:
             print("Empty")
 
+        #self.fix_crash()
+
+    #--------------------------------------------------------------------------
+    # Note: This does not entirely fix the issue, but helps a bit
+        
+    def fix_crash(self):
+        def event_ignore(widget, event, *args):
+            #print("Ignore:", event)
+            return True
+
+        self.tag_scenefolded.connect("event", event_ignore)
+        self.tag_fold_hide.connect("event", event_ignore)
+
+    #--------------------------------------------------------------------------
+    
     def create_tags(self):
 
         # Span tags
@@ -69,7 +90,7 @@ class SceneBuffer(GtkSource.Buffer):
         
         self.create_tag("fold:hidden",
             editable   = False,
-            invisible  = True,
+            #invisible  = True,
             paragraph_background = "#DDD",
             foreground = "#888",
             scale = (0.8333333333333),
@@ -84,16 +105,10 @@ class SceneBuffer(GtkSource.Buffer):
         self.tag_scenefolded = self.tagtbl.lookup("scene:folded")
         self.tag_fold_hide   = self.tagtbl.lookup("fold:hidden")
 
-        def event_ignore(widget, event, *args):
-            print("Ignore:", event)
-            return True
-
-        self.tag_scenefolded.connect("event", event_ignore)
-        self.tag_fold_hide.connect("event", event_ignore)
-
         self.tag_reapplied = [
             self.tag_scenehdr, self.tag_scenefolded,
             "comment", "synopsis", "missing", "text",
+            "bold", "italic",
         ]
 
     #--------------------------------------------------------------------------
@@ -316,7 +331,8 @@ class SceneBuffer(GtkSource.Buffer):
             self.update_line_tags(line, self.get_line_end_iter(line))
             if line.is_end(): break
             line.forward_line()
-        self.update_indent(*self.get_line_iter(line))
+        else:
+            self.update_indent(*self.get_line_iter(line))
 
         #scene = self.scene_start_iter(start)
         #self.fold_off(scene)
@@ -344,30 +360,40 @@ class SceneBuffer(GtkSource.Buffer):
         
     def update_indent(self, start, end):
         self.remove_tags(start, end, "indent")
+
         if(start.is_start()): return
         if start.has_tag(self.tag_scenehdr): return 
         if start.has_tag(self.tag_scenefolded): return 
         
-        prev_start = start.copy()
-        if(prev_start.is_start()): return
-        prev_start.backward_line()
-        prev_end = self.get_line_end_iter(prev_start)
+        prev_start = self.copy_iter(start, -1, 0)
+        prev_end   = self.get_line_end_iter(prev_start)
         if(prev_start.equal(prev_end)): return
+
         if self.has_tags(prev_start, self.tag_scenehdr): return
         if self.has_tags(prev_start, "comment", "synopsis"):
             if not self.has_tags(prev_start, "indent"): return
         self.apply_tag_by_name("indent", start, end)
         #self.dump_range("Update indent", start, end)
     
-    def update_spans(self, line_start, line_end):
-        pass
+    import re
+    re_bold   = re.compile("(\*[^\*\s]\*)|(\*[^\*\s][^\*]*\*)")
+    re_italic = re.compile("(\_[^\_\s]\_)|(\_[^\_\s][^\_]*\_)")
+    
+    def update_spans(self, start, end):
+        start = start.copy()
+        end   = end.copy()
+        text  = self.get_text(start, end, True)
 
-    def mark_range(self, tagname, start, end):
-        #self.dump_range("Update", start, end)
-        self.remove_tag_by_name(tagname, *self.get_bounds())
-        self.apply_tag_by_name(tagname, start, end)
+        def set_tags(tagname, regex):
+            for m in regex.finditer(text):
+                start.set_line_offset(m.start())
+                end.set_line_offset(m.end())
+                self.apply_tag_by_name(tagname, start, end)
+                #print(m.start(), m.end(), m.group())
 
-
+        set_tags("bold",   self.re_bold)
+        set_tags("italic", self.re_italic)
+        
 ###############################################################################        
 ###############################################################################        
 #
@@ -394,6 +420,12 @@ class SceneEdit(Gtk.Frame):
 
         self.set_hotkeys()
 
+        #self.fix_crash()
+
+    #--------------------------------------------------------------------------
+    # Note: This does not entirely fix the issue, but helps a bit
+    
+    def fix_crash(self):
         def filter_event(widget, event, *args):
             # Allow these
             if event.type == Gdk.EventType.KEY_PRESS: return False
@@ -406,7 +438,7 @@ class SceneEdit(Gtk.Frame):
             if event.type == Gdk.EventType.MOTION_NOTIFY: return True
 
             # Print & allow the rest
-            print(event)
+            #print(event)
             return False
 
         self.text.connect("event", filter_event)
@@ -421,6 +453,8 @@ class SceneEdit(Gtk.Frame):
         #self.text.connect("leave-notify-event", ignore_event)
         #self.text.connect("enter-notify-event", ignore_event)
 
+    #--------------------------------------------------------------------------
+    
     def create_view(self, buffer):
         #self.buffer = Gtk.TextBuffer()
         #self.text = Gtk.TextView.new_with_buffer(self.buffer)
