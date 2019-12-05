@@ -380,7 +380,7 @@ class SceneEdit(Gtk.Frame):
         #self.text.modify_font(Pango.FontDescription("Serif 12"))
 
         scrolled = Gtk.ScrolledWindow()
-        scrolled.set_size_request(400, 400)
+        scrolled.set_size_request(600, 500)
         scrolled.add(self.text)
 
         self.add(scrolled)

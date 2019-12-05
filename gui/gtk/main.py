@@ -21,8 +21,8 @@ def run(filename = None):
     builder = Gtk.Builder()
     builder.add_from_file(os.path.join(guidir, "glade/mawe.ui"))
     
-    box = builder.get_object("paned1")
-    box.add1(SceneEdit(buffer, "Times 12"))
+    box = builder.get_object("EditorPane")
+    box.add2(SceneEdit(buffer, "Times 12"))
     #box.add2(SceneEdit(buffer))
 
     win = builder.get_object("window1")
