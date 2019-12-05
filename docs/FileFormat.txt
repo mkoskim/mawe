@@ -35,6 +35,10 @@ Things to remember:
 
 - name of the story is different thing than title of the story.
 
+- Add UUID to files. Then they can be added to dictionary for linking
+  them with each other, and it does not matter if you move the files
+  in the disk.
+
 -------------------------------------------------------------------------------
 
 NOTE: It might be better to allow in-content comments. Then, when

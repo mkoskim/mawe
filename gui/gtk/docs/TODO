@@ -6,12 +6,6 @@ SERIOUS ISSUES:
   (mawe.py:10556): Gtk-ERROR **: Byte index 1362 is off the end of the line
   Trace/breakpoint trap
 
-(mawe.py:8467): Gtk-WARNING **: /build/gtk+3.0-2Ut_nl/gtk+3.0-3.18.9/./gtk/gtktextbtree.c:4034: byte index off the end of the line
-
-(mawe.py:8467): Gtk-ERROR **: Byte index 451 is off the end of the line
-Trace/breakpoint trap
-
-
 -------------------------------------------------------------------------------
 
 FIX:
@@ -28,6 +22,10 @@ QUIRKS ETC:
 - I need to figure out suitable mechanics for managing hidden text tags.
   Whenever the scene header with "folded" mark is detached from hidden
   text, the hide tag should be removed.
+
+-------------------------------------------------------------------------------
+
+FEATURES:
 
 -------------------------------------------------------------------------------
 
