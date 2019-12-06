@@ -1,8 +1,7 @@
 MAWE
 ====
 
-MAWE - Advanced Writer's Editor - as Python. This time I think
-we use Tkinter so it works on Windows without modifications (hopefully).
+MAWE - Advanced Writer's Editor - written with Python.
 
 Keep in mind, that this is also sketching for web version.
 
