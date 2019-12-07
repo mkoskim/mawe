@@ -246,10 +246,11 @@ class SceneBuffer(GtkSource.Buffer):
     #--------------------------------------------------------------------------
 
     #fold_mark = " [folded]"
-    fold_mark = " [⋅⋅⋅]"
+    #fold_mark = " [⋅⋅⋅]"
     #fold_mark = " ▶"
     #fold_mark = " ⋙"
     #fold_mark = " [•••]"
+    fold_mark = " [+]"
 
     def is_folded(self, at):
         return self.line_ends_with(self.fold_mark, at)
