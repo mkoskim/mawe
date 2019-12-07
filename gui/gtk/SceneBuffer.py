@@ -56,15 +56,15 @@ class SceneBuffer(GtkSource.Buffer):
             foreground = "#777",
             #justification = Gtk.Justification.CENTER,
             weight = Pango.Weight.BOLD,
-            pixels_above_lines = 20,
-            pixels_below_lines = 5,
+            #pixels_above_lines = 20,
+            #pixels_below_lines = 5,
         )
         self.create_tag("scene:folded",
             #foreground = "#777",
             #justification = Gtk.Justification.LEFT,
             paragraph_background = "#EEE",
-            pixels_above_lines = 10,
-            pixels_below_lines = 5,
+            #pixels_above_lines = 10,
+            #pixels_below_lines = 5,
             editable = False,
         )
         
