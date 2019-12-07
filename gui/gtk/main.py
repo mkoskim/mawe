@@ -1,6 +1,6 @@
 from gui.gtk import (
     Gtk,
-    SceneEdit, SceneBuffer,
+    SceneView, SceneBuffer,
     guidir,
 )
 
@@ -22,7 +22,7 @@ def run(filename = None):
     builder.add_from_file(os.path.join(guidir, "glade/mawe.ui"))
     
     box = builder.get_object("EditorPane")
-    box.add2(SceneEdit(buffer, "Times 12"))
+    box.add2(SceneView(buffer, "Times 12"))
     #box.add2(SceneEdit(buffer))
 
     win = builder.get_object("window1")
