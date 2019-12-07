@@ -206,25 +206,24 @@ class SceneBuffer(GtkSource.Buffer):
         return marks
 
     def create_scene_mark(self, at):
-        mark = self.create_source_mark(None, "scene", at)
         start, end = self.get_line_iter(at)
+        mark = self.create_source_mark(None, "scene", start)
         self.marks[mark] = self.get_text(start, end, False)[2:].strip()
 
-        self.dump_mark("Created", mark)
+        #self.dump_mark("Created", mark)
         if self.is_folded(start):
-            fold_start = at.copy()
-            fold_start.forward_to_line_end()
+            fold_start = end.copy()
+            #fold_start = at.copy()
+            #fold_start.forward_to_line_end()
             fold_start.forward_char()
             fold_end = self.scene_end_iter(end)
             self.apply_tag(self.tag_fold_hide, fold_start, fold_end)
-            print("Scene hide: %d chars" % (
-                fold_end.get_offset() - start.get_offset(),
-            ))
+            #print("Scene hide: %d chars" % (fold_end.get_offset() - start.get_offset()))
             
         return mark
 
     def remove_scene_mark(self, mark):
-        self.dump_mark("Delete", mark)
+        #self.dump_mark("Delete", mark)
 
         start = self.get_iter_at_mark(mark)
         end   = self.scene_end_iter(start)
