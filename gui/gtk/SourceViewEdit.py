@@ -35,19 +35,6 @@ class SceneBuffer(GtkSource.Buffer):
         else:
             print("Empty")
 
-        #self.fix_crash()
-
-    #--------------------------------------------------------------------------
-    # Note: This does not entirely fix the issue, but helps a bit
-        
-    def fix_crash(self):
-        def event_ignore(widget, event, *args):
-            #print("Ignore:", event)
-            return True
-
-        self.tag_scenefolded.connect("event", event_ignore)
-        self.tag_fold_hide.connect("event", event_ignore)
-
     #--------------------------------------------------------------------------
     
     def create_tags(self):
@@ -89,7 +76,7 @@ class SceneBuffer(GtkSource.Buffer):
         
         self.create_tag("fold:hidden",
             editable   = False,
-            #invisible  = True,
+            invisible  = True,
             paragraph_background = "#DDD",
             foreground = "#888",
             scale = 0.8,
@@ -122,14 +109,18 @@ class SceneBuffer(GtkSource.Buffer):
         return at
 
     def get_line_start_iter(self, at = None):
-        if at is None: at = self.get_cursor_iter()
-        start = at.copy()
+        if at is None:
+            start = self.get_cursor_iter()
+        else:
+            start = at.copy()
         start.set_line_offset(0)
         return start
     
     def get_line_end_iter(self, at = None):
-        if at is None: at = self.get_cursor_iter()
-        end = at.copy()
+        if at is None:
+            at = self.get_cursor_iter()
+        else:
+            end = at.copy()
         if not end.ends_line(): end.forward_to_line_end()
         return end
             
@@ -172,18 +163,6 @@ class SceneBuffer(GtkSource.Buffer):
     
     #--------------------------------------------------------------------------
 
-    def dump_iter(self, prefix, at):
-        print("%s: %d:%d" % (prefix, *self.get_line_and_offset(at)))
-        
-    def dump_range(self, prefix, start, end):
-        print("%s: %d:%d - %d:%d" % (
-            prefix,
-            *self.get_line_and_offset(start),
-            *self.get_line_and_offset(end)
-        ))
-
-    #--------------------------------------------------------------------------
-
     def has_scene_mark(self, at):
         marks = self.get_source_marks_at_iter(at, "scene")
         return len(marks) > 0
@@ -216,6 +195,8 @@ class SceneBuffer(GtkSource.Buffer):
         if end is None: return self.get_end_iter()
         return end
 
+    #--------------------------------------------------------------------------
+
     def get_source_marks(self, category, start, end):
         marks = []
         at = start.copy()
@@ -224,45 +205,29 @@ class SceneBuffer(GtkSource.Buffer):
             if not self.forward_iter_to_source_mark(at, category): break
         return marks
 
-    def dump_mark(self, prefix, mark):
-        if mark in self.marks:
-            text = self.marks[mark]
-        else:
-            text = None
-        category = mark.get_category()
-        name = mark.get_name()
-        line, offset = self.get_line_and_offset(self.get_iter_at_mark(mark))
-        print("%s %s.%s: %d:%d %s" % (
-            prefix,
-            category, name,
-            line + 1, offset,
-            text[:20]
-        ))
-
-    def dump_source_marks(self, category, start, end):
-        print("Marks:")
-        for mark in self.get_source_marks(category, start, end):
-            self.dump_mark("-", mark)
-
     def create_scene_mark(self, at):
         mark = self.create_source_mark(None, "scene", at)
         start, end = self.get_line_iter(at)
         self.marks[mark] = self.get_text(start, end, False)[2:].strip()
 
-        #self.dump_mark("Created", mark)
+        self.dump_mark("Created", mark)
         if self.is_folded(start):
-            scene_end = self.scene_end_iter(end)
-            self.apply_tag(self.tag_fold_hide, end, scene_end)
-            #self.dump_range("- Hide", end, scene_end)
+            fold_start = at.copy()
+            fold_start.forward_to_line_end()
+            fold_start.forward_char()
+            fold_end = self.scene_end_iter(end)
+            self.apply_tag(self.tag_fold_hide, fold_start, fold_end)
+            print("Scene hide: %d chars" % (
+                fold_end.get_offset() - start.get_offset(),
+            ))
             
         return mark
 
     def remove_scene_mark(self, mark):
-        #self.dump_mark("Delete", mark)
+        self.dump_mark("Delete", mark)
 
         start = self.get_iter_at_mark(mark)
         end   = self.scene_end_iter(start)
-        #self.dump_range("- Unhide", start, end)
         self.remove_tag(self.tag_fold_hide, start, end)
         
         self.delete_mark(mark)
@@ -277,11 +242,11 @@ class SceneBuffer(GtkSource.Buffer):
 
     def update_scene(self, start, end):
         self.apply_tag(self.tag_scenehdr, start, end)
-        if self.is_folded(start):
-            self.apply_tag(self.tag_scenefolded,
-                self.copy_iter(start, 0, -1),
-                end
-            )
+        #if self.is_folded(start):
+        #    self.apply_tag(self.tag_scenefolded,
+        #        self.copy_iter(start, 0, -1),
+        #        end
+        #    )
 
         self.create_scene_mark(start)
 
@@ -290,11 +255,11 @@ class SceneBuffer(GtkSource.Buffer):
     #--------------------------------------------------------------------------
 
     #fold_mark = " [folded]"
-    fold_mark = " [⋅⋅⋅]"
+    #fold_mark = " [⋅⋅⋅]"
     #fold_mark = " ▶"
     #fold_mark = " ⋙"
     #fold_mark = " [•••]"
-    #fold_mark = " [＋]"
+    fold_mark = " ++"
 
     def is_folded(self, at):
         return self.line_ends_with(self.fold_mark, at)
@@ -325,8 +290,10 @@ class SceneBuffer(GtkSource.Buffer):
             self.remove_tag(tag, start, end)
     
     def update_tags(self, start, end):
+        end  = self.get_line_end_iter(end)
         line = self.get_line_start_iter(start)
-        while(line.compare(self.get_line_end_iter(end)) < 1):
+        
+        while(line.compare(end) < 1):
             self.update_line_tags(line, self.get_line_end_iter(line))
             if line.is_end(): break
             line.forward_line()
@@ -337,7 +304,7 @@ class SceneBuffer(GtkSource.Buffer):
         #self.fold_off(scene)
 
         #self.mark_range("debug:update", start, end)
-        self.dump_source_marks(None, *self.get_bounds())
+        #self.dump_source_marks(None, *self.get_bounds())
 
     def update_line_tags(self, start, end):
         self.remove_tags(start, end, *self.tag_reapplied)
@@ -392,6 +359,39 @@ class SceneBuffer(GtkSource.Buffer):
 
         set_tags("bold",   self.re_bold)
         set_tags("italic", self.re_italic)
+
+    #--------------------------------------------------------------------------
+
+    def dump_iter(self, prefix, at):
+        print("%s: %d:%d" % (prefix, *self.get_line_and_offset(at)))
+        
+    def dump_range(self, prefix, start, end):
+        print("%s: %d:%d - %d:%d" % (
+            prefix,
+            *self.get_line_and_offset(start),
+            *self.get_line_and_offset(end)
+        ))
+
+    def dump_mark(self, prefix, mark):
+        if mark in self.marks:
+            text = self.marks[mark]
+        else:
+            text = None
+        category = mark.get_category()
+        name = mark.get_name()
+        line, offset = self.get_line_and_offset(self.get_iter_at_mark(mark))
+        print("%s %s.%s: %d:%d %s" % (
+            prefix,
+            category, name,
+            line + 1, offset,
+            text[:20]
+        ))
+
+    def dump_source_marks(self, category, start, end):
+        print("Marks:")
+        for mark in self.get_source_marks(category, start, end):
+            self.dump_mark("-", mark)
+
         
 ###############################################################################        
 ###############################################################################        
@@ -419,39 +419,6 @@ class SceneEdit(Gtk.Frame):
 
         self.set_hotkeys()
 
-        #self.fix_crash()
-
-    #--------------------------------------------------------------------------
-    # Note: This does not entirely fix the issue, but helps a bit
-    
-    def fix_crash(self):
-        def filter_event(widget, event, *args):
-            # Allow these
-            if event.type == Gdk.EventType.KEY_PRESS: return False
-            if event.type == Gdk.EventType.KEY_RELEASE: return False
-            #if event.type == Gdk.EventType.BUTTON_PRESS: return False
-            #if event.type == Gdk.EventType.BUTTON_RELEASE: return False
-
-            # Block these
-            if event.type == Gdk.EventType.LEAVE_NOTIFY: return True
-            if event.type == Gdk.EventType.MOTION_NOTIFY: return True
-
-            # Print & allow the rest
-            #print(event)
-            return False
-
-        self.text.connect("event", filter_event)
-
-        #def ignore_event(widget, event, *args):
-        #    print(event)
-        #    return True
-        #
-        #self.text.connect("button-press-event", ignore_event)
-        #self.text.connect("button-release-event", ignore_event)
-        #self.text.connect("motion-notify-event", ignore_event)
-        #self.text.connect("leave-notify-event", ignore_event)
-        #self.text.connect("enter-notify-event", ignore_event)
-
     #--------------------------------------------------------------------------
     
     def create_view(self, buffer):
@@ -475,7 +442,7 @@ class SceneEdit(Gtk.Frame):
 
         #self.text.set_show_line_numbers(True)
         #self.text.set_show_right_margin(True)
-        self.text.set_show_line_marks(True)
+        #self.text.set_show_line_marks(True)
         #self.text.set_highlight_current_line(True)
 
     #--------------------------------------------------------------------------
