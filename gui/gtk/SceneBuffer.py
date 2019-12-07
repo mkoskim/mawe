@@ -68,6 +68,7 @@ class SceneBuffer(GtkSource.Buffer):
             editable = False,
         )
         
+        self.create_tag("fold:protect", editable = False),
         self.create_tag("fold:hidden",
             editable   = False,
             invisible  = True,
@@ -84,6 +85,7 @@ class SceneBuffer(GtkSource.Buffer):
         self.tag_scenehdr    = self.tagtbl.lookup("scene:heading")
         self.tag_scenefolded = self.tagtbl.lookup("scene:folded")
         self.tag_fold_hide   = self.tagtbl.lookup("fold:hidden")
+        self.tag_fold_prot   = self.tagtbl.lookup("fold:protect")
 
         self.tag_reapplied = [
             self.tag_scenehdr, self.tag_scenefolded,
@@ -210,6 +212,7 @@ class SceneBuffer(GtkSource.Buffer):
             fold_start.forward_char()
             fold_end = self.scene_end_iter(end)
             self.apply_tag(self.tag_fold_hide, fold_start, fold_end)
+            self.apply_tag(self.tag_fold_prot, end, fold_end)
             #print("Scene hide: %d chars" % (fold_end.get_offset() - start.get_offset()))
             
         return mark
@@ -220,6 +223,7 @@ class SceneBuffer(GtkSource.Buffer):
         start = self.get_iter_at_mark(mark)
         end   = self.scene_end_iter(start)
         self.remove_tag(self.tag_fold_hide, start, end)
+        self.remove_tag(self.tag_fold_prot, start, end)
         
         self.delete_mark(mark)
         del self.marks[mark]
