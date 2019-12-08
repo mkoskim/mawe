@@ -7,7 +7,6 @@
 import os, re
 from project.Document import ET, FormatError, Document
 import tools
-#from tools.error import *
 
 ###############################################################################
 #
@@ -60,6 +59,7 @@ class Project:
             )
 
         return None
+        #return Text(drive, path)
 
 #------------------------------------------------------------------------------
 
@@ -86,9 +86,7 @@ class Mawe(Base):
         super(Mawe, self).__init__(drive, path, "mawe")
 
     def load(self):
-        if self.fullname:
-            return Document(self, ET.parse(self.fullname))
-        return Document(self)
+        return ET.parse(self.fullname)
 
 #--------------------------------------------------------------------------
 
@@ -98,9 +96,66 @@ class Moe(Base):
         super(Moe, self).__init__(drive, path, "moe")
 
     def load(self):
-        # Create new mawe project, and create mawe tree from moe tree
-        pass
+        if not self.fullname: return
 
+        root = ET.parse(self.fullname).getroot()
+
+        reDblEnter = re.compile("\n+")
+
+        if root.tag != "story":
+            raise FormatError("%s: Not a valid moe file." % self.fullname)
+
+        # TODO: Parse title
+        # TODO: Parse non-visible parts
+
+        def gettext(element, prefix = ""):
+            text = element.text
+            if not text: return ""
+            text = re.sub(reDblEnter, "\n", text).strip()
+            if prefix:
+                text = text.split("\n")
+                text = (prefix + "\n").join(text)
+            return prefix + text + "\n"
+
+        def parsescene(element):
+            if element.attrib["included"] != "True": return ""
+
+            name     = "## " + element.find("name").text + "\n"
+            synopsis = gettext(element.find("synopsis"), "<<")
+            comments = gettext(element.find("comments"), "//")
+            content  = gettext(element.find("content"))
+            
+            return name + synopsis + comments + content + "\n"
+
+        def parsegroup(element):
+            if element.attrib["included"] != "True": return ""
+
+            text = "## Group: " + element.find("name").text + "\n"
+
+            for child in list(element.find("childs")):
+                if   child.tag == "SceneItem": text = text + parsescene(child)
+                elif child.tag == "GroupItem": text = text + parsegroup(child)
+                else: log("%s: <story>: Unknown child '%s'" % (self.fullname, child.tag))
+            return text
+        
+        text = ""
+        for child in list(root):
+            if   child.tag == "TitleItem": continue
+            elif child.tag == "SceneItem": text = text + parsescene(child)
+            elif child.tag == "GroupItem": text = text + parsegroup(child)
+            else: log("%s: <story>: Unknown child '%s'" % (self.fullname, child.tag))
+        return text
+
+#--------------------------------------------------------------------------
+
+class Text(Base):
+
+    def __init__(self, drive, path):
+        super(Text, self).__init__(drive, path, "latex")
+
+    def load(self):
+        return tools.readfile(self.fullname)
+    
 #--------------------------------------------------------------------------
 
 class LaTeX(Base):

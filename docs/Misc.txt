@@ -9,6 +9,14 @@ Worksets:
   could relate to some other story, you could write it down quickly and go
   back writing the story.
 
+About title:
+
+- Story has global title
+
+- Title can be overridden by sections: That is, it is possible that different
+  versions have different name. We preserve that, so that you can come back
+  to earlier version and print it out as it was when you edited it.
+
 -------------------------------------------------------------------------------
 
 Guidelines, checklists, ... - can we create a library, where you can include

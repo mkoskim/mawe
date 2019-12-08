@@ -39,21 +39,21 @@ args = parser.parse_args()
 
 import project
 
-#files = project.Manager.mount(*args.file)
-#
-#if files:
-#    doc = files[0].load()
-#else:
-#    doc = project.Mawe(None, None).load()
+files = project.Manager.mount(*args.file)
+
+print(files)
+
+if files:
+    content = files[0].load()
+else:
+    content = ""
 
 #print(str(doc))
 #doc.saveas("local/test.xml")
-
-#sys.exit(0)
 
 #------------------------------------------------------------------------------
 
 import gui
 
-gui.run(*args.file)
+gui.run(content)
 

@@ -5,7 +5,7 @@ import os
 ###############################################################################        
 ###############################################################################        
 #
-class SceneView(Gtk.Frame):
+class SceneView(Gtk.ScrolledWindow):
 #
 ###############################################################################        
 ###############################################################################        
@@ -20,13 +20,8 @@ class SceneView(Gtk.Frame):
         #self.text.modify_font(Pango.FontDescription("Sans 12"))
         #self.text.modify_font(Pango.FontDescription("Serif 12"))
 
-        scrolled = Gtk.ScrolledWindow()
-        scrolled.set_size_request(600, 500)
-        scrolled.add(self.text)
-
-        self.add(scrolled)
-
-        self.set_hotkeys()
+        self.set_size_request(500, 500)
+        self.add(self.text)
 
     #--------------------------------------------------------------------------
     
@@ -35,6 +30,7 @@ class SceneView(Gtk.Frame):
         #self.text = Gtk.TextView.new_with_buffer(self.buffer)
         self.buffer = buffer
         self.text = GtkSource.View.new_with_buffer(self.buffer)
+        self.set_hotkeys()
 
         self.create_source_mark_categories()
 
@@ -44,10 +40,10 @@ class SceneView(Gtk.Frame):
         self.text.set_pixels_above_lines(2)
         self.text.set_pixels_below_lines(2)
         
-        self.text.set_left_margin(40)
-        self.text.set_right_margin(40)
-        self.text.set_top_margin(40)
-        self.text.set_bottom_margin(80)
+        self.text.set_left_margin(30)
+        self.text.set_right_margin(30)
+        self.text.set_top_margin(30)
+        self.text.set_bottom_margin(60)
 
         #self.text.set_show_line_numbers(True)
         #self.text.set_show_right_margin(True)
@@ -114,9 +110,11 @@ class SceneView(Gtk.Frame):
             
             "<Alt>Up":   self.move_line_up,
             "<Alt>Down": self.move_line_down,
+            
+            "Return": self.enter,
         }
         self.combokey = None
-        self.connect("key-press-event", self.onKeyPress)
+        self.text.connect("key-press-event", self.onKeyPress)
 
     def onKeyPress(self, widget, event):
         #keyval = Gdk.keyval_to_lower(event.keyval)
@@ -125,7 +123,7 @@ class SceneView(Gtk.Frame):
             event.keyval,
             mods, #Gdk.ModifierType(mods)
         )
-        #print("Keyval:", keyval, "Mods:", Gdk.ModifierType(mods))
+        #print("Key:", key, "Mods:", Gdk.ModifierType(mods))
         #print("Combo:", self.combokey, "Key:", key)
         if self.combokey == None:
             if not key in self.combokeys: return False
@@ -140,6 +138,15 @@ class SceneView(Gtk.Frame):
             if key in self.combokeys[combo]:
                 return self.combokeys[combo][key]()
 
+    #--------------------------------------------------------------------------
+
+    def enter(self):
+        cursor = self.buffer.get_cursor_iter()
+        if cursor.has_tag(self.buffer.tag_scenefolded):
+            self.buffer.fold_off(self.buffer.get_cursor_iter())
+            return True
+        return False
+    
     #--------------------------------------------------------------------------
     
     def fix_ctrl_shift_up(self):   return self.fix_ctrl_up(True)
@@ -194,6 +201,7 @@ class SceneView(Gtk.Frame):
             self.buffer.fold_on(scene)
 
         self.buffer.end_user_action()
+        self.text.scroll_mark_onscreen(self.buffer.get_insert())
 
     def foreach_scene(self, func, exclude_current = True):
         scenes = self.buffer.get_source_marks("scene", *self.buffer.get_bounds())

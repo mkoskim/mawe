@@ -13,6 +13,8 @@ class SceneBuffer(GtkSource.Buffer):
         super(SceneBuffer, self).__init__()
 
         self.create_tags()
+
+        self.marklist = Gtk.TextBuffer()
         self.marks = {}
 
         self.set_highlight_matching_brackets(False)
@@ -53,18 +55,18 @@ class SceneBuffer(GtkSource.Buffer):
 
         # Heading tags
         self.create_tag("scene:heading",
-            foreground = "#777",
+            foreground = "#888",
             #justification = Gtk.Justification.CENTER,
             weight = Pango.Weight.BOLD,
             #pixels_above_lines = 20,
-            #pixels_below_lines = 5,
+            pixels_below_lines = 5,
         )
         self.create_tag("scene:folded",
             #foreground = "#777",
             #justification = Gtk.Justification.LEFT,
             paragraph_background = "#EEE",
             #pixels_above_lines = 10,
-            #pixels_below_lines = 5,
+            pixels_below_lines = 0,
             editable = False,
         )
         
@@ -245,30 +247,15 @@ class SceneBuffer(GtkSource.Buffer):
 
         self.create_scene_mark(start)
 
-    #--------------------------------------------------------------------------
-    # Folding:
-    #--------------------------------------------------------------------------
-
-    #fold_mark = " [folded]"
-    #fold_mark = " [⋅⋅⋅]"
-    #fold_mark = " ▶"
-    #fold_mark = " ⋙"
-    #fold_mark = " [•••]"
-    fold_mark = " [+]"
-
-    def is_folded(self, at):
-        return self.line_ends_with(self.fold_mark, at)
-
-    def fold_on(self, at):
-        if self.is_folded(at): return
-        end = self.get_line_end_iter(at)
-        self.insert(end, self.fold_mark)
+    def update_marklist(self):
+        text = ""
+        for mark in self.get_source_marks("scene", *self.get_bounds()):
+            name = self.marks[mark]
+            if len(name) > 40: name = name[:37] + "..."
+            text = text + name + "\n"
+        self.marklist.delete(*self.marklist.get_bounds())
+        self.marklist.insert_at_cursor(text)
         
-    def fold_off(self, at):
-        if not self.is_folded(at): return
-        end = self.get_line_end_iter(at)
-        self.delete(self.copy_iter(end, 0, -len(self.fold_mark)), end)
-
     #--------------------------------------------------------------------------
     # Updating text tags after changes (insert, delete)
     #--------------------------------------------------------------------------
@@ -300,6 +287,7 @@ class SceneBuffer(GtkSource.Buffer):
 
         #self.mark_range("debug:update", start, end)
         #self.dump_source_marks(None, *self.get_bounds())
+        self.update_marklist()
 
     def update_line_tags(self, start, end):
         self.remove_tags(start, end, *self.tag_reapplied)
@@ -354,6 +342,30 @@ class SceneBuffer(GtkSource.Buffer):
 
         set_tags("bold",   self.re_bold)
         set_tags("italic", self.re_italic)
+
+    #--------------------------------------------------------------------------
+    # Folding:
+    #--------------------------------------------------------------------------
+
+    #fold_mark = " [folded]"
+    #fold_mark = " [⋅⋅⋅]"
+    #fold_mark = " ▶"
+    #fold_mark = " ⋙"
+    #fold_mark = " [•••]"
+    fold_mark = " [+]"
+
+    def is_folded(self, at):
+        return self.line_ends_with(self.fold_mark, at)
+
+    def fold_on(self, at):
+        if self.is_folded(at): return
+        end = self.get_line_end_iter(at)
+        self.insert(end, self.fold_mark)
+        
+    def fold_off(self, at):
+        if not self.is_folded(at): return
+        end = self.get_line_end_iter(at)
+        self.delete(self.copy_iter(end, 0, -len(self.fold_mark)), end)
 
     #--------------------------------------------------------------------------
 
