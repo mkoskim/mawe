@@ -94,7 +94,7 @@ class Moe(Base):
 
     def __init__(self, drive, path, root):
         super(Moe, self).__init__(drive, path, "moe")
-
+        
     def load(self):
         if not self.fullname: return
 
@@ -105,10 +105,20 @@ class Moe(Base):
         if root.tag != "story":
             raise FormatError("%s: Not a valid moe file." % self.fullname)
 
+        self.draft = ""
+        self.notes = ""
+
+        def add_text(element, text):
+            if element.attrib["included"] == "True":
+                self.draft = self.draft + text
+            else:
+                self.notes = self.notes + text
+
         # TODO: Parse title
         # TODO: Parse non-visible parts
 
         def gettext(element, prefix = ""):
+            if element is None: return ""
             text = element.text
             if not text: return ""
             text = re.sub(reDblEnter, "\n", text).strip()
@@ -118,33 +128,34 @@ class Moe(Base):
             return prefix + text + "\n"
 
         def parsescene(element):
-            if element.attrib["included"] != "True": return ""
-
             name     = "## " + element.find("name").text + "\n"
             synopsis = gettext(element.find("synopsis"), "<<")
             comments = gettext(element.find("comments"), "//")
             content  = gettext(element.find("content"))
             
+            print(content)
+            
             return name + synopsis + comments + content + "\n"
 
         def parsegroup(element):
-            if element.attrib["included"] != "True": return ""
-
             text = "## Group: " + element.find("name").text + "\n"
+
+            # Parse group sketch/comment/synopsis
 
             for child in list(element.find("childs")):
                 if   child.tag == "SceneItem": text = text + parsescene(child)
                 elif child.tag == "GroupItem": text = text + parsegroup(child)
-                else: log("%s: <story>: Unknown child '%s'" % (self.fullname, child.tag))
+                else: tools.log("%s: <story>: Unknown child '%s'" % (self.fullname, child.tag))
             return text
         
-        text = ""
         for child in list(root):
             if   child.tag == "TitleItem": continue
-            elif child.tag == "SceneItem": text = text + parsescene(child)
-            elif child.tag == "GroupItem": text = text + parsegroup(child)
-            else: log("%s: <story>: Unknown child '%s'" % (self.fullname, child.tag))
-        return text
+            elif child.tag == "SceneItem": add_text(child, parsescene(child))
+            elif child.tag == "GroupItem": add_text(child, parsegroup(child))
+            elif child.tag == "settings":  pass # Safe to ignore, settings were moved to .moerc
+            else: tools.log("%s: <story>: Unknown child '%s'" % (self.fullname, child.tag))
+
+        return self.draft, self.notes
 
 #--------------------------------------------------------------------------
 

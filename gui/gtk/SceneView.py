@@ -5,7 +5,23 @@ import os
 ###############################################################################        
 ###############################################################################        
 #
-class SceneView(Gtk.ScrolledWindow):
+class ScrolledSceneView(Gtk.ScrolledWindow):
+#
+###############################################################################        
+###############################################################################        
+
+    def __init__(self, buffer, font = None):
+        super(ScrolledSceneView, self).__init__()
+
+        view = SceneView(buffer, font)
+        self.add(view)
+
+        #self.set_size_request(500, 500)
+
+###############################################################################        
+###############################################################################        
+#
+class SceneView(GtkSource.View):
 #
 ###############################################################################        
 ###############################################################################        
@@ -13,42 +29,33 @@ class SceneView(Gtk.ScrolledWindow):
     def __init__(self, buffer, font = None):
         super(SceneView, self).__init__()
 
-        self.create_view(buffer)
-
-        if font: self.text.modify_font(Pango.FontDescription(font))
-        #self.text.modify_font(Pango.FontDescription("Times 12"))
-        #self.text.modify_font(Pango.FontDescription("Sans 12"))
-        #self.text.modify_font(Pango.FontDescription("Serif 12"))
-
-        self.set_size_request(500, 500)
-        self.add(self.text)
-
-    #--------------------------------------------------------------------------
-    
-    def create_view(self, buffer):
-        #self.buffer = Gtk.TextBuffer()
-        #self.text = Gtk.TextView.new_with_buffer(self.buffer)
         self.buffer = buffer
-        self.text = GtkSource.View.new_with_buffer(self.buffer)
-        self.set_hotkeys()
+        self.set_buffer(self.buffer)
 
         self.create_source_mark_categories()
 
-        self.text.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
+        self.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
 
-        self.text.set_pixels_inside_wrap(4)
-        self.text.set_pixels_above_lines(2)
-        self.text.set_pixels_below_lines(2)
+        self.set_pixels_inside_wrap(4)
+        self.set_pixels_above_lines(2)
+        self.set_pixels_below_lines(2)
         
-        self.text.set_left_margin(30)
-        self.text.set_right_margin(30)
-        self.text.set_top_margin(30)
-        self.text.set_bottom_margin(60)
+        self.set_left_margin(30)
+        self.set_right_margin(30)
+        self.set_top_margin(30)
+        self.set_bottom_margin(60)
 
-        #self.text.set_show_line_numbers(True)
-        #self.text.set_show_right_margin(True)
-        #self.text.set_show_line_marks(True)
-        #self.text.set_highlight_current_line(True)
+        if font: self.modify_font(Pango.FontDescription(font))
+        #self.modify_font(Pango.FontDescription("Times 12"))
+        #self.modify_font(Pango.FontDescription("Sans 12"))
+        #self.modify_font(Pango.FontDescription("Serif 12"))
+
+        #self.set_show_line_numbers(True)
+        #self.set_show_right_margin(True)
+        #self.set_show_line_marks(True)
+        #self.set_highlight_current_line(True)
+
+        self.set_hotkeys()
 
     #--------------------------------------------------------------------------
     
@@ -59,7 +66,7 @@ class SceneView(Gtk.ScrolledWindow):
                 color = Gdk.RGBA()
                 color.parse(background)
                 attr.set_background(color)
-            self.text.set_mark_attributes(category, attr, prio)
+            self.set_mark_attributes(category, attr, prio)
             
         add_category("scene")
 
@@ -114,7 +121,7 @@ class SceneView(Gtk.ScrolledWindow):
             "Return": self.enter,
         }
         self.combokey = None
-        self.text.connect("key-press-event", self.onKeyPress)
+        self.connect("key-press-event", self.onKeyPress)
 
     def onKeyPress(self, widget, event):
         #keyval = Gdk.keyval_to_lower(event.keyval)
@@ -162,7 +169,7 @@ class SceneView(Gtk.ScrolledWindow):
             self.buffer.move_mark(self.buffer.get_insert(), cursor)
         else:
             self.buffer.place_cursor(cursor)
-        self.text.scroll_mark_onscreen(self.buffer.get_insert())
+        self.scroll_mark_onscreen(self.buffer.get_insert())
         return True
         
     def fix_ctrl_shift_down(self): return self.fix_ctrl_down(True)
@@ -179,7 +186,7 @@ class SceneView(Gtk.ScrolledWindow):
             self.buffer.move_mark(self.buffer.get_insert(), cursor)
         else:
             self.buffer.place_cursor(cursor)
-        self.text.scroll_mark_onscreen(self.buffer.get_insert())
+        self.scroll_mark_onscreen(self.buffer.get_insert())
         return True
         
     #--------------------------------------------------------------------------
@@ -201,7 +208,7 @@ class SceneView(Gtk.ScrolledWindow):
             self.buffer.fold_on(scene)
 
         self.buffer.end_user_action()
-        self.text.scroll_mark_onscreen(self.buffer.get_insert())
+        self.scroll_mark_onscreen(self.buffer.get_insert())
 
     def foreach_scene(self, func, exclude_current = True):
         scenes = self.buffer.get_source_marks("scene", *self.buffer.get_bounds())
@@ -217,13 +224,13 @@ class SceneView(Gtk.ScrolledWindow):
         self.buffer.begin_user_action()
         self.foreach_scene(self.buffer.fold_on, exclude_current)
         self.buffer.end_user_action()
-        self.text.scroll_mark_onscreen(self.buffer.get_insert())
+        self.scroll_mark_onscreen(self.buffer.get_insert())
 
     def unfold_all(self, exclude_current = False):
         self.buffer.begin_user_action()
         self.foreach_scene(self.buffer.fold_off, exclude_current)
         self.buffer.end_user_action()
-        self.text.scroll_mark_onscreen(self.buffer.get_insert())
+        self.scroll_mark_onscreen(self.buffer.get_insert())
 
     def select_and_fold(self):
         if self.buffer.get_has_selection():
@@ -240,14 +247,14 @@ class SceneView(Gtk.ScrolledWindow):
         self.buffer.begin_user_action()
         self.buffer.fold_on(scene)
         self.buffer.end_user_action()
-        self.text.scroll_mark_onscreen(self.buffer.get_insert())
+        self.scroll_mark_onscreen(self.buffer.get_insert())
     
     def move_line_up(self):
         return True
         #prev = self.scene_prev_iter(self.get_cursor_iter())
         #if not prev: prev = self.buffer.get_start_iter()
         #self.buffer.place_cursor(prev)
-        #self.text.scroll_mark_onscreen(self.buffer.get_insert())
+        #self.scroll_mark_onscreen(self.buffer.get_insert())
         #return True
 
     def move_line_down(self):
@@ -255,7 +262,7 @@ class SceneView(Gtk.ScrolledWindow):
         #next = self.scene_next_iter(self.get_cursor_iter())
         #if not next: next = self.buffer.get_end_iter()
         #self.buffer.place_cursor(next)
-        #self.text.scroll_mark_onscreen(self.buffer.get_insert())
+        #self.scroll_mark_onscreen(self.buffer.get_insert())
         #return True
         
     #--------------------------------------------------------------------------
@@ -271,7 +278,7 @@ class SceneView(Gtk.ScrolledWindow):
             self.buffer.insert(start, starts_with)
 
     def toggle_comment(self):
-        tag = self.tagtbl.lookup("comment")
+        tag = self.buffer.tagtbl.lookup("comment")
         visible = not tag.get_property("invisible")
         tag.set_property("invisible", visible)
         tag.set_property("editable",  not visible)
@@ -280,7 +287,7 @@ class SceneView(Gtk.ScrolledWindow):
         #self.remove_block("#")
         #self.toggle_block("//")
         #self.buffer.end_user_action()
-        self.text.scroll_mark_onscreen(self.buffer.get_insert())
+        self.scroll_mark_onscreen(self.buffer.get_insert())
 
     def toggle_synopsis(self, accel, widget, keyval, modifiers):
         self.buffer.begin_user_action()
@@ -337,6 +344,6 @@ class SceneView(Gtk.ScrolledWindow):
             -1
         );
         self.buffer.end_user_action()
-        self.text.scroll_mark_onscreen(self.buffer.get_insert())
+        self.scroll_mark_onscreen(self.buffer.get_insert())
         return True
 

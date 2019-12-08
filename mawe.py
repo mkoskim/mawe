@@ -39,14 +39,7 @@ args = parser.parse_args()
 
 import project
 
-files = project.Manager.mount(*args.file)
-
-print(files)
-
-if files:
-    content = files[0].load()
-else:
-    content = ""
+workset = project.Manager.mount(*args.file)
 
 #print(str(doc))
 #doc.saveas("local/test.xml")
@@ -55,5 +48,5 @@ else:
 
 import gui
 
-gui.run(content)
+gui.run(workset)
 

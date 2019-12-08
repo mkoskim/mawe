@@ -13,7 +13,7 @@ from gi.repository import (
 
 print("Gtk: %d.%d" % (Gtk.get_major_version(), Gtk.get_minor_version()))
 
-from gui.gtk.SceneView   import SceneView
+from gui.gtk.SceneView   import SceneView, ScrolledSceneView
 from gui.gtk.SceneBuffer import SceneBuffer
 
 import os

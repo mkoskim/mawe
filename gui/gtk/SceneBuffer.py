@@ -42,12 +42,12 @@ class SceneBuffer(GtkSource.Buffer):
         # Block tags
         self.create_tag("indent", indent = 30)
         self.create_tag("text")
+        self.create_tag("synopsis",
+            paragraph_background = "#FFD",
+        )
         self.create_tag("comment",
             #foreground = "#474",
             paragraph_background = "#DFD",
-        )
-        self.create_tag("synopsis",
-            paragraph_background = "#FFD",
         )
         self.create_tag("missing",
             foreground = "#B22",
@@ -91,7 +91,7 @@ class SceneBuffer(GtkSource.Buffer):
 
         self.tag_reapplied = [
             self.tag_scenehdr, self.tag_scenefolded,
-            "comment", "synopsis", "missing", "text",
+            "comment", "synopsis", "missing",
             "bold", "italic",
         ]
 
@@ -294,7 +294,8 @@ class SceneBuffer(GtkSource.Buffer):
         
         if self.line_starts_with("##", start):
             self.update_scene(start, end)
-        else:            
+        else:
+        
             if self.line_starts_with("//", start):
                 self.apply_tag_by_name("comment", start, end)
             elif self.line_starts_with("<<", start):
@@ -302,7 +303,8 @@ class SceneBuffer(GtkSource.Buffer):
             elif self.line_starts_with("!!", start):
                 self.apply_tag_by_name("missing", start, end)
             else:
-                self.apply_tag_by_name("text", start, end)
+                #self.apply_tag_by_name("text", start, end)
+                pass
             self.update_spans(start, end)
 
         self.update_indent(start, end)
