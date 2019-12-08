@@ -14,6 +14,16 @@ Version A
 Version B
 Version C</property>
   </object>
+  <object class="GtkTreeStore" id="treestore1">
+    <columns>
+      <!-- column-name Name -->
+      <column type="gchararray"/>
+      <!-- column-name Surname -->
+      <column type="gchararray"/>
+      <!-- column-name Age -->
+      <column type="guint"/>
+    </columns>
+  </object>
   <object class="GtkApplicationWindow" id="window1">
     <property name="width_request">-1</property>
     <property name="height_request">-1</property>
@@ -43,17 +53,6 @@ Version C</property>
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
-              <object class="GtkFileChooserWidget">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="search_mode">True</property>
-              </object>
-              <packing>
-                <property name="name">page2</property>
-                <property name="title" translatable="yes">Open</property>
-              </packing>
-            </child>
-            <child>
               <object class="GtkBox">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
@@ -62,15 +61,41 @@ Version C</property>
                   <placeholder/>
                 </child>
                 <child>
-                  <object class="GtkScrolledWindow" id="SceneEditBox1">
+                  <object class="GtkPaned" id="EditPane">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="vscrollbar_policy">always</property>
-                    <property name="shadow_type">in</property>
-                    <property name="min_content_width">400</property>
-                    <property name="min_content_height">500</property>
+                    <property name="position">250</property>
+                    <property name="wide_handle">True</property>
                     <child>
-                      <placeholder/>
+                      <object class="GtkScrolledWindow" id="SceneList1">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="shadow_type">in</property>
+                        <child>
+                          <placeholder/>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="resize">False</property>
+                        <property name="shrink">True</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkScrolledWindow" id="SceneEditBox1">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="vscrollbar_policy">always</property>
+                        <property name="shadow_type">in</property>
+                        <property name="min_content_width">500</property>
+                        <property name="min_content_height">500</property>
+                        <child>
+                          <placeholder/>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="resize">False</property>
+                        <property name="shrink">False</property>
+                      </packing>
                     </child>
                   </object>
                   <packing>
@@ -85,7 +110,6 @@ Version C</property>
               </object>
               <packing>
                 <property name="title" translatable="yes">Edit</property>
-                <property name="position">1</property>
               </packing>
             </child>
           </object>

@@ -8,33 +8,26 @@ import os
 
 #------------------------------------------------------------------------------
 
-builder = None
-
-#------------------------------------------------------------------------------
-
-def splitToggled(widget, *args):
-    splitpane = builder.get_object("SplitPane")
-    splitpane.get_child2().set_visible(widget.get_active())
-
-    sidepane = builder.get_object("EditorPane")
-    sidepane.get_child1().set_visible(not widget.get_active())
-    
-#------------------------------------------------------------------------------
-
 def run(workset = None):
     
     draft, notes = len(workset) > 0 and workset[0].load() or (None, None)
     draft = SceneBuffer(draft)
     notes = SceneBuffer(notes)
     
-    global builder
-
     builder = Gtk.Builder()
     builder.add_from_file(os.path.join(guidir, "glade/mawe.ui"))
-    
-    box = builder.get_object("SceneEditBox1")
-    box.add(SceneView(draft, "Times 12"))
 
+    box = builder.get_object("SceneEditBox1")
+    box.add(SceneView(notes, "Times 12"))
+
+    tree = Gtk.TreeView(notes.marklist)
+    renderer = Gtk.CellRendererText()
+    column = Gtk.TreeViewColumn("Name", renderer, text = 0)
+    tree.append_column(column)
+    
+    pane = builder.get_object("SceneList1")
+    pane.add(tree)
+    
     marks = builder.get_object("MarkList")
     if marks: marks.set_buffer(draft.marklist)
 

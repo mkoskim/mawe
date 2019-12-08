@@ -10,15 +10,10 @@ import tools
 
 ###############################################################################
 #
-# File loaders. As a result, we need correctly formed XML element tree.
 #
 ###############################################################################
 
-#------------------------------------------------------------------------------
-
 class Project:
-
-    #--------------------------------------------------------------------------
 
     @staticmethod
     def open(drive, path):
@@ -61,7 +56,11 @@ class Project:
         return None
         #return Text(drive, path)
 
-#------------------------------------------------------------------------------
+###############################################################################
+#
+# File loaders. As a result, we need correctly formed XML element tree.
+#
+###############################################################################
 
 class Base:
     def __init__(self, drive, path, format = None):
@@ -78,7 +77,7 @@ class Base:
         if self.fullname: return self.fullname
         return "<New Project>"
 
-#--------------------------------------------------------------------------
+###############################################################################
 
 class Mawe(Base):
 
@@ -88,7 +87,15 @@ class Mawe(Base):
     def load(self):
         return ET.parse(self.fullname)
 
-#--------------------------------------------------------------------------
+###############################################################################
+#
+# MOE loader: This is very coarse conversion. Sadly, moe gives absolute
+# freedom to use nested groups, and I (*blush*) have used that to modify the
+# outlook of the exported draft. Here we just divide content to two part:
+# visible ones go to draft, invisible ones go to notes, even if they are
+# in fact comment blocks between scenes.
+#
+###############################################################################
 
 class Moe(Base):
 
@@ -108,18 +115,21 @@ class Moe(Base):
         self.draft = ""
         self.notes = ""
 
-        def add_text(element, text):
-            if element.attrib["included"] == "True":
+        #----------------------------------------------------------------------
+        
+        def add_text(text, visible):
+            if visible:
                 self.draft = self.draft + text
             else:
                 self.notes = self.notes + text
 
-        # TODO: Parse title
-        # TODO: Parse non-visible parts
-
-        def gettext(element, prefix = ""):
+        def gettext(element):
             if element is None: return ""
             text = element.text
+            if not text: return ""
+            return text
+            
+        def addprefix(text, prefix = ""):
             if not text: return ""
             text = re.sub(reDblEnter, "\n", text).strip()
             if prefix:
@@ -127,37 +137,78 @@ class Moe(Base):
                 text = (prefix + "\n").join(text)
             return prefix + text + "\n"
 
-        def parsescene(element):
-            name     = "## " + element.find("name").text + "\n"
-            synopsis = gettext(element.find("synopsis"), "<<")
-            comments = gettext(element.find("comments"), "//")
-            content  = gettext(element.find("content"))
+        #----------------------------------------------------------------------
+        
+        def parsescene(element, visible = None):
+            name     = ""
+            synopsis = ""
+            comments = ""
+            content  = ""
             
-            print(content)
+            if not visible is False: visible = element.get("included") == "True"
             
-            return name + synopsis + comments + content + "\n"
+            for child in list(element):
+                if   child.tag == "name":     name = child.text
+                elif child.tag == "content":  content  = content  + gettext(child)
+                elif child.tag in ["synopsis", "description"]:
+                    synopsis = synopsis + gettext(child)
+                elif child.tag in ["comments", "sketch", "conflict"]:
+                    comments = comments + gettext(child)
+                else: tools.log("%s: <scene>: Unknown child '%s'" % (self.fullname, child.tag))
 
-        def parsegroup(element):
-            text = "## Group: " + element.find("name").text + "\n"
+            name     = "## " + name + "\n"
+            synopsis = addprefix(synopsis, "<<")
+            comments = addprefix(comments, "//")
+            content  = addprefix(content)
+            
+            add_text(name + synopsis + comments + content + "\n", visible)
 
-            # Parse group sketch/comment/synopsis
+        def parsegroup(element, visible = None):
+            name     = ""
+            synopsis = ""
+            comments = ""
+            content  = ""
+            
+            if not visible is False: visible = element.get("included") == "True"
+            
+            for child in list(element):
+                if   child.tag == "name":     name = child.text
+                elif child.tag == "content":  content  = content  + gettext(child)
+                elif child.tag in ["synopsis", "description"]:
+                    synopsis = synopsis + gettext(child)
+                elif child.tag in ["comments", "sketch", "conflict"]:
+                    comments = comments + gettext(child)
+                elif child.tag == "childs": pass
+                else: tools.log("%s: <group>: Unknown child '%s'" % (self.fullname, child.tag))
+
+            name     = "## (Group) " + name + "\n"
+            synopsis = addprefix(synopsis, "<<")
+            comments = addprefix(comments, "//")
+            content  = addprefix(content)
+            
+            add_text(name + synopsis + comments + content + "\n", visible)
 
             for child in list(element.find("childs")):
-                if   child.tag == "SceneItem": text = text + parsescene(child)
-                elif child.tag == "GroupItem": text = text + parsegroup(child)
-                else: tools.log("%s: <story>: Unknown child '%s'" % (self.fullname, child.tag))
-            return text
+                if   child.tag == "SceneItem": parsescene(child)
+                elif child.tag == "GroupItem": parsegroup(child)
+                else: tools.log("%s: <group child>: Unknown child '%s'" % (self.fullname, child.tag))
+        
+        #----------------------------------------------------------------------
+        
+        # TODO: Parse title
+
+        #----------------------------------------------------------------------
         
         for child in list(root):
             if   child.tag == "TitleItem": continue
-            elif child.tag == "SceneItem": add_text(child, parsescene(child))
-            elif child.tag == "GroupItem": add_text(child, parsegroup(child))
+            elif child.tag == "SceneItem": parsescene(child)
+            elif child.tag == "GroupItem": parsegroup(child)
             elif child.tag == "settings":  pass # Safe to ignore, settings were moved to .moerc
             else: tools.log("%s: <story>: Unknown child '%s'" % (self.fullname, child.tag))
 
         return self.draft, self.notes
 
-#--------------------------------------------------------------------------
+###############################################################################
 
 class Text(Base):
 
@@ -167,7 +218,7 @@ class Text(Base):
     def load(self):
         return tools.readfile(self.fullname)
     
-#--------------------------------------------------------------------------
+###############################################################################
 
 class LaTeX(Base):
 

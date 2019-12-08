@@ -118,7 +118,7 @@ class SceneView(GtkSource.View):
             "<Alt>Up":   self.move_line_up,
             "<Alt>Down": self.move_line_down,
             
-            "Return": self.enter,
+            #"Return": self.enter,
         }
         self.combokey = None
         self.connect("key-press-event", self.onKeyPress)
@@ -145,15 +145,6 @@ class SceneView(GtkSource.View):
             if key in self.combokeys[combo]:
                 return self.combokeys[combo][key]()
 
-    #--------------------------------------------------------------------------
-
-    def enter(self):
-        cursor = self.buffer.get_cursor_iter()
-        if cursor.has_tag(self.buffer.tag_scenefolded):
-            self.buffer.fold_off(self.buffer.get_cursor_iter())
-            return True
-        return False
-    
     #--------------------------------------------------------------------------
     
     def fix_ctrl_shift_up(self):   return self.fix_ctrl_up(True)

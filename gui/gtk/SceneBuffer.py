@@ -13,9 +13,7 @@ class SceneBuffer(GtkSource.Buffer):
         super(SceneBuffer, self).__init__()
 
         self.create_tags()
-
-        self.marklist = Gtk.TextBuffer()
-        self.marks = {}
+        self.init_marks()
 
         self.set_highlight_matching_brackets(False)
 
@@ -195,6 +193,10 @@ class SceneBuffer(GtkSource.Buffer):
 
     #--------------------------------------------------------------------------
 
+    def init_marks(self):
+        self.marklist = Gtk.ListStore(str)
+        self.markiter = {}
+
     def get_source_marks(self, category, start, end):
         marks = []
         at = start.copy()
@@ -205,8 +207,20 @@ class SceneBuffer(GtkSource.Buffer):
 
     def create_scene_mark(self, at):
         start, end = self.get_line_iter(at)
+
+        previter = self.scene_prev_iter(at)
+        if previter:
+            prevmark = self.get_source_marks_at_iter(previter)[0]
+            previter = self.markiter[prevmark]
+        else:
+            previter = None
+        
+        text = self.get_text(start, end, False)[2:].strip()
+
+        listiter = self.marklist.insert_after(previter, [text])
+        
         mark = self.create_source_mark(None, "scene", start)
-        self.marks[mark] = self.get_text(start, end, False)[2:].strip()
+        self.markiter[mark] = listiter
 
         #self.dump_mark("Created", mark)
         if self.is_folded(start):
@@ -228,7 +242,9 @@ class SceneBuffer(GtkSource.Buffer):
         self.remove_tag(self.tag_fold_prot, start, end)
         
         self.delete_mark(mark)
-        del self.marks[mark]
+        at = self.markiter[mark]
+        self.marklist.remove(at)
+        del self.markiter[mark]
 
     def remove_scene_marks(self, start, end):
         start = self.get_line_start_iter(start)
@@ -240,21 +256,19 @@ class SceneBuffer(GtkSource.Buffer):
     def update_scene(self, start, end):
         self.apply_tag(self.tag_scenehdr, start, end)
         if self.is_folded(start):
-            self.apply_tag(self.tag_scenefolded,
-                self.copy_iter(start, 0, -1),
-                end
-            )
+            self.apply_tag(self.tag_scenefolded, start, end)
 
         self.create_scene_mark(start)
 
     def update_marklist(self):
-        text = ""
-        for mark in self.get_source_marks("scene", *self.get_bounds()):
-            name = self.marks[mark]
-            if len(name) > 40: name = name[:37] + "..."
-            text = text + name + "\n"
-        self.marklist.delete(*self.marklist.get_bounds())
-        self.marklist.insert_at_cursor(text)
+        #text = ""
+        #for mark in self.get_source_marks("scene", *self.get_bounds()):
+        #    name = self.marks[mark]
+        #    if len(name) > 40: name = name[:37] + "..."
+        #    text = text + name + "\n"
+        #self.marklist.delete(*self.marklist.get_bounds())
+        #self.marklist.insert_at_cursor(text)
+        pass
         
     #--------------------------------------------------------------------------
     # Updating text tags after changes (insert, delete)
