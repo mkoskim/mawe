@@ -14,19 +14,9 @@ Version A
 Version B
 Version C</property>
   </object>
-  <object class="GtkTreeStore" id="treestore1">
-    <columns>
-      <!-- column-name Name -->
-      <column type="gchararray"/>
-      <!-- column-name Surname -->
-      <column type="gchararray"/>
-      <!-- column-name Age -->
-      <column type="guint"/>
-    </columns>
-  </object>
   <object class="GtkApplicationWindow" id="window1">
-    <property name="width_request">-1</property>
-    <property name="height_request">-1</property>
+    <property name="width_request">800</property>
+    <property name="height_request">900</property>
     <property name="can_focus">False</property>
     <child>
       <object class="GtkBox" id="box2">
@@ -34,38 +24,46 @@ Version C</property>
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkStackSwitcher">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="stack">stack1</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
           <placeholder/>
         </child>
         <child>
-          <object class="GtkStack" id="stack1">
+          <object class="GtkNotebook">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can_focus">True</property>
+            <property name="show_border">False</property>
+            <property name="scrollable">True</property>
             <child>
-              <object class="GtkBox">
+              <object class="GtkFileChooserWidget">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="orientation">vertical</property>
+              </object>
+            </child>
+            <child type="tab">
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Open File...</property>
+              </object>
+              <packing>
+                <property name="tab_fill">False</property>
+                <property name="reorderable">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkPaned" id="EditPane">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="position">250</property>
+                <property name="position_set">True</property>
+                <property name="wide_handle">True</property>
                 <child>
-                  <placeholder/>
-                </child>
-                <child>
-                  <object class="GtkPaned" id="EditPane">
+                  <object class="GtkBox">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="position">250</property>
-                    <property name="wide_handle">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <placeholder/>
+                    </child>
                     <child>
                       <object class="GtkScrolledWindow" id="SceneList1">
                         <property name="visible">True</property>
@@ -76,48 +74,170 @@ Version C</property>
                         </child>
                       </object>
                       <packing>
-                        <property name="resize">False</property>
-                        <property name="shrink">True</property>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkScrolledWindow" id="SceneEditBox1">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="vscrollbar_policy">always</property>
-                        <property name="shadow_type">in</property>
-                        <property name="min_content_width">500</property>
-                        <property name="min_content_height">500</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="resize">False</property>
-                        <property name="shrink">False</property>
-                      </packing>
+                      <placeholder/>
                     </child>
                   </object>
                   <packing>
-                    <property name="expand">True</property>
-                    <property name="fill">True</property>
-                    <property name="position">1</property>
+                    <property name="resize">False</property>
+                    <property name="shrink">True</property>
                   </packing>
+                </child>
+                <child>
+                  <object class="GtkScrolledWindow" id="SceneEditBox1">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="vscrollbar_policy">always</property>
+                    <property name="shadow_type">in</property>
+                    <property name="min_content_width">500</property>
+                    <property name="min_content_height">500</property>
+                    <child>
+                      <placeholder/>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="resize">False</property>
+                    <property name="shrink">False</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child type="tab">
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Beltane</property>
+              </object>
+              <packing>
+                <property name="position">1</property>
+                <property name="tab_fill">False</property>
+                <property name="reorderable">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="orientation">vertical</property>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <placeholder/>
                 </child>
                 <child>
                   <placeholder/>
                 </child>
               </object>
               <packing>
-                <property name="title" translatable="yes">Edit</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child type="tab">
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">&lt;New story&gt;</property>
+              </object>
+              <packing>
+                <property name="position">2</property>
+                <property name="tab_fill">False</property>
+                <property name="reorderable">True</property>
+              </packing>
+            </child>
+            <child type="action-start">
+              <object class="GtkButtonBox">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="layout_style">start</property>
+                <child>
+                  <object class="GtkAccelLabel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">Nova 2020</property>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <object class="GtkButton">
+                    <property name="label" translatable="yes">Open...</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="tab_fill">False</property>
+              </packing>
+            </child>
+            <child type="action-end">
+              <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkButton">
+                    <property name="label" translatable="yes">button</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <object class="GtkButton">
+                    <property name="label" translatable="yes">button</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="tab_expand">True</property>
               </packing>
             </child>
           </object>
           <packing>
             <property name="expand">True</property>
             <property name="fill">True</property>
-            <property name="position">2</property>
+            <property name="position">1</property>
           </packing>
+        </child>
+        <child>
+          <placeholder/>
         </child>
       </object>
     </child>

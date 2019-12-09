@@ -1,0 +1,20 @@
+Information that is hard to find: Here's some symbolic names for
+certain icons used in GTK UI:
+
+https://github.com/elementary/icons/tree/master/actions/symbolic
+
+https://gitlab.gnome.org/GNOME/gtk/issues/1235
+
+-------------------------------------------------------------------------------
+
+Generic:
+
+"open-menu-symbolic" (three bars)
+
+Arrows:
+
+"pan-down-symbolic"
+"pan-up-symbolic"
+"pan-start-symbolic"
+"pan-end-symbolic"
+

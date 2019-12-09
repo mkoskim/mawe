@@ -21,13 +21,10 @@ class SceneBuffer(GtkSource.Buffer):
         self.connect_after("insert-text",  self.afterInsertText)
 
         if content:
-            print("Loading")
             self.begin_not_undoable_action()
             self.insert(self.get_start_iter(), content)
             self.end_not_undoable_action()
             self.place_cursor(self.get_start_iter())
-        else:
-            print("Empty")
 
     #--------------------------------------------------------------------------
     
@@ -114,7 +111,7 @@ class SceneBuffer(GtkSource.Buffer):
     
     def get_line_end_iter(self, at = None):
         if at is None:
-            at = self.get_cursor_iter()
+            end = self.get_cursor_iter()
         else:
             end = at.copy()
         if not end.ends_line(): end.forward_to_line_end()

@@ -16,7 +16,7 @@ import tools
 class Project:
 
     @staticmethod
-    def open(drive, path):
+    def open(drive, path, force = False):
         fullname = os.path.join(drive, path)
         dirname  = os.path.dirname(fullname)
         filename = os.path.basename(fullname)
@@ -53,8 +53,8 @@ class Project:
                 os.path.join(os.path.relpath(dirname, drive), mainfile + ".tex")
             )
 
+        if force: return Text(drive, path)
         return None
-        #return Text(drive, path)
 
 ###############################################################################
 #
@@ -101,6 +101,8 @@ class Moe(Base):
 
     def __init__(self, drive, path, root):
         super(Moe, self).__init__(drive, path, "moe")
+
+        self.name = root.find("TitleItem").find("title").text
         
     def load(self):
         if not self.fullname: return
@@ -214,6 +216,7 @@ class Text(Base):
 
     def __init__(self, drive, path):
         super(Text, self).__init__(drive, path, "latex")
+        self.name = os.path.basename(self.fullname)
 
     def load(self):
         return (tools.readfile(self.fullname), "")

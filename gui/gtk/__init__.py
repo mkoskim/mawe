@@ -5,7 +5,7 @@ import gi
 #gi.require_version("WebKit", "3.0")
 
 from gi.repository import (
-    Gtk, Gdk, Pango,
+    Gtk, Gdk, Gio, Pango,
     #WebKit,
     GtkSource,
     GdkPixbuf

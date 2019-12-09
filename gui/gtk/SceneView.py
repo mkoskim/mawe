@@ -3,28 +3,20 @@ from gui.gtk.SceneBuffer import SceneBuffer
 import os
 
 ###############################################################################        
-###############################################################################        
-#
+
 class ScrolledSceneView(Gtk.ScrolledWindow):
-#
-###############################################################################        
-###############################################################################        
 
     def __init__(self, buffer, font = None):
         super(ScrolledSceneView, self).__init__()
 
-        view = SceneView(buffer, font)
-        self.add(view)
+        self.view = SceneView(buffer, font)
+        self.add(self.view)
 
         #self.set_size_request(500, 500)
 
 ###############################################################################        
-###############################################################################        
-#
+
 class SceneView(GtkSource.View):
-#
-###############################################################################        
-###############################################################################        
 
     def __init__(self, buffer, font = None):
         super(SceneView, self).__init__()
@@ -99,7 +91,6 @@ class SceneView(GtkSource.View):
             "<Primary>s": self.save,
             "<Primary>z": undo,
             "<Primary><Shift>z": redo,
-            "<Primary>q": lambda: Gtk.main_quit(),
             "<Alt>a": {
                 "<Alt>f": self.fold_all,
                 "<Alt>u": self.unfold_all,
@@ -260,26 +251,29 @@ class SceneView(GtkSource.View):
     #--------------------------------------------------------------------------
 
     def remove_block(self, starts_with):
+        start, end = self.buffer.get_line_iter()
         if self.buffer.line_starts_with(starts_with):
-            self.buffer.delete(start, end)
+            self.buffer.delete(
+                start,
+                self.buffer.copy_iter(start, 0, len(starts_with))
+            )
 
     def toggle_block(self, starts_with):
+        start, end = self.buffer.get_line_iter()
         if self.buffer.line_starts_with(starts_with):
-            self.buffer.delete(start, end)
+            self.buffer.delete(
+                start,
+                self.buffer.copy_iter(start, 0, len(starts_with))
+            )
         else:
             self.buffer.insert(start, starts_with)
 
     def toggle_comment(self):
-        tag = self.buffer.tagtbl.lookup("comment")
-        visible = not tag.get_property("invisible")
-        tag.set_property("invisible", visible)
-        tag.set_property("editable",  not visible)
-        #self.buffer.begin_user_action()
-        #self.remove_block("<<")
-        #self.remove_block("#")
-        #self.toggle_block("//")
-        #self.buffer.end_user_action()
-        self.scroll_mark_onscreen(self.buffer.get_insert())
+        self.buffer.begin_user_action()
+        self.remove_block("<<")
+        self.remove_block("#")
+        self.toggle_block("//")
+        self.buffer.end_user_action()
 
     def toggle_synopsis(self, accel, widget, keyval, modifiers):
         self.buffer.begin_user_action()
