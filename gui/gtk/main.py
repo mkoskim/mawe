@@ -18,9 +18,9 @@ def run(workset = None):
     builder.add_from_file(os.path.join(guidir, "glade/mawe.ui"))
 
     box = builder.get_object("SceneEditBox1")
-    box.add(SceneView(notes, "Times 12"))
+    box.add(SceneView(draft, "Times 12"))
+    tree = Gtk.TreeView(draft.marklist)
 
-    tree = Gtk.TreeView(notes.marklist)
     renderer = Gtk.CellRendererText()
     column = Gtk.TreeViewColumn("Name", renderer, text = 0)
     tree.append_column(column)

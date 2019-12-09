@@ -216,7 +216,7 @@ class Text(Base):
         super(Text, self).__init__(drive, path, "latex")
 
     def load(self):
-        return tools.readfile(self.fullname)
+        return (tools.readfile(self.fullname), "")
     
 ###############################################################################
 

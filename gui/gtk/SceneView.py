@@ -96,6 +96,7 @@ class SceneView(GtkSource.View):
             return True
 
         self.combokeys = {
+            "<Primary>s": self.save,
             "<Primary>z": undo,
             "<Primary><Shift>z": redo,
             "<Primary>q": lambda: Gtk.main_quit(),
@@ -289,7 +290,18 @@ class SceneView(GtkSource.View):
 
     #--------------------------------------------------------------------------
     
-    def save(self, accel, widget, keyval, modifiers):
+    
+    def wordcount(self):
+        text = self.buffer.get_text(*self.buffer.get_bounds(), True)
+        print("Char count:", len(text))
+    
+        import re
+        words=re.findall('\w+', text.lower())
+        print("Word count:", len(words))
+    
+    #--------------------------------------------------------------------------
+
+    def save(self):
         def dump_styles():
             for styleid in self.buffer.get_language().get_style_ids():
                 style = self.buffer.get_style_scheme().get_style(styleid)
@@ -311,7 +323,8 @@ class SceneView(GtkSource.View):
 
         #dump_source_marks_at()
         #dump_contexts_at(self.get_cursor_iter())
-        dump_text()
+        #dump_text()
+        self.wordcount()
         return True
 
     #--------------------------------------------------------------------------
