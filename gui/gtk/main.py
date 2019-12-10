@@ -1,8 +1,12 @@
 from gui.gtk import (
     Gtk, Gdk, Gio,
-    ScrolledSceneView, SceneView, SceneBuffer,
+    ScrolledSceneView, SceneView,
+    ScrolledSceneList, SceneList,
+    SceneBuffer,
     guidir,
 )
+
+from tools import *
 
 import os
 
@@ -57,23 +61,48 @@ class MenuButton(Gtk.MenuButton):
         self.set_relief(Gtk.ReliefStyle.NONE)
         self.set_always_show_image(True)
 
+class RadioButton(Gtk.RadioButton):
+
+    def __init__(self, label, group = None, **kwargs):
+        if "visible" not in kwargs: kwargs["visible"] = True
+        super(RadioButton, self).__init__(label = label, group = group, **kwargs)
+        self.set_relief(Gtk.ReliefStyle.NONE)
+
+#------------------------------------------------------------------------------
+
 class Label(Gtk.Label):
 
     def __init__(self, label, **kwargs):
         if "visible" not in kwargs: kwargs["visible"] = True
         super(Label, self).__init__(label, **kwargs)
 
+#------------------------------------------------------------------------------
+
 class Box(Gtk.Box):
 
     def __init__(self, **kwargs):
-        if "visible" not in kwargs: kwargs["visible"] = True
+        #if "visible" not in kwargs: kwargs["visible"] = True
         super(Box, self).__init__(**kwargs)
 
 class HBox(Gtk.HBox):
 
     def __init__(self, **kwargs):
-        #if "visible" not in kwargs: kwargs["visible"] = True
         super(HBox, self).__init__(**kwargs)
+
+class VBox(Gtk.VBox):
+
+    def __init__(self, **kwargs):
+        super(VBox, self).__init__(**kwargs)
+
+class HSeparator(Gtk.HSeparator):
+
+    def __init__(self, **kwargs):
+        super(HSeparator, self).__init__(**kwargs)
+
+class VSeparator(Gtk.VSeparator):
+
+    def __init__(self, **kwargs):
+        super(VSeparator, self).__init__(**kwargs)
 
 #------------------------------------------------------------------------------
 
@@ -102,31 +131,36 @@ class DocNotebook(Gtk.Notebook):
         #self.openbtn = StockButton("gtk-open", onclick = self.open)
         self.openbtn = Button(
             icon = "document-open-symbolic",
-            tooltip_text = "Open file",
+            tooltip_text = "Open document",
             onclick = self.open,
         )
         newbtn = Button(
             icon = "document-new-symbolic",
-            tooltip_text = "New file",
+            tooltip_text = "Create new document",
             onclick = self.new,
         )
           
-        start = Box()
+        start = Box(visible = True)
         start.pack_start(MenuButton("<Workset>"), False, False, 0)
         start.pack_start(self.openbtn, False, False, 1)
         self.set_action_widget(start, Gtk.PackType.START)
 
-        end = Box()
+        end = Box(visible = True)
         end.pack_start(newbtn, False, False, 1)
         self.set_action_widget(end, Gtk.PackType.END)
 
         self.connect("switch-page", self.onSwitchPage)
+
+    def get_current_child(self):
+        page = self.get_current_page()
+        return self.get_nth_page(page)
 
     def add_page(self, name, child):
         label = HBox()
         label.pack_start(Label(name), True, False, 0)
         label.pack_start(Button(
             icon = "window-close-symbolic",
+            tooltip_text = "Close document",
             image_position = Gtk.PositionType.RIGHT,
             onclick = lambda: self.close(child),
         ), False, False, 0)
@@ -186,29 +220,113 @@ class DocView(Gtk.Frame):
         else:
             draft, notes = (None, None)
 
+        self.style   = Gtk.CssProvider()
+        self.context = Gtk.StyleContext()
+        self.context.add_provider_for_screen(
+            Gdk.Screen.get_default(),
+            self.style,
+           Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
+        self.style.load_from_data(
+            b"#draftview { background-color: #FFF; }" + 
+            b"#draftview:selected { background: #9AB87C; }"
+        )
+
         self.draftbuf = SceneBuffer(draft)
         self.notesbuf = SceneBuffer(notes)
 
-        text = ScrolledSceneView(self.draftbuf, "Times 12")
-        text.view.modify_bg(Gtk.StateType.NORMAL, Gdk.Color(65535, 65535, 65535))
-        text.set_min_content_width(400)
-        #text.set_max_content_width(800)
-        text.set_min_content_height(400)
+        self.pane = Gtk.Paned()
+        self.pane.add2(self.create_view())
+        self.pane.add1(self.create_index())
+        
+        self.connect("map", self.onMap)
+        self.connect("unmap", self.onUnmap)
 
-        pane = Gtk.Paned()
-        pane.add2(text)
-        
-        tree = Gtk.TreeView(self.draftbuf.marklist)
-        renderer = Gtk.CellRendererText()
-        column = Gtk.TreeViewColumn("Name", renderer, text = 0)
-        tree.append_column(column)
-        scrolled = Gtk.ScrolledWindow()
-        scrolled.add(tree)
-        scrolled.set_min_content_width(200)
-        
-        pane.add1(scrolled)
-        self.add(pane)
+        self.add(self.pane)
         self.show_all()
+    
+    position = -1
+
+    def onMap(self, widget):
+        if DocView.position < 0: return
+        self.pane.set_position(DocView.position)
+
+    def onUnmap(self, widget):
+        DocView.position = self.pane.get_position()
+        #print("Pane pos:", DocView.position)
+    
+    def create_view(self):
+
+        def toolbar():
+            box = HBox()
+            selectdraft = RadioButton("draft")
+            selectnotes = RadioButton("notes", group = selectdraft)
+            box.pack_start(Button(icon = "open-menu-symbolic", tooltip_text = "Open menu"), False, False, 0)
+            box.pack_start(VSeparator(), False, False, 2)
+            #box.pack_start(selectdraft, False, False, 0)
+            #box.pack_start(selectnotes, False, False, 0)
+
+            box.pack_start(Label(""), True, True, 0)
+
+            box.pack_start(VSeparator(), False, False, 2)
+            box.pack_start(self.draftbuf.stats.words, False, False, 4)
+            box.pack_start(self.draftbuf.stats.chars, False, False, 6)
+            return box
+
+        def view():
+            text = ScrolledSceneView(self.draftbuf, "Times 12")
+            text.view.set_name("draftview")
+            self.draftview = text.view
+
+            text.set_min_content_width(400)
+            #text.set_max_content_width(800)
+            text.set_min_content_height(400)
+            text.set_border_width(1)
+            text.set_shadow_type(Gtk.ShadowType.IN)
+            return text
+
+        def statusbar():
+            box = Gtk.HBox()
+            return box
+
+        box = VBox()
+        box.pack_start(toolbar(), False, False, 0)
+        box.pack_start(view(), True, True, 0)
+        box.pack_end(statusbar(), False, False, 0)
+        return box
+
+    def create_index(self):
+        def toolbar(stack):
+            box = HBox()
+            box.pack_start(Gtk.StackSwitcher(stack = stack, visible = True), False, False, 0)
+            box.pack_start(Button("..."), False, False, 0)
+            return box
+
+        def scenelist():
+            tree = ScrolledSceneList(self.draftbuf, self.draftview)
+            #scrolled.set_min_content_width(200)
+            return tree
+
+        def notes():
+            text = ScrolledSceneView(self.notesbuf, "Times 12")
+            self.notesview = text.view
+
+            #text.set_min_content_width(400)
+            #text.set_max_content_width(800)
+            #text.set_min_content_height(400)
+
+            text.set_border_width(1)
+            text.set_shadow_type(Gtk.ShadowType.IN)
+            return text
+
+        stack = Gtk.Stack()
+        stack.add_titled(scenelist(), "index", "Index")
+        stack.add_titled(notes(), "notes", "Notes")
+
+        box = VBox()
+        box.pack_start(toolbar(stack), False, False, 1)
+        box.pack_start(stack, True, True, 0)
+        return box
 
 ###############################################################################
 #
@@ -229,21 +347,25 @@ class DocOpen(Gtk.Frame):
 
 class MainWindow(Gtk.Window):
 
-    def __init__(self, docs):
+    def __init__(self, workset):
         super(MainWindow, self).__init__()
         
         self.docs = DocNotebook()
         self.add(self.docs)
 
-        self.connect("destroy", Gtk.main_quit)
+        self.connect("delete-event", lambda w, e: self.onDestroy(w))
 
         add_shortcuts(self, [
-            ("<Ctrl>Q", Gtk.main_quit),
-            ("<Ctrl>O", lambda a, w, key, mod: self.docs.open()),
+            ("<Ctrl>Q", lambda *a: self.onDestroy(self)),
+            ("<Ctrl>O", lambda *a: self.docs.open()),
         ])
 
-        if docs:
-            for doc in docs: self.load(doc)
+        if "Position" in config["Window"]: pass
+        self.resize(config["Window"]["Size"]["X"], config["Window"]["Size"]["Y"])
+        DocView.position = config["DocView"]["Pane"]
+
+        if workset:
+            for doc in workset: self.load(doc)
         else:
             self.new()
 
@@ -253,41 +375,27 @@ class MainWindow(Gtk.Window):
     def new(self):
         self.docs.new()
 
-#------------------------------------------------------------------------------
+    def onDestroy(self, widget):
+        try:
+            size = self.get_size()
+            print(size)
 
-def _load(filename, workset):
+            self.docs.get_current_child().unmap()
 
-    draft, notes = len(workset) > 0 and workset[0].load() or (None, None)
-    draft = SceneBuffer(draft)
-    notes = SceneBuffer(notes)
-    
-    builder = Gtk.Builder()
-    builder.add_from_file(os.path.join(guidir, filename))
+            config["Window"]["Size"]["X"] = size.width
+            config["Window"]["Size"]["Y"] = size.height
+            config["DocView"]["Pane"] = DocView.position
 
-    box = builder.get_object("SceneEditBox1")
-    box.add(SceneView(draft, "Times 12"))
-    
-    tree = Gtk.TreeView(draft.marklist)
-    renderer = Gtk.CellRendererText()
-    column = Gtk.TreeViewColumn("Name", renderer, text = 0)
-    tree.append_column(column)
-    
-    pane = builder.get_object("SceneList1")
-    pane.add(tree)
-    
-    marks = builder.get_object("MarkList")
-    if marks: marks.set_buffer(draft.marklist)
-
-    box = builder.get_object("SceneEditBox2")
-    if box: box.add(SceneView(notes, "Times 12"))
-
-    return builder.get_object("window1")
+            config_save()
+        except Exception:
+            import traceback
+            print(traceback.format_exc())
+        Gtk.main_quit()
 
 #------------------------------------------------------------------------------
 
 def run(workset = None):
     
-    #win = _load("glade/mawe.ui", workset)
     win = MainWindow(workset)
     win.show_all()
 

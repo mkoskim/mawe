@@ -13,8 +13,6 @@ FEATURES needed to start using the editor in daily work:
 
 - Header info editor
 
-- Visible word/character counts from doc
-
 - Postpone: We can now support just one-part files
 
 - Postpone: We don't need versioning yet.
@@ -22,6 +20,10 @@ FEATURES needed to start using the editor in daily work:
 Other features:
 
 - Search and replace: it is very useful feature I have missed in moe a lot
+
+- Separate configs to local and global ones. For example, you may want
+  to store workset configurations to a shared drive, but keep window settings
+  on local machine.
 
 -------------------------------------------------------------------------------
 
@@ -44,8 +46,6 @@ QUIRKS ETC:
 
 TODO:
 
-- Initial configs (to save window size)
-
 -------------------------------------------------------------------------------
 
 DONE:
@@ -66,5 +66,9 @@ DONE:
   Trace/breakpoint trap
 
 - DONE: Import .moe files to get content for testing
+
+- DONE: Visible word/character counts from doc
+
+- DONE: Initial configs (to save window size)
 
 

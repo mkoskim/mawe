@@ -1,5 +1,6 @@
 from gui.gtk import Gtk, Gdk, Pango, GtkSource
-import os
+import os, re
+from collections import namedtuple
 
 ###############################################################################        
 ###############################################################################        
@@ -14,6 +15,10 @@ class SceneBuffer(GtkSource.Buffer):
 
         self.create_tags()
         self.init_marks()
+
+        self.stats = namedtuple("Stats", ["words", "chars"])
+        self.stats.words = Gtk.Label()
+        self.stats.chars = Gtk.Label()
 
         self.set_highlight_matching_brackets(False)
 
@@ -191,10 +196,10 @@ class SceneBuffer(GtkSource.Buffer):
     #--------------------------------------------------------------------------
 
     def init_marks(self):
-        self.marklist = Gtk.ListStore(str)
+        self.marklist = Gtk.ListStore(object, str, int, int, int)
         self.markiter = {}
 
-    def get_source_marks(self, category, start, end):
+    def get_marks(self, category, start, end):
         marks = []
         at = start.copy()
         while at.compare(end) < 1:
@@ -212,11 +217,10 @@ class SceneBuffer(GtkSource.Buffer):
         else:
             previter = None
         
-        text = self.get_text(start, end, False)[2:].strip()
-
-        listiter = self.marklist.insert_after(previter, [text])
+        mark  = self.create_source_mark(None, "scene", start)
+        name  = self.get_text(start, end, False)[2:].strip()
         
-        mark = self.create_source_mark(None, "scene", start)
+        listiter = self.marklist.insert_after(previter, [mark, name, 0, 0, 0])
         self.markiter[mark] = listiter
 
         #self.dump_mark("Created", mark)
@@ -247,7 +251,7 @@ class SceneBuffer(GtkSource.Buffer):
         start = self.get_line_start_iter(start)
         end   = self.get_line_end_iter(end)
 
-        for mark in self.get_source_marks("scene", start, end):
+        for mark in self.get_marks("scene", start, end):
             self.remove_scene_mark(mark)
 
     def update_scene(self, start, end):
@@ -257,16 +261,21 @@ class SceneBuffer(GtkSource.Buffer):
 
         self.create_scene_mark(start)
 
-    def update_marklist(self):
-        #text = ""
-        #for mark in self.get_source_marks("scene", *self.get_bounds()):
-        #    name = self.marks[mark]
-        #    if len(name) > 40: name = name[:37] + "..."
-        #    text = text + name + "\n"
-        #self.marklist.delete(*self.marklist.get_bounds())
-        #self.marklist.insert_at_cursor(text)
-        pass
-        
+    def update_scene_counts(self, start, end):
+        start = self.scene_prev_iter(start)
+        if start is None: start = self.get_start_iter()
+        end   = self.scene_end_iter(end)
+
+        for mark in self.get_marks("scene", start, end):
+            index = self.markiter[mark]
+            start = self.get_iter_at_mark(mark)
+            end   = self.scene_end_iter(start)
+            
+            words, _, comments, missing = self.wordcount(start, end)
+            self.marklist.set_value(index, 2, words)
+            self.marklist.set_value(index, 3, comments)
+            self.marklist.set_value(index, 4, missing)
+
     #--------------------------------------------------------------------------
     # Updating text tags after changes (insert, delete)
     #--------------------------------------------------------------------------
@@ -298,7 +307,9 @@ class SceneBuffer(GtkSource.Buffer):
 
         #self.mark_range("debug:update", start, end)
         #self.dump_source_marks(None, *self.get_bounds())
-        self.update_marklist()
+        #self.update_marklist()
+        self.update_scene_counts(start, end)
+        self.update_stats()
 
     def update_line_tags(self, start, end):
         self.remove_tags(start, end, *self.tag_reapplied)
@@ -337,9 +348,9 @@ class SceneBuffer(GtkSource.Buffer):
         self.apply_tag_by_name("indent", start, end)
         #self.dump_range("Update indent", start, end)
     
-    import re
     re_bold   = re.compile("(\*[^\*\s]\*)|(\*[^\*\s][^\*]*\*)")
     re_italic = re.compile("(\_[^\_\s]\_)|(\_[^\_\s][^\_]*\_)")
+    re_wc     = re.compile("\w+")
     
     def update_spans(self, start, end):
         start = start.copy()
@@ -353,8 +364,8 @@ class SceneBuffer(GtkSource.Buffer):
                 self.apply_tag_by_name(tagname, start, end)
                 #print(m.start(), m.end(), m.group())
 
-        set_tags("bold",   self.re_bold)
-        set_tags("italic", self.re_italic)
+        set_tags("bold",   SceneBuffer.re_bold)
+        set_tags("italic", SceneBuffer.re_italic)
 
     #--------------------------------------------------------------------------
     # Folding:
@@ -379,6 +390,31 @@ class SceneBuffer(GtkSource.Buffer):
         if not self.is_folded(at): return
         end = self.get_line_end_iter(at)
         self.delete(self.copy_iter(end, 0, -len(self.fold_mark)), end)
+
+    #--------------------------------------------------------------------------
+
+    def wordcount(self, start, end):
+        text  = self.get_text(start, end, True)
+        text  = text.split("\n")
+
+        comments = filter(lambda s: s[:2] == "//", text)
+        comments = "\n".join(list(comments))
+        comments = len(SceneBuffer.re_wc.findall(comments))
+        
+        missing  = filter(lambda s: s[:2] == "!!", text)
+        missing  = "\n".join(list(missing))
+        missing  = len(SceneBuffer.re_wc.findall(missing))
+        
+        text  = filter(lambda s: s[:2] not in ["<<", "//", "!!", "##"], text)
+        text  = "\n".join(list(text))
+        chars = len(text)
+        words = len(SceneBuffer.re_wc.findall(text))
+        return words, chars, comments, missing
+    
+    def update_stats(self):
+        words, chars, _, _ = self.wordcount(*self.get_bounds())
+        self.stats.words.set_text("Words: %d" % words)
+        self.stats.chars.set_text("Chars: %d" % chars)
 
     #--------------------------------------------------------------------------
 
@@ -407,8 +443,8 @@ class SceneBuffer(GtkSource.Buffer):
             text[:20]
         ))
 
-    def dump_source_marks(self, category, start, end):
+    def dump_marks(self, category, start, end):
         print("Marks:")
-        for mark in self.get_source_marks(category, start, end):
+        for mark in self.get_marks(category, start, end):
             self.dump_mark("-", mark)
 

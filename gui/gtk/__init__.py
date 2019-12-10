@@ -6,15 +6,17 @@ import gi
 
 from gi.repository import (
     Gtk, Gdk, Gio, Pango,
-    #WebKit,
     GtkSource,
     GdkPixbuf
 )
 
 print("Gtk: %d.%d" % (Gtk.get_major_version(), Gtk.get_minor_version()))
 
-from gui.gtk.SceneView   import SceneView, ScrolledSceneView
 from gui.gtk.SceneBuffer import SceneBuffer
+from gui.gtk.SceneView   import (
+    SceneView, ScrolledSceneView,
+    SceneList, ScrolledSceneList,
+)
 
 import os
 guidir = os.path.dirname(__file__)

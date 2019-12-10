@@ -4,6 +4,69 @@ import os
 
 ###############################################################################        
 
+class ScrolledSceneList(Gtk.ScrolledWindow):
+
+    def __init__(self, buffer, view = None):
+        super(ScrolledSceneList, self).__init__()
+
+        self.tree = SceneList(buffer, view)
+        self.add(self.tree)
+
+class SceneList(Gtk.TreeView):
+
+    def __init__(self, buffer, view):
+        super(SceneList, self).__init__(buffer.marklist)
+
+        self.buffer = buffer
+        self.view = view
+
+        def dfNonZeros(col, cell, store, itr, args):
+            words = store.get_value(itr, args)
+            if words:
+                cell.set_property("text", str(words))
+            else:
+                cell.set_property("text", "")
+
+        column = Gtk.TreeViewColumn("Words")
+        self.append_column(column)
+
+        renderer = Gtk.CellRendererText()
+        renderer.set_alignment(1.0, 0.5)
+        column.pack_start(renderer, False)
+        column.add_attribute(renderer, 'text', 2)
+
+        renderer = Gtk.CellRendererText()
+        renderer.set_alignment(1.0, 0.5)
+        renderer.set_property("foreground", "green")
+        column.pack_start(renderer, False)
+        column.set_cell_data_func(renderer, dfNonZeros, 3)
+
+        renderer = Gtk.CellRendererText()
+        renderer.set_alignment(1.0, 0.5)
+        renderer.set_property("foreground", "red")
+        column.pack_start(renderer, False)
+        column.set_cell_data_func(renderer, dfNonZeros, 4)
+
+        renderer = Gtk.CellRendererText()
+        column = Gtk.TreeViewColumn("Name", renderer, text = 1)
+        column.set_property("expand", True)
+        self.append_column(column)
+
+        self.connect("row-activated", self.onRowActivated)
+
+
+    def onRowActivated(self, tree, path, col, *args):
+        store = self.get_model()
+        index = store.get_iter(path)
+        mark = store.get_value(index, 0)
+        at = self.buffer.get_iter_at_mark(mark)
+        self.buffer.place_cursor(at)
+        if self.view:
+            self.view.scroll_to_mark(mark, 0.40, True, 0.5, 0.5)
+            self.view.grab_focus()
+
+###############################################################################        
+
 class ScrolledSceneView(Gtk.ScrolledWindow):
 
     def __init__(self, buffer, font = None):
@@ -13,8 +76,6 @@ class ScrolledSceneView(Gtk.ScrolledWindow):
         self.add(self.view)
 
         #self.set_size_request(500, 500)
-
-###############################################################################        
 
 class SceneView(GtkSource.View):
 
@@ -141,7 +202,7 @@ class SceneView(GtkSource.View):
     
     def fix_ctrl_shift_up(self):   return self.fix_ctrl_up(True)
     def fix_ctrl_up(self, select = False):
-        cursor = self.get_cursor_iter()
+        cursor = self.buffer.get_cursor_iter()
         if cursor.is_start(): return True
         if not cursor.starts_line():
             cursor = self.buffer.get_line_start_iter(cursor)
@@ -157,7 +218,7 @@ class SceneView(GtkSource.View):
         
     def fix_ctrl_shift_down(self): return self.fix_ctrl_down(True)
     def fix_ctrl_down(self, select = False):
-        cursor = self.get_cursor_iter()
+        cursor = self.buffer.get_cursor_iter()
         if cursor.is_end(): return True
         if not cursor.starts_line():
             cursor = self.buffer.get_line_end_iter(cursor)
@@ -194,7 +255,7 @@ class SceneView(GtkSource.View):
         self.scroll_mark_onscreen(self.buffer.get_insert())
 
     def foreach_scene(self, func, exclude_current = True):
-        scenes = self.buffer.get_source_marks("scene", *self.buffer.get_bounds())
+        scenes = self.buffer.get_marks("scene", *self.buffer.get_bounds())
         for scene in scenes:
             start = self.buffer.get_iter_at_mark(scene)
             if exclude_current:
@@ -283,17 +344,6 @@ class SceneView(GtkSource.View):
         self.buffer.end_user_action()
 
     #--------------------------------------------------------------------------
-    
-    
-    def wordcount(self):
-        text = self.buffer.get_text(*self.buffer.get_bounds(), True)
-        print("Char count:", len(text))
-    
-        import re
-        words=re.findall('\w+', text.lower())
-        print("Word count:", len(words))
-    
-    #--------------------------------------------------------------------------
 
     def save(self):
         def dump_styles():
@@ -318,14 +368,14 @@ class SceneView(GtkSource.View):
         #dump_source_marks_at()
         #dump_contexts_at(self.get_cursor_iter())
         #dump_text()
-        self.wordcount()
+        #self.wordcount()
         return True
 
     #--------------------------------------------------------------------------
     
     def lorem(self):
         self.buffer.begin_user_action()
-        self.buffer.delete_selection(True, self.text.get_editable())
+        self.buffer.delete_selection(True, self.get_editable())
         cursor = self.buffer.get_insert()
         at     = self.buffer.get_iter_at_mark(cursor)
         self.buffer.insert(
