@@ -88,7 +88,7 @@ class Mawe(Base):
     def load(self):
         if not self.fullname: return
 
-        return ET.parse(self.fullname)
+        return Document(self.fullname)
 
 ###############################################################################
 #
@@ -105,114 +105,99 @@ class Moe(Base):
     def __init__(self, drive, path, root):
         super(Moe, self).__init__(drive, path, "moe")
 
-        self.name = root.find("TitleItem").find("title").text
+        self.name = root.find("./TitleItem/title").text
         
+    reDblEnter  = re.compile("\n+")
+    reSeparator = re.compile("\n\s*\-\s*\-\s*\-[\s\-]*\n")
+
     def load(self):
         if not self.fullname: return
 
         root = ET.parse(self.fullname).getroot()
 
-        reDblEnter = re.compile("\n+")
-
-        if root.tag != "story":
+        if root.tag != "story" or root.get("format", "moe") != "moe":
             raise FormatError("%s: Not a valid moe file." % self.fullname)
 
-        self.draft = ""
-        self.notes = ""
-
         #----------------------------------------------------------------------
         
-        def add_text(text, visible):
+        mawe = Document.empty()
+
+        def create_scene(element, visible):
             if visible:
-                self.draft = self.draft + text
+                return ET.SubElement(mawe.find("./body/part"), "scene")
             else:
-                self.notes = self.notes + text
+                return ET.SubElement(mawe.find("./notes/part"), "scene")
 
-        def gettext(element):
-            if element is None: return ""
-            text = element.text
-            if not text: return ""
-            return text
-            
-        def addprefix(text, prefix = ""):
-            if not text: return ""
-            text = re.sub(reDblEnter, "\n", text).strip()
-            if prefix:
-                text = text.split("\n")
-                text = (prefix + "\n").join(text)
-            return prefix + text + "\n"
-
-        #----------------------------------------------------------------------
+        def get_visible(element, visible):
+            if not visible is False: return element.get("included") == "True"
+            return False
         
-        def parsescene(element, visible = None):
-            name     = ""
-            synopsis = ""
-            comments = ""
-            content  = ""
-            
-            if not visible is False: visible = element.get("included") == "True"
-            
-            for child in list(element):
-                if   child.tag == "name":     name = child.text
-                elif child.tag == "content":  content  = content  + gettext(child)
-                elif child.tag in ["synopsis", "description"]:
-                    synopsis = synopsis + gettext(child)
-                elif child.tag in ["comments", "sketch", "conflict"]:
-                    comments = comments + gettext(child)
-                else: tools.log("%s: <scene>: Unknown child '%s'" % (self.fullname, child.tag))
+        def lines2tags(scene, tag, *elements):
+            for element in elements:
+                text = element.text
+                if not text: return ""
+                text = re.sub(Moe.reDblEnter, "\n", text).strip()
+                text = re.sub(Moe.reSeparator, "\n\n", text)
+                for line in text.split("\n"):
+                    ET.SubElement(scene, tag).text = line
 
-            name     = "## " + name + "\n"
-            synopsis = addprefix(synopsis, "<<")
-            comments = addprefix(comments, "//")
-            content  = addprefix(content)
+        def parsescene(element, visible = None):
+            visible = get_visible(element, visible)
+            scene   = create_scene(element, visible)
+            scene.set("name", "%s" % element.find("./name").text)
             
-            add_text(name + synopsis + comments + content + "\n", visible)
+            lines2tags(scene, "synopsis",
+                *element.findall("synopsis"),
+                *element.findall("description"),
+            )
+            lines2tags(scene, "comment",
+                *element.findall("comments"),
+                *element.findall("sketch"),
+                *element.findall("conflict"),
+            )
+            lines2tags(scene, "p", *element.findall("content"))
 
         def parsegroup(element, visible = None):
-            name     = ""
-            synopsis = ""
-            comments = ""
-            content  = ""
+            visible = get_visible(element, visible)
+            scene   = create_scene(element, visible)
             
-            if not visible is False: visible = element.get("included") == "True"
-            
-            for child in list(element):
-                if   child.tag == "name":     name = child.text
-                elif child.tag == "content":  content  = content  + gettext(child)
-                elif child.tag in ["synopsis", "description"]:
-                    synopsis = synopsis + gettext(child)
-                elif child.tag in ["comments", "sketch", "conflict"]:
-                    comments = comments + gettext(child)
-                elif child.tag == "childs": pass
-                else: tools.log("%s: <group>: Unknown child '%s'" % (self.fullname, child.tag))
+            scene.set("name", "** %s" % element.find("./name").text)
 
-            name     = "## (Group) " + name + "\n"
-            synopsis = addprefix(synopsis, "<<")
-            comments = addprefix(comments, "//")
-            content  = addprefix(content)
-            
-            add_text(name + synopsis + comments + content + "\n", visible)
+            lines2tags(scene, "synopsis",
+                *element.findall("synopsis"),
+                *element.findall("description"),
+            )
+            lines2tags(scene, "comment",
+                *element.findall("comments"),
+                *element.findall("sketch"),
+                *element.findall("conflict"),
+            )
 
             for child in list(element.find("childs")):
                 if   child.tag == "SceneItem": parsescene(child)
                 elif child.tag == "GroupItem": parsegroup(child)
-                else: tools.log("%s: <group child>: Unknown child '%s'" % (self.fullname, child.tag))
+                else: tools.log("%s<group>: Unknown child '%s'" % (self.fullname, child.tag))
         
-        #----------------------------------------------------------------------
+        def parsetitle(element):
+            for child in list(element):
+                if   child.tag == "title": mawe.find("./body/head/title").text = child.text
+                else: tools.log("%s<title>: Unknown child '%s'" % (self.fullname, child.tag))
         
-        # TODO: Parse title
-
         #----------------------------------------------------------------------
         
         for child in list(root):
-            if   child.tag == "TitleItem": continue
+            if   child.tag == "TitleItem": parsetitle(child)
             elif child.tag == "SceneItem": parsescene(child)
             elif child.tag == "GroupItem": parsegroup(child)
             elif child.tag == "settings":  pass # Safe to ignore, settings were moved to .moerc
             else: tools.log("%s: <story>: Unknown child '%s'" % (self.fullname, child.tag))
 
-        return self.draft, self.notes
+        return Document(tree = mawe)
 
+###############################################################################
+#
+# NOTE: These are not working!
+#
 ###############################################################################
 
 class Text(Base):

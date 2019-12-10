@@ -6,6 +6,7 @@
 
 import xml.etree.ElementTree as ET
 from tools.error import *
+import os
 
 #------------------------------------------------------------------------------
 
@@ -18,13 +19,20 @@ class FormatError(Exception):
 
 class Document:
 
-    def __init__(self, project, tree = None):
-        assert project.format == "mawe"
-        self.project = project
+    def __init__(self, filename = None, tree = None):
+        self.filename = filename
         if tree is None:
-            tree = ET.ElementTree(ET.fromstring(self.emptydoc))
+            if self.filename:
+                tree = ET.parse(self.filename)
+            else:
+                tree = Document.empty()
         self.tree = tree
         self.root = tree.getroot()
+        self.name = self.root.find("./body/head/title").text
+
+    @staticmethod
+    def empty():
+        return ET.parse(os.path.join(os.path.dirname(__file__), "Empty.mawe"))
 
     def __str__(self):
         return str(ET.tostring(self.root))
@@ -32,13 +40,3 @@ class Document:
     def saveas(self, filename):
         self.tree.write(filename)
 
-    emptydoc = """
-<story format="mawe">
-    <body>
-        <head>
-        </head>
-        <part>
-        </part>
-    </body>
-</story>
-    """    

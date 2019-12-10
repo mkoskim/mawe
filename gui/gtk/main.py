@@ -228,12 +228,10 @@ class DocView(Gtk.Frame):
     def __init__(self, doc = None):
         super(DocView, self).__init__()
         
-        if doc:
-            root = doc.load()
-            draft = root.find("./body/part")
-            notes = root.find("./notes/part")
-        else:
-            draft, notes = (None, None)
+        if doc is None: doc = Document()
+        
+        draft = doc.root.find("./body/part")
+        notes = doc.root.find("./notes/part")
 
         self.draftbuf  = SceneBuffer(draft)
         self.notesbuf  = SceneBuffer(notes)
@@ -405,17 +403,26 @@ class MainWindow(Gtk.Window):
             ("<Ctrl>O", lambda *a: self.docs.open()),
         ])
 
-        if "Position" in config["Window"]: pass
-        self.resize(config["Window"]["Size"]["X"], config["Window"]["Size"]["Y"])
+        if "Position" in config["Window"]: self.move(
+            config["Window"]["Position"]["X"],        
+            config["Window"]["Position"]["Y"]
+        )
+        self.resize(
+            config["Window"]["Size"]["X"],
+            config["Window"]["Size"]["Y"]
+        )
+        
         DocView.position = config["DocView"]["Pane"]
 
         if workset:
-            for doc in workset: self.load(doc)
+            for doc in workset:
+                print(doc)
+                self.load(doc)
         else:
             self.new()
 
     def load(self, doc):
-        self.docs.load(doc)
+        self.docs.load(doc.load())
 
     def new(self):
         self.docs.new()
@@ -424,8 +431,11 @@ class MainWindow(Gtk.Window):
         try:
             size = self.get_size()
             print("Size:", size)
-            config["Window"]["Size"]["X"] = size.width
-            config["Window"]["Size"]["Y"] = size.height
+            config["Window"]["Size"] = { "X": size.width, "Y": size.height }
+
+            pos = self.get_position()
+            print("Position:", pos)
+            config["Window"]["Position"] = { "X": pos.root_x, "Y": pos.root_y }
 
             child = self.docs.get_current_child()
             if child: child.unmap()

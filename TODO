@@ -37,8 +37,20 @@ FIX:
 
 - We need reimplement Alt-Up/Down to move scenes, not lines.
 
-- Cut & paste scene headers has quirks: we might need to remove
-  protection tag before cutting
+- Cut & paste scene headers has quirks: Consider these:
+
+  * Cancel cut and paste, if selection contains protected areas
+    (folded scenes)
+    
+  * Except if selection bounds are at scene bounds, that is, you
+    have selected entire scenes.
+    
+- Make:
+
+  * Ctrl-up, Ctrl-down: move paragraph up / down
+  
+  * Alt-up, Alt-down: move scene up / down - if you have selections
+    (preferably whole scenes), move scenes with cursor.
 
 -------------------------------------------------------------------------------
 
@@ -67,6 +79,9 @@ TODO:
 
 - We could preserve e.g. "## **" to 'chapter' header.
 
+- Interesting... It is much more difficult to import text, latex and RTF
+  files directly to mawe as it was with moe.
+
 -------------------------------------------------------------------------------
 
 DONE:
@@ -92,4 +107,5 @@ DONE:
 
 - DONE: Initial configs (to save window size)
 
+- DONE: Loading moe files in mawe format. Ready for saving.
 
