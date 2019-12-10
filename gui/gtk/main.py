@@ -31,8 +31,7 @@ class Button(Gtk.Button):
 
         if "icon" in kwargs:
             icon = Gio.ThemedIcon(name=kwargs["icon"])
-            image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
-            kwargs["image"] = image
+            kwargs["image"] = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
             del kwargs["icon"]
             kwargs["always-show-image"] = True
 
@@ -75,18 +74,9 @@ class RadioButton(Gtk.RadioButton):
 
 #------------------------------------------------------------------------------
 
-class Label(Gtk.Label):
-
-    def __init__(self, label, **kwargs):
-        if "visible" not in kwargs: kwargs["visible"] = True
-        super(Label, self).__init__(label, **kwargs)
-
-#------------------------------------------------------------------------------
-
 class Box(Gtk.Box):
 
     def __init__(self, **kwargs):
-        #if "visible" not in kwargs: kwargs["visible"] = True
         super(Box, self).__init__(**kwargs)
 
 class HBox(Gtk.HBox):
@@ -98,6 +88,16 @@ class VBox(Gtk.VBox):
 
     def __init__(self, **kwargs):
         super(VBox, self).__init__(**kwargs)
+
+#------------------------------------------------------------------------------
+
+class Label(Gtk.Label):
+
+    def __init__(self, label, **kwargs):
+        if "visible" not in kwargs: kwargs["visible"] = True
+        super(Label, self).__init__(label, **kwargs)
+
+#------------------------------------------------------------------------------
 
 class HSeparator(Gtk.HSeparator):
 
@@ -133,25 +133,26 @@ class DocNotebook(Gtk.Notebook):
         self.set_scrollable(True)
         
         self.opentab = DocOpen()
-        #self.openbtn = StockButton("gtk-open", onclick = self.open)
-        self.openbtn = Button(
-            icon = "document-open-symbolic",
-            tooltip_text = "Open document",
-            onclick = self.open,
-        )
-        newbtn = Button(
-            icon = "document-new-symbolic",
-            tooltip_text = "Create new document",
-            onclick = self.new,
-        )
+        self.openbtn = StockButton("gtk-open", onclick = self.open)
+        newbtn       = StockButton("gtk-new", onclick = self.new)
+        #self.openbtn = Button(
+        #    icon = "document-open-symbolic",
+        #    tooltip_text = "Open document",
+        #    onclick = self.open,
+        #)
+        #newbtn = Button(
+        #    icon = "document-new-symbolic",
+        #    tooltip_text = "Create new document",
+        #    onclick = self.new,
+        #)
           
         start = Box(visible = True)
-        start.pack_start(MenuButton("<Workset>"), False, False, 0)
+        #start.pack_start(MenuButton("<Workset>"), False, False, 0)
         start.pack_start(self.openbtn, False, False, 1)
+        start.pack_start(newbtn, False, False, 1)
         self.set_action_widget(start, Gtk.PackType.START)
 
         end = Box(visible = True)
-        end.pack_start(newbtn, False, False, 1)
         self.set_action_widget(end, Gtk.PackType.END)
 
         self.connect("switch-page", self.onSwitchPage)
@@ -168,7 +169,9 @@ class DocNotebook(Gtk.Notebook):
             tooltip_text = "Close document",
             image_position = Gtk.PositionType.RIGHT,
             onclick = lambda: self.close(child),
-        ), False, False, 0)
+            ),
+            False, False, 0
+        )
 
         page = self.append_page(child, label)
         self.set_tab_reorderable(child, True)
@@ -200,14 +203,15 @@ class DocNotebook(Gtk.Notebook):
         else:
             self.opentab.show()
             
-        self.reorder_child(self.opentab, 0)
-        self.set_current_page(0)
+        self.reorder_child(self.opentab, -1)
+        self.set_current_page(-1)
             
         self.openbtn.hide()
 
     def onSwitchPage(self, notebook, child, pagenum):
+        print("Page switch")
         if child == self.opentab: return
-        if self.page_num(self.opentab):
+        if self.page_num(self.opentab) != -1:
             self.opentab.hide()
             self.openbtn.show()
 
@@ -223,7 +227,9 @@ class DocView(Gtk.Frame):
         super(DocView, self).__init__()
         
         if doc:
-            draft, notes = doc.load()
+            root = doc.load()
+            draft = root.find("./body/part")
+            notes = root.find("./notes/part")
         else:
             draft, notes = (None, None)
 

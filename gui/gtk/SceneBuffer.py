@@ -1,6 +1,7 @@
 from gui.gtk import Gtk, Gdk, Pango, GtkSource
 import os, re
 from collections import namedtuple
+from project.Document import ET, FormatError, Document
 
 ###############################################################################        
 ###############################################################################        
@@ -26,6 +27,8 @@ class SceneBuffer(GtkSource.Buffer):
         self.connect_after("insert-text",  self.afterInsertText)
 
         if content:
+            if type(content) == ET.Element:
+                content = self.from_mawe(content)
             self.begin_not_undoable_action()
             self.insert(self.get_start_iter(), content)
             self.end_not_undoable_action()
@@ -372,7 +375,8 @@ class SceneBuffer(GtkSource.Buffer):
     re_bold   = re.compile("(\*[^\*\s]\*)|(\*[^\*\s][^\*]*\*)")
     re_italic = re.compile("(\_[^\_\s]\_)|(\_[^\_\s][^\_]*\_)")
     re_wc     = re.compile("\w+")
-    
+    re_multispace = re.compile("\s+")
+
     def update_spans(self, start, end):
         start = start.copy()
         end   = end.copy()
@@ -476,8 +480,26 @@ class SceneBuffer(GtkSource.Buffer):
 
     #--------------------------------------------------------------------------
 
+    def from_mawe(self, part):
+
+        def strip(text): return re.sub(self.re_multispace, " ", text).strip()
+
+        def parse_scene(scene):
+            text = "## %s\n" % scene.get("name", "<Scene>")
+            for paragraph in list(scene):
+                if   paragraph.tag == "p":        text = text + strip(paragraph.text) + "\n"
+                elif paragraph.tag == "comment":  text = text + "//" + strip(paragraph.text) + "\n"
+                elif paragraph.tag == "synopsis": text = text + "<<" + strip(paragraph.text) + "\n"
+                elif paragraph.tag == "missing":  text = text + "!!" + strip(paragraph.text) + "\n"
+                else: log("Unknown paragraph type: %s" % paragraph.tag)
+            return text
+
+        text = ""
+        for child in list(part):
+            if child.tag == "scene": text = text + parse_scene(child) + "\n"
+            else: log("Unknown element: %s" % child.tag)
+        return text
+    
     def to_mawe(self):
         pass
 
-    def from_mawe(self, part):
-        pass

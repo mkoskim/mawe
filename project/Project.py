@@ -83,8 +83,11 @@ class Mawe(Base):
 
     def __init__(self, drive, path, root = None):
         super(Mawe, self).__init__(drive, path, "mawe")
+        self.name = root.find("./body/head/title").text
 
     def load(self):
+        if not self.fullname: return
+
         return ET.parse(self.fullname)
 
 ###############################################################################
