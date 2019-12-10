@@ -18,6 +18,14 @@ import os
 
 class Button(Gtk.Button):
 
+    @staticmethod
+    def getclick(self, kwargs):
+        if "onclick" in kwargs:
+            onclick = kwargs["onclick"]
+            del kwargs["onclick"]
+            return onclick
+        return None
+
     def __init__(self, label = None, **kwargs):
         if "visible" not in kwargs: kwargs["visible"] = True
 
@@ -28,10 +36,7 @@ class Button(Gtk.Button):
             del kwargs["icon"]
             kwargs["always-show-image"] = True
 
-        onclick = None
-        if "onclick" in kwargs:
-            onclick = kwargs["onclick"]
-            del kwargs["onclick"]
+        onclick = Button.getclick(self, kwargs)
 
         super(Button, self).__init__(label, **kwargs)
 
@@ -183,6 +188,8 @@ class DocNotebook(Gtk.Notebook):
             self.opentab.hide()
             self.openbtn.show()
         else:
+            # Unmap first to update pane pos
+            child.unmap()
             page = self.page_num(child)
             self.remove_page(page)
 
@@ -232,39 +239,73 @@ class DocView(Gtk.Frame):
             b"#draftview:selected { background: #9AB87C; }"
         )
 
-        self.draftbuf = SceneBuffer(draft)
-        self.notesbuf = SceneBuffer(notes)
-
+        self.draftbuf  = SceneBuffer(draft)
+        self.notesbuf  = SceneBuffer(notes)
+        self.draftview = ScrolledSceneView(self.draftbuf, "Times 12")
+        self.notesview = ScrolledSceneView(self.notesbuf, "Times 12")
+        self.scenelist = ScrolledSceneList(self.draftbuf, self.draftview)
+        
         self.pane = Gtk.Paned()
         self.pane.add2(self.create_view())
         self.pane.add1(self.create_index())
         
         self.connect("map", self.onMap)
         self.connect("unmap", self.onUnmap)
-
+        self.connect("key-press-event", self.onKeyPress)
+        
         self.add(self.pane)
         self.show_all()
+        self.draftview.grab_focus()
     
+    def onKeyPress(self, widget, event):
+        mods   = event.state & Gtk.accelerator_get_default_mod_mask()
+        key = Gtk.accelerator_name(
+            event.keyval,
+            mods,
+        )
+        if key == "<Alt>1": # TODO: <Alt>Left
+            self.scenelist.grab_focus()
+            return True
+        elif key == "<Alt>2": # TODO: <Alt>Right
+            self.draftview.grab_focus()
+            return True
+
     position = -1
 
     def onMap(self, widget):
         if DocView.position < 0: return
         self.pane.set_position(DocView.position)
+        #print("Set pos:", DocView.position)
 
     def onUnmap(self, widget):
         DocView.position = self.pane.get_position()
-        #print("Pane pos:", DocView.position)
+        #print("Update pos:", DocView.position)
     
     def create_view(self):
 
         def toolbar():
             box = HBox()
-            selectdraft = RadioButton("draft")
-            selectnotes = RadioButton("notes", group = selectdraft)
+
+            selectdraft = RadioButton(
+                "Draft", None, draw_indicator = False,
+            )
+            selectnotes = RadioButton(
+                "Notes", group = selectdraft, draw_indicator = False,
+            )
+
+            def switchBuffer(self, active, buffer):
+                if not active: return
+                self.draftview.set_buffer(buffer)
+                self.scenelist.set_buffer(buffer)
+                
+            selectdraft.connect("toggled", lambda w: switchBuffer(self, w.get_active(), self.draftbuf))
+            selectnotes.connect("toggled", lambda w: switchBuffer(self, w.get_active(), self.notesbuf))
+
             box.pack_start(Button(icon = "open-menu-symbolic", tooltip_text = "Open menu"), False, False, 0)
             box.pack_start(VSeparator(), False, False, 2)
-            #box.pack_start(selectdraft, False, False, 0)
-            #box.pack_start(selectnotes, False, False, 0)
+            box.pack_start(selectdraft, False, False, 0)
+            box.pack_start(selectnotes, False, False, 0)
+            box.pack_start(VSeparator(), False, False, 2)
 
             box.pack_start(Label(""), True, True, 0)
 
@@ -274,10 +315,8 @@ class DocView(Gtk.Frame):
             return box
 
         def view():
-            text = ScrolledSceneView(self.draftbuf, "Times 12")
+            text = self.draftview
             text.view.set_name("draftview")
-            self.draftview = text.view
-
             text.set_min_content_width(400)
             #text.set_max_content_width(800)
             text.set_min_content_height(400)
@@ -298,18 +337,14 @@ class DocView(Gtk.Frame):
     def create_index(self):
         def toolbar(stack):
             box = HBox()
-            box.pack_start(Gtk.StackSwitcher(stack = stack, visible = True), False, False, 0)
-            box.pack_start(Button("..."), False, False, 0)
+            box.pack_start(Button("Notes", tooltip_text = "Switch to notes"), False, False, 0)
             return box
 
         def scenelist():
-            tree = ScrolledSceneList(self.draftbuf, self.draftview)
-            #scrolled.set_min_content_width(200)
-            return tree
+            return self.scenelist
 
         def notes():
-            text = ScrolledSceneView(self.notesbuf, "Times 12")
-            self.notesview = text.view
+            text = self.notesview
 
             #text.set_min_content_width(400)
             #text.set_max_content_width(800)
@@ -378,12 +413,14 @@ class MainWindow(Gtk.Window):
     def onDestroy(self, widget):
         try:
             size = self.get_size()
-            print(size)
-
-            self.docs.get_current_child().unmap()
-
+            print("Size:", size)
             config["Window"]["Size"]["X"] = size.width
             config["Window"]["Size"]["Y"] = size.height
+
+            child = self.docs.get_current_child()
+            if child: child.unmap()
+
+            print("Pane:", DocView.position)
             config["DocView"]["Pane"] = DocView.position
 
             config_save()

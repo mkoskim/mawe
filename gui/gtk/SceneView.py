@@ -12,6 +12,12 @@ class ScrolledSceneList(Gtk.ScrolledWindow):
         self.tree = SceneList(buffer, view)
         self.add(self.tree)
 
+    def get_buffer(self): return self.tree.buffer
+    def set_buffer(self, buffer):
+        self.tree.buffer = buffer
+        self.tree.set_model(buffer.marklist)
+    def grab_focus(self): return self.tree.grab_focus()
+
 class SceneList(Gtk.TreeView):
 
     def __init__(self, buffer, view):
@@ -77,6 +83,12 @@ class ScrolledSceneView(Gtk.ScrolledWindow):
 
         #self.set_size_request(500, 500)
 
+    def get_buffer(self): return self.view.get_buffer()
+    def set_buffer(self, buffer): return self.view.set_buffer(buffer)
+    def scroll_to_mark(self, mark, within, use_align, xalign, yalign):
+        self.view.scroll_to_mark(mark, within, use_align, xalign, yalign)
+    def grab_focus(self): return self.view.grab_focus()
+        
 class SceneView(GtkSource.View):
 
     def __init__(self, buffer, font = None):
@@ -126,19 +138,6 @@ class SceneView(GtkSource.View):
     #--------------------------------------------------------------------------
 
     def set_hotkeys(self):    
-        #accel = Gtk.AccelGroup()
-        #accel.connect(*Gtk.accelerator_parse("<Alt>L"), 0, self.lorem)
-        #accel.connect(*Gtk.accelerator_parse("<Alt>C"), 0, self.toggle_comment)
-        #accel.connect(*Gtk.accelerator_parse("<Alt>S"), 0, self.toggle_synopsis)
-        #accel.connect(*Gtk.accelerator_parse("<Alt>X"), 0, self.toggle_fold)
-
-        #accel.connect(*Gtk.accelerator_parse("<Ctrl>S"), 0, self.save)
-        #accel.connect(*Gtk.accelerator_parse("<Ctrl>Q"), 0, Gtk.main_quit)
-
-        #accel.connect(*Gtk.accelerator_parse("<Alt>Up"), 0, self.move_line_up)
-        #accel.connect(*Gtk.accelerator_parse("<Alt>Down"), 0, self.move_line_down)
-
-        #self.add_accel_group(accel)
 
         def undo():
             self.buffer.undo()
@@ -170,7 +169,9 @@ class SceneView(GtkSource.View):
             
             "<Alt>Up":   self.move_line_up,
             "<Alt>Down": self.move_line_down,
-            
+            "<Alt>Left": None,
+            "<Alt>Right": None,
+
             #"Return": self.enter,
         }
         self.combokey = None
@@ -189,6 +190,9 @@ class SceneView(GtkSource.View):
             if not key in self.combokeys: return False
             if type(self.combokeys[key]) is dict:
                 self.combokey = key
+                return True
+            elif self.combokeys[key] is None:
+                #self.parent.emit("key-press-event", event.copy())
                 return True
             else:
                 return self.combokeys[key]()
