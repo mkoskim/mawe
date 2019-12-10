@@ -210,18 +210,22 @@ class SceneBuffer(GtkSource.Buffer):
     def create_scene_mark(self, at):
         start, end = self.get_line_iter(at)
 
-        previter = self.scene_prev_iter(at)
-        if previter:
-            prevmark = self.get_source_marks_at_iter(previter)[0]
-            previter = self.markiter[prevmark]
+        if len(self.get_source_marks_at_iter(start, "scene")) == 1:
+            mark = self.get_source_marks_at_iter(start, "scene")[0]
+            listiter = self.markiter[mark]
         else:
-            previter = None
-        
-        mark  = self.create_source_mark(None, "scene", start)
-        name  = self.get_text(start, end, False)[2:].strip()
-        
-        listiter = self.marklist.insert_after(previter, [mark, name, 0, 0, 0])
+            previter = self.scene_prev_iter(at)
+            if previter:
+                prevmark = self.get_source_marks_at_iter(previter)[0]
+                previter = self.markiter[prevmark]
+            else:
+                previter = None
+            mark  = self.create_source_mark(None, "scene", start)
+            listiter = self.marklist.insert_after(previter, [mark, "", 0, 0, 0])
+
         self.markiter[mark] = listiter
+        name  = self.get_text(start, end, False)[2:].strip()        
+        self.marklist.set_value(listiter, 1, name)
 
         #self.dump_mark("Created", mark)
         if self.is_folded(start):
@@ -234,18 +238,25 @@ class SceneBuffer(GtkSource.Buffer):
             
         return mark
 
-    def remove_scene_mark(self, mark):
-        #self.dump_mark("Delete", mark)
+    def is_scenebreak(self, at):
+        return self.line_starts_with("##", at)
 
+    def remove_scene_mark(self, mark):
         start = self.get_iter_at_mark(mark)
         end   = self.scene_end_iter(start)
         self.remove_tag(self.tag_fold_hide, start, end)
         self.remove_tag(self.tag_fold_prot, start, end)
         
+        if (start.starts_line()
+            and len(self.get_source_marks_at_iter(start, "scene")) == 1
+            and self.line_starts_with("##", start)): return
+
         self.delete_mark(mark)
         at = self.markiter[mark]
         self.marklist.remove(at)
         del self.markiter[mark]
+
+        #self.dump_mark("Delete", mark)
 
     def remove_scene_marks(self, start, end):
         start = self.get_line_start_iter(start)
@@ -261,7 +272,7 @@ class SceneBuffer(GtkSource.Buffer):
 
         self.create_scene_mark(start)
 
-    def update_scene_counts(self, start, end):
+    def update_scene_stats(self, start, end):
         start = self.scene_prev_iter(start)
         if start is None: start = self.get_start_iter()
         end   = self.scene_end_iter(end)
@@ -271,7 +282,7 @@ class SceneBuffer(GtkSource.Buffer):
             start = self.get_iter_at_mark(mark)
             end   = self.scene_end_iter(start)
             
-            words, _, comments, missing = self.wordcount(start, end)
+            words, _, comments, missing = self.wordcount(start, end, True)
             self.marklist.set_value(index, 2, words)
             self.marklist.set_value(index, 3, comments)
             self.marklist.set_value(index, 4, missing)
@@ -308,7 +319,7 @@ class SceneBuffer(GtkSource.Buffer):
         #self.mark_range("debug:update", start, end)
         #self.dump_source_marks(None, *self.get_bounds())
         #self.update_marklist()
-        self.update_scene_counts(start, end)
+        self.update_scene_stats(start, end)
         self.update_stats()
 
     def update_line_tags(self, start, end):
@@ -393,31 +404,6 @@ class SceneBuffer(GtkSource.Buffer):
 
     #--------------------------------------------------------------------------
 
-    def wordcount(self, start, end):
-        text  = self.get_text(start, end, True)
-        text  = text.split("\n")
-
-        comments = filter(lambda s: s[:2] == "//", text)
-        comments = "\n".join(list(comments))
-        comments = len(SceneBuffer.re_wc.findall(comments))
-        
-        missing  = filter(lambda s: s[:2] == "!!", text)
-        missing  = "\n".join(list(missing))
-        missing  = len(SceneBuffer.re_wc.findall(missing))
-        
-        text  = filter(lambda s: s[:2] not in ["<<", "//", "!!", "##"], text)
-        text  = "\n".join(list(text))
-        chars = len(text)
-        words = len(SceneBuffer.re_wc.findall(text))
-        return words, chars, comments, missing
-    
-    def update_stats(self):
-        words, chars, _, _ = self.wordcount(*self.get_bounds())
-        self.stats.words.set_text("Words: %d" % words)
-        self.stats.chars.set_text("Chars: %d" % chars)
-
-    #--------------------------------------------------------------------------
-
     def dump_iter(self, prefix, at):
         print("%s: %d:%d" % (prefix, *self.get_line_and_offset(at)))
         
@@ -448,3 +434,40 @@ class SceneBuffer(GtkSource.Buffer):
         for mark in self.get_marks(category, start, end):
             self.dump_mark("-", mark)
 
+    #--------------------------------------------------------------------------
+
+    def wordcount(self, start, end, details = False):
+        text  = self.get_text(start, end, True)
+        text  = text.split("\n")
+
+        if details:
+            comments = filter(lambda s: s[:2] == "//", text)
+            comments = "\n".join(list(comments))
+            comments = len(SceneBuffer.re_wc.findall(comments))
+            
+            missing  = filter(lambda s: s[:2] == "!!", text)
+            missing  = "\n".join(list(missing))
+            missing  = len(SceneBuffer.re_wc.findall(missing))
+        
+        text  = filter(lambda s: s[:2] not in ["<<", "//", "!!", "##"], text)
+        text  = "\n".join(list(text))
+        chars = len(text)
+        words = len(SceneBuffer.re_wc.findall(text))
+
+        if details:
+            return words, chars, comments, missing
+        else:
+            return words, chars
+    
+    def update_stats(self):
+        words, chars = self.wordcount(*self.get_bounds())
+        self.stats.words.set_text("Words: %d" % words)
+        self.stats.chars.set_text("Chars: %d" % chars)
+
+    #--------------------------------------------------------------------------
+
+    def to_mawe(self):
+        pass
+
+    def from_mawe(self, part):
+        pass
