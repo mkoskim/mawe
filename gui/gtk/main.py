@@ -227,18 +227,6 @@ class DocView(Gtk.Frame):
         else:
             draft, notes = (None, None)
 
-        self.style   = Gtk.CssProvider()
-        self.context = Gtk.StyleContext()
-        self.context.add_provider_for_screen(
-            Gdk.Screen.get_default(),
-            self.style,
-           Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-        )
-        self.style.load_from_data(
-            b"#draftview { background-color: #FFF; }" + 
-            b"#draftview:selected { background: #9AB87C; }"
-        )
-
         self.draftbuf  = SceneBuffer(draft)
         self.notesbuf  = SceneBuffer(notes)
         self.draftview = ScrolledSceneView(self.draftbuf, "Times 12")
@@ -385,6 +373,15 @@ class MainWindow(Gtk.Window):
     def __init__(self, workset):
         super(MainWindow, self).__init__()
         
+        self.style   = Gtk.CssProvider()
+        self.context = Gtk.StyleContext()
+        self.context.add_provider_for_screen(
+            Gdk.Screen.get_default(),
+            self.style,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
+        self.style.load_from_path(os.path.join(guidir, "ui/mawe.css"))
+
         self.docs = DocNotebook()
         self.add(self.docs)
 
