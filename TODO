@@ -15,6 +15,10 @@ FEATURES needed to start using the editor in daily work:
 
 - Changed-mark: Ask to save modified files when exiting.
 
+- Save list of open tabs for restoring
+
+- Path for project manager
+
 - Postpone: We can now support just one-part files
 
 - Postpone: We don't need versioning yet.
@@ -48,11 +52,20 @@ QUIRKS ETC:
 
 TODO:
 
-- Move listview selected row when moving around the text
+- Move listview's selected row when moving around the text
+
+- Text <-> List swapping using Alt-left/right (instead of Alt-1/2 used at the
+  moment)
 
 - Selecting & moving scenes in listview
 
 - Texifier to version control
+
+- It could be good, if first line would be reserved for title. Now, this
+  title needs to be updated to either header, or to part. Well, tested it and
+  not necessarily...
+
+- We could preserve e.g. "## **" to 'chapter' header.
 
 -------------------------------------------------------------------------------
 

@@ -323,13 +323,16 @@ class DocView(Gtk.Frame):
         return box
 
     def create_index(self):
-        def toolbar(stack):
+        def toolbar():
             box = HBox()
             box.pack_start(Button("Notes", tooltip_text = "Switch to notes"), False, False, 0)
             return box
 
         def scenelist():
-            return self.scenelist
+            box = VBox()
+            box.pack_start(toolbar(), False, False, 0)
+            box.pack_start(self.scenelist, True, True, 0)
+            return box
 
         def notes():
             text = self.notesview
@@ -347,7 +350,7 @@ class DocView(Gtk.Frame):
         stack.add_titled(notes(), "notes", "Notes")
 
         box = VBox()
-        box.pack_start(toolbar(stack), False, False, 1)
+        #box.pack_start(toolbar(stack), False, False, 1)
         box.pack_start(stack, True, True, 0)
         return box
 

@@ -54,6 +54,16 @@ class SceneBuffer(GtkSource.Buffer):
         )
 
         # Heading tags
+        self.create_tag("title",
+            foreground = "#444",
+            scale = 1.5,
+            justification = Gtk.Justification.CENTER,
+            weight = Pango.Weight.BOLD,
+            #pixels_above_lines = 20,
+            pixels_below_lines = 10,
+        )
+
+        # Scene headers & folding
         self.create_tag("scene:heading",
             foreground = "#888",
             #justification = Gtk.Justification.CENTER,

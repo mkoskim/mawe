@@ -18,6 +18,8 @@ class ScrolledSceneList(Gtk.ScrolledWindow):
         self.tree.set_model(buffer.marklist)
     def grab_focus(self): return self.tree.grab_focus()
 
+#------------------------------------------------------------------------------
+
 class SceneList(Gtk.TreeView):
 
     def __init__(self, buffer, view):
@@ -83,12 +85,16 @@ class ScrolledSceneView(Gtk.ScrolledWindow):
 
         #self.set_size_request(500, 500)
 
+    #--------------------------------------------------------------------------
+
     def get_buffer(self): return self.view.get_buffer()
     def set_buffer(self, buffer): return self.view.set_buffer(buffer)
     def scroll_to_mark(self, mark, within, use_align, xalign, yalign):
         self.view.scroll_to_mark(mark, within, use_align, xalign, yalign)
     def grab_focus(self): return self.view.grab_focus()
         
+#------------------------------------------------------------------------------
+
 class SceneView(GtkSource.View):
 
     def __init__(self, buffer, font = None):
