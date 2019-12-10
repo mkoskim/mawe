@@ -192,7 +192,10 @@ class Moe(Base):
             elif child.tag == "settings":  pass # Safe to ignore, settings were moved to .moerc
             else: tools.log("%s: <story>: Unknown child '%s'" % (self.fullname, child.tag))
 
-        return Document(tree = mawe)
+        return Document(
+            os.path.splitext(self.fullname)[0] + ".mawe",
+            tree = mawe
+        )
 
 ###############################################################################
 #

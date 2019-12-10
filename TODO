@@ -23,6 +23,10 @@ FEATURES needed to start using the editor in daily work:
 
 - Postpone: We don't need versioning yet.
 
+- Add UUID to file format, so that project manager recognizes files even
+  if they are moved. We could add UUID to moe files, too. UUID could help
+  linking documents together.
+
 Other features:
 
 - Search and replace: it is very useful feature I have missed in moe a lot
@@ -34,6 +38,9 @@ Other features:
 -------------------------------------------------------------------------------
 
 FIX:
+
+- We can not just switch buffer to textview - Undo/redo will not work in
+  that case. Instead, when switching buffers, we need to create new views.
 
 - We need reimplement Alt-Up/Down to move scenes, not lines.
 
@@ -63,6 +70,11 @@ QUIRKS ETC:
 -------------------------------------------------------------------------------
 
 TODO:
+
+- When we have loaded a moe file, it would be good if mawe would suggest
+  to save it to same direction with .mawe extension. At least it could start
+  from that directory. Lets make it so, that "Save" works as "Save as" if
+  the file does not exist yet.
 
 - Move listview's selected row when moving around the text
 

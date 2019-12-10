@@ -482,7 +482,9 @@ class SceneBuffer(GtkSource.Buffer):
 
     def from_mawe(self, part):
 
-        def strip(text): return re.sub(self.re_multispace, " ", text).strip()
+        def strip(text):
+            if text: return re.sub(self.re_multispace, " ", text).strip()
+            return ""
 
         def parse_scene(scene):
             text = "## %s\n" % scene.get("name", "<Scene>")

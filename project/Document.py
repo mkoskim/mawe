@@ -35,8 +35,23 @@ class Document:
         return ET.parse(os.path.join(os.path.dirname(__file__), "Empty.mawe"))
 
     def __str__(self):
-        return str(ET.tostring(self.root))
+        return "<Document %s @ %s>" % (self.name, self.filename)
+
+    #--------------------------------------------------------------------------
+    # Try to save in pretty format, it helps debugging possible problems. We
+    # do this by modifying the tag tails.
+    #--------------------------------------------------------------------------
 
     def saveas(self, filename):
-        self.tree.write(filename)
+        Document.prettyFormat(self.root)
+        self.tree.write(filename, encoding="utf-8")
+
+    @staticmethod
+    def prettyFormat(root, level = 0):
+        for child in root.iter():
+            if child.text: child.text = child.text.strip()
+            if len(list(child)):
+                if child.text: child.text = "\n" + child.text
+                else: child.text = "\n"
+            child.tail = "\n"
 

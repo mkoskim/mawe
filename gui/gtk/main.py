@@ -7,7 +7,7 @@ from gui.gtk import (
 )
 
 from tools import *
-
+import project
 import os
 
 ###############################################################################
@@ -64,6 +64,13 @@ class MenuButton(Gtk.MenuButton):
 
         self.set_relief(Gtk.ReliefStyle.NONE)
         self.set_always_show_image(True)
+
+class ToggleButton(Gtk.ToggleButton):
+
+    def __init__(self, label, **kwargs):
+        if "visible" not in kwargs: kwargs["visible"] = True
+        super(ToggleButton, self).__init__(label = label, **kwargs)
+        self.set_relief(Gtk.ReliefStyle.NONE)
 
 class RadioButton(Gtk.RadioButton):
 
@@ -228,7 +235,7 @@ class DocView(Gtk.Frame):
     def __init__(self, doc = None):
         super(DocView, self).__init__()
         
-        if doc is None: doc = Document()
+        if doc is None: doc = project.Document()
         
         draft = doc.root.find("./body/part")
         notes = doc.root.find("./notes/part")
@@ -280,31 +287,30 @@ class DocView(Gtk.Frame):
         def toolbar():
             box = HBox()
 
-            selectdraft = RadioButton(
-                "Draft", None, draw_indicator = False,
-            )
-            selectnotes = RadioButton(
-                "Notes", group = selectdraft, draw_indicator = False,
+            selectnotes = ToggleButton(
+                "Notes", draw_indicator = False,
             )
 
-            def switchBuffer(self, active, buffer):
-                if not active: return
-                self.draftview.set_buffer(buffer)
-                self.scenelist.set_buffer(buffer)
+            def switchBuffer(self, widget):
+                if not widget.get_active():
+                    self.draftview.set_buffer(self.draftbuf)
+                    self.scenelist.set_buffer(self.draftbuf)
+                else:
+                    self.draftview.set_buffer(self.notesbuf)
+                    self.scenelist.set_buffer(self.notesbuf)
                 
-            selectdraft.connect("toggled", lambda w: switchBuffer(self, w.get_active(), self.draftbuf))
-            selectnotes.connect("toggled", lambda w: switchBuffer(self, w.get_active(), self.notesbuf))
+            selectnotes.connect("toggled", lambda w: switchBuffer(self, w))
 
             box.pack_start(Button(icon = "open-menu-symbolic", tooltip_text = "Open menu"), False, False, 0)
             box.pack_start(Button("Title"), False, False, 0)
             box.pack_start(VSeparator(), False, False, 2)
-            box.pack_start(selectdraft, False, False, 0)
-            box.pack_start(selectnotes, False, False, 0)
+            box.pack_start(Button("Export"), False, False, 0)
+            box.pack_start(Button("Save"), False, False, 0)
             box.pack_start(VSeparator(), False, False, 2)
             
             box.pack_start(Label(""), True, True, 0)
 
-            box.pack_start(Button("Export"), False, False, 0)
+            box.pack_start(selectnotes, False, False, 0)
             box.pack_start(VSeparator(), False, False, 2)
             box.pack_start(self.draftbuf.stats.words, False, False, 4)
             box.pack_start(self.draftbuf.stats.chars, False, False, 6)
@@ -331,14 +337,24 @@ class DocView(Gtk.Frame):
         return box
 
     def create_index(self):
-        def toolbar():
+    
+        def toolbar(stack):
+            
+            def switchStack(self, button, stack):
+                name  = button.get_active() and "notes" or "index"
+                child = stack.get_child_by_name(name)
+                stack.set_visible_child(child)
+                
+            stackbtn = ToggleButton("Notes", tooltip_text = "Switch to notes")
+            stackbtn.connect("toggled", lambda w: switchStack(self, w, stack))
+
             box = HBox()
-            box.pack_start(Button("Notes", tooltip_text = "Switch to notes"), False, False, 0)
+            box.pack_start(stackbtn, False, False, 0)
             return box
 
         def scenelist():
             box = VBox()
-            box.pack_start(toolbar(), False, False, 0)
+            #box.pack_start(toolbar(), False, False, 0)
             box.pack_start(self.scenelist, True, True, 0)
             return box
 
@@ -354,11 +370,11 @@ class DocView(Gtk.Frame):
             return text
 
         stack = Gtk.Stack()
-        stack.add_titled(scenelist(), "index", "Index")
-        stack.add_titled(notes(), "notes", "Notes")
+        stack.add_named(scenelist(), "index")
+        stack.add_named(notes(), "notes")
 
         box = VBox()
-        #box.pack_start(toolbar(stack), False, False, 1)
+        box.pack_start(toolbar(stack), False, False, 1)
         box.pack_start(stack, True, True, 0)
         return box
 
@@ -422,7 +438,10 @@ class MainWindow(Gtk.Window):
             self.new()
 
     def load(self, doc):
-        self.docs.load(doc.load())
+        mawe = doc.load()
+        self.docs.load(mawe)
+        print(mawe)
+        #mawe.saveas()
 
     def new(self):
         self.docs.new()
