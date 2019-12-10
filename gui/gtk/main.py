@@ -137,14 +137,14 @@ class DocNotebook(Gtk.Notebook):
         newbtn       = StockButton("gtk-new", onclick = self.new)
         #self.openbtn = Button(
         #    icon = "document-open-symbolic",
-        #    tooltip_text = "Open document",
         #    onclick = self.open,
         #)
         #newbtn = Button(
         #    icon = "document-new-symbolic",
-        #    tooltip_text = "Create new document",
         #    onclick = self.new,
         #)
+        self.openbtn.set_property("tooltip_text", "Open document")
+        newbtn.set_property("tooltip_text", "Create new document")
           
         start = Box(visible = True)
         #start.pack_start(MenuButton("<Workset>"), False, False, 0)
@@ -161,7 +161,7 @@ class DocNotebook(Gtk.Notebook):
         page = self.get_current_page()
         return self.get_nth_page(page)
 
-    def add_page(self, name, child):
+    def add_page(self, name, child, prepend = False):
         label = HBox()
         label.pack_start(Label(name), True, False, 0)
         label.pack_start(Button(
@@ -173,18 +173,22 @@ class DocNotebook(Gtk.Notebook):
             False, False, 0
         )
 
-        page = self.append_page(child, label)
+        if prepend:
+            page = self.prepend_page(child, label)
+        else:
+            page = self.append_page(child, label)
         self.set_tab_reorderable(child, True)
         self.child_set_property(child, "tab-expand", True)
         self.child_set_property(child, "tab-fill", True)
         child.show()
         self.set_current_page(page)
-
+        return page
+        
     def load(self, doc):
         self.add_page(doc.name, DocView(doc))
 
     def new(self):
-        self.add_page("New story", DocView())
+        self.add_page("New story", DocView(), prepend = True)
 
     def close(self, child):
         if child == self.opentab:
@@ -199,17 +203,15 @@ class DocNotebook(Gtk.Notebook):
     def open(self):
         page = self.page_num(self.opentab)
         if page < 0:
-            self.add_page("Open file...", self.opentab)
+            self.add_page("Open file...", self.opentab, prepend = True)
         else:
             self.opentab.show()
-            
-        self.reorder_child(self.opentab, -1)
-        self.set_current_page(-1)
+            self.reorder_child(self.opentab, 0)
+            self.set_current_page(0)
             
         self.openbtn.hide()
 
     def onSwitchPage(self, notebook, child, pagenum):
-        print("Page switch")
         if child == self.opentab: return
         if self.page_num(self.opentab) != -1:
             self.opentab.hide()
@@ -296,13 +298,15 @@ class DocView(Gtk.Frame):
             selectnotes.connect("toggled", lambda w: switchBuffer(self, w.get_active(), self.notesbuf))
 
             box.pack_start(Button(icon = "open-menu-symbolic", tooltip_text = "Open menu"), False, False, 0)
+            box.pack_start(Button("Title"), False, False, 0)
             box.pack_start(VSeparator(), False, False, 2)
             box.pack_start(selectdraft, False, False, 0)
             box.pack_start(selectnotes, False, False, 0)
             box.pack_start(VSeparator(), False, False, 2)
-
+            
             box.pack_start(Label(""), True, True, 0)
 
+            box.pack_start(Button("Export"), False, False, 0)
             box.pack_start(VSeparator(), False, False, 2)
             box.pack_start(self.draftbuf.stats.words, False, False, 4)
             box.pack_start(self.draftbuf.stats.chars, False, False, 6)
