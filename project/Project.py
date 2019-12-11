@@ -205,16 +205,29 @@ class Moe(Base):
 
 class Text(Base):
 
-    def __init__(self, drive, path):
-        super(Text, self).__init__(drive, path, "latex")
+    def __init__(self, drive, path, format = "text"):
+        super(Text, self).__init__(drive, path, format)
         self.name = os.path.basename(self.fullname)
 
     def load(self):
-        return (tools.readfile(self.fullname), "")
-    
+        lines = tools.readfile(self.fullname)
+        lines = lines.split("\n")
+
+        mawe  = Document.empty()
+        scene = ET.SubElement(mawe.find("./body/part"), "scene")
+
+        for line in lines:
+            paragraph = ET.SubElement(scene, "p")
+            paragraph.text = line
+
+        return Document(
+            os.path.splitext(self.fullname)[0] + ".mawe",
+            tree = mawe
+        )
+
 ###############################################################################
 
-class LaTeX(Base):
+class LaTeX(Text):
 
     reMainFile = re.compile(r"^MAINFILE=(?P<filename>.*?)$", re.MULTILINE|re.UNICODE)
     reDocName  = re.compile(r"^DOCNAME=(?P<filename>.*?)$", re.MULTILINE|re.UNICODE)
@@ -270,10 +283,6 @@ class LaTeX(Base):
         #    "-",
         #    wc
         #)
-
-    def load(self):
-        # Create new mawe project, and create mawe tree from tex sources
-        pass
 
 #------------------------------------------------------------------------------
 #

@@ -1,0 +1,21 @@
+Hotkeys:
+Alt-X - Fold/unfold current scene
+Alt-G - Select & unfold current scene
+Alt-A + Alt-F - Fold all (current scene excluded)
+Alt-A + Alt-U - Unfold all
+
+## Line tags
+
+Scenes: Create a scene by starting a line with '##'.
+
+Comments:
+
+// This is a comments
+
+Synopsis:
+
+<< This is a synopsis
+
+Missing:
+
+!!Am I missing something here?

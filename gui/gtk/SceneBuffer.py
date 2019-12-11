@@ -2,6 +2,7 @@ from gui.gtk import Gtk, Gdk, Pango, GtkSource
 import os, re
 from collections import namedtuple
 from project.Document import ET, FormatError, Document
+from tools import *
 
 ###############################################################################        
 ###############################################################################        

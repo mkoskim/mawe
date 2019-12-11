@@ -147,27 +147,18 @@ class DocNotebook(Gtk.Notebook):
         
         self.opentab = DocOpen(self)
         self.openbtn = StockButton("gtk-open", onclick = self.open)
-        #newbtn       = StockButton("gtk-new", onclick = self.new)
-        #self.openbtn = Button(
-        #    icon = "document-open-symbolic",
-        #    onclick = self.open,
-        #)
-        #newbtn = Button(
-        #    icon = "document-new-symbolic",
-        #    onclick = self.new,
-        #)
-        #newbtn.set_property("tooltip_text", "Create new document")
         self.openbtn.set_property("tooltip_text", "Open document")
-          
+
         start = Box(visible = True)
         #start.pack_start(MenuButton("<Workset>"), False, False, 0)
         #start.pack_start(newbtn, False, False, 1)
+        start.pack_start(StockButton("gtk-preferences"), False, False, 0)
         start.pack_start(self.openbtn, False, False, 1)
         self.set_action_widget(start, Gtk.PackType.START)
 
         end = Box(visible = True)
         self.set_action_widget(end, Gtk.PackType.END)
-
+        end.pack_start(StockButton("gtk-help", onclick = self.help), False, False, 0)
         self.connect("switch-page", self.onSwitchPage)
 
     def get_current_child(self):
@@ -199,6 +190,11 @@ class DocNotebook(Gtk.Notebook):
         
     def load(self, doc):
         self.add_page(doc.name, DocView(doc))
+
+    def help(self):
+        doc = project.Project.open(os.path.join(guidir, "ui"), "help.txt", force = True).load()
+        doc.name = "Help"
+        self.load(doc)
 
     def new(self):
         self.add_page("New story", DocView(), prepend = False)
@@ -236,14 +232,20 @@ class DocNotebook(Gtk.Notebook):
 #
 ###############################################################################
 
-class DocOpen(Gtk.Frame):
+class DocOpen(Gtk.VBox):
 
     def __init__(self, notebook):
         super(DocOpen, self).__init__()
-
-        self.add(Button("New", onclick = self.openNew))
         self.notebook = notebook
-        #self.show_all()
+
+        toolbar = HBox()
+        toolbar.pack_start(Button("New", onclick = self.openNew), False, False, 0)
+
+        text = Gtk.TextView()
+
+        self.pack_start(toolbar, False, False, 0)
+        self.pack_start(text, True, True, 0)
+        self.show_all()
 
     def openNew(self):
         self.notebook.new()
@@ -330,6 +332,7 @@ class DocView(Gtk.Frame):
             box.pack_start(VSeparator(), False, False, 2)
             box.pack_start(Button("Export"), False, False, 0)
             box.pack_start(Button("Save"), False, False, 0)
+            box.pack_start(Button("Revert"), False, False, 0)
             box.pack_start(VSeparator(), False, False, 2)
             
             box.pack_start(Label(""), True, True, 0)
@@ -362,18 +365,26 @@ class DocView(Gtk.Frame):
 
     def create_index(self):
     
-        def toolbar(stack):
-            
+        # Create dual page stack: return stack & switcher
+        def Stack(label, page1, page2):
+
+            stack = Gtk.Stack()
+            stack.add_named(page1, "1")
+            stack.add_named(page2, "2")
+
             def switchStack(self, button, stack):
-                name  = button.get_active() and "notes" or "index"
+                name  = button.get_active() and "2" or "1"
                 child = stack.get_child_by_name(name)
                 stack.set_visible_child(child)
                 
-            stackbtn = ToggleButton("Notes", tooltip_text = "Switch to notes")
-            stackbtn.connect("toggled", lambda w: switchStack(self, w, stack))
+            switcher = ToggleButton(label, tooltip_text = "Switch to notes")
+            switcher.connect("toggled", lambda w: switchStack(self, w, stack))
 
+            return stack, switcher
+
+        def toolbar(switcher):
             box = HBox()
-            box.pack_start(stackbtn, False, False, 0)
+            box.pack_start(switcher, False, False, 0)
             return box
 
         def scenelist():
@@ -393,12 +404,10 @@ class DocView(Gtk.Frame):
             text.set_shadow_type(Gtk.ShadowType.IN)
             return text
 
-        stack = Gtk.Stack()
-        stack.add_named(scenelist(), "index")
-        stack.add_named(notes(), "notes")
+        stack, switcher = Stack("Notes", scenelist(), notes())
 
         box = VBox()
-        box.pack_start(toolbar(stack), False, False, 1)
+        box.pack_start(toolbar(switcher), False, False, 1)
         box.pack_start(stack, True, True, 0)
         return box
 
@@ -432,13 +441,14 @@ class MainWindow(Gtk.Window):
             ("<Ctrl>O", lambda *a: self.docs.open()),
         ])
 
-        if "Position" in config["Window"]: self.move(
-            config["Window"]["Position"]["X"],        
-            config["Window"]["Position"]["Y"]
+        settings = config["Window"]
+        if "Position" in settings: self.move(
+            settings["Position"]["X"],        
+            settings["Position"]["Y"]
         )
         self.resize(
-            config["Window"]["Size"]["X"],
-            config["Window"]["Size"]["Y"]
+            settings["Size"]["X"],
+            settings["Size"]["Y"]
         )
         
         DocView.position = config["DocView"]["Pane"]
@@ -453,26 +463,25 @@ class MainWindow(Gtk.Window):
     def load(self, doc):
         mawe = doc.load()
         self.docs.load(mawe)
-        print(mawe)
-        mawe.saveas(mawe.filename)
+        print("Loaded:", mawe)
+        #mawe.saveas(mawe.filename)
 
     def new(self):
         self.docs.new()
 
     def onDestroy(self, widget):
         try:
+            settings = config["Window"]
+
             size = self.get_size()
-            print("Size:", size)
-            config["Window"]["Size"] = { "X": size.width, "Y": size.height }
+            settings["Size"] = { "X": size.width, "Y": size.height }
 
             pos = self.get_position()
-            print("Position:", pos)
-            config["Window"]["Position"] = { "X": pos.root_x, "Y": pos.root_y }
+            settings["Position"] = { "X": pos.root_x, "Y": pos.root_y }
 
+            # Unmap page from notebook to get pane position updated
             child = self.docs.get_current_child()
             if child: child.unmap()
-
-            print("Pane:", DocView.position)
             config["DocView"]["Pane"] = DocView.position
 
             config_save()

@@ -35,6 +35,11 @@ class Document:
 
     def __init__(self, filename = None, tree = None):
 
+        # TODO: Track somehow if the file was really loaded from filename,
+        # or if it was created when converting files. If Document was created
+        # by conversion, still ask filename when attempting to save (although
+        # we have here suggestion for it)
+        
         self.filename = filename
 
         if tree is None:
@@ -70,6 +75,13 @@ class Document:
     #--------------------------------------------------------------------------
 
     def saveas(self, filename):
+        print("Saving:", filename)
+
+        self.root.find("./body/head").insert(0, ET.Comment(Document.comment_head % self.name))
+        self.root.find("./body/head").append(ET.Comment(Document.comment_hr))
+        self.root.find("./body").append(ET.Comment(Document.comment_notes))
+        self.root.find("./notes").append(ET.Comment(Document.comment_versions))
+
         Document.prettyFormat(self.root)
         self.tree.write(filename, encoding="utf-8")
 
@@ -82,3 +94,30 @@ class Document:
                 else: child.text = "\n"
             child.tail = "\n"
 
+    comment_head = """/
+===============================================================================
+
+Story: %s
+
+===============================================================================
+/"""
+
+    comment_hr = """/
+===============================================================================
+/"""
+
+    comment_notes = """/
+===============================================================================
+
+Notes
+
+===============================================================================
+/"""
+
+    comment_versions = """/
+===============================================================================
+
+Versions
+
+===============================================================================
+/"""
