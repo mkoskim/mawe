@@ -19,24 +19,27 @@ import os
 class Button(Gtk.Button):
 
     @staticmethod
-    def getclick(self, kwargs):
-        if "onclick" in kwargs:
-            onclick = kwargs["onclick"]
-            del kwargs["onclick"]
-            return onclick
+    def getarg(kwargs, name):
+        if name in kwargs:
+            result = kwargs[name]
+            del kwargs[name]
+            return result
         return None
+
+    @staticmethod
+    def geticon(kwargs):
+        name = Button.getarg(kwargs, "icon")
+        if name:
+            icon = Gio.ThemedIcon(name=name)
+            kwargs["image"] = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
+            kwargs["always-show-image"] = True
 
     def __init__(self, label = None, **kwargs):
         if "visible" not in kwargs: kwargs["visible"] = True
 
-        if "icon" in kwargs:
-            icon = Gio.ThemedIcon(name=kwargs["icon"])
-            kwargs["image"] = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
-            del kwargs["icon"]
-            kwargs["always-show-image"] = True
-
-        onclick = Button.getclick(self, kwargs)
-
+        Button.geticon(kwargs)
+        onclick = Button.getarg(kwargs, "onclick")
+        
         super(Button, self).__init__(label, **kwargs)
 
         if onclick: self.connect("clicked", lambda w: onclick())
@@ -55,6 +58,11 @@ class StockButton(Button):
         kwargs["use_stock"] = True
         super(StockButton, self).__init__(label, **kwargs)
         self.set_always_show_image(True)
+
+class IconButton(Button):
+
+    def __init__(self, icon, tooltip, **kwargs):
+        super(IconButton, self).__init__(None, icon = icon, tooltip_text = tooltip, **kwargs)
 
 class MenuButton(Gtk.MenuButton):
 
@@ -144,6 +152,7 @@ class DocNotebook(Gtk.Notebook):
         super(DocNotebook, self).__init__()
 
         self.set_scrollable(True)
+        self.popup_enable()
         
         self.opentab = DocOpen(self)
         self.openbtn = StockButton("gtk-open", onclick = self.open)
@@ -152,13 +161,18 @@ class DocNotebook(Gtk.Notebook):
         start = Box(visible = True)
         #start.pack_start(MenuButton("<Workset>"), False, False, 0)
         #start.pack_start(newbtn, False, False, 1)
-        start.pack_start(StockButton("gtk-preferences"), False, False, 0)
+        start.pack_start(IconButton("open-menu-symbolic", "Open menu"), False, False, 0)
+        # Menu items
+        # - Preferences
+        # - Save all
+        # - Close all
+        # - Quit
         start.pack_start(self.openbtn, False, False, 1)
+        start.pack_start(StockButton("gtk-help", onclick = self.help), False, False, 0)
         self.set_action_widget(start, Gtk.PackType.START)
 
         end = Box(visible = True)
         self.set_action_widget(end, Gtk.PackType.END)
-        end.pack_start(StockButton("gtk-help", onclick = self.help), False, False, 0)
         self.connect("switch-page", self.onSwitchPage)
 
     def get_current_child(self):
@@ -167,9 +181,10 @@ class DocNotebook(Gtk.Notebook):
 
     def add_page(self, name, child, prepend = False):
         label = HBox()
-        label.pack_start(Label(name), True, False, 0)
+        label.pack_start(Label(name), True, False, 4)
         label.pack_start(Button(
             icon = "window-close-symbolic",
+            name = "doc-close-btn",
             tooltip_text = "Close document",
             image_position = Gtk.PositionType.RIGHT,
             onclick = lambda: self.close(child),
@@ -181,23 +196,32 @@ class DocNotebook(Gtk.Notebook):
             page = self.prepend_page(child, label)
         else:
             page = self.append_page(child, label)
+
         self.set_tab_reorderable(child, True)
         self.child_set_property(child, "tab-expand", True)
         self.child_set_property(child, "tab-fill", True)
+        self.set_menu_label_text(child, name)
         child.show()
         self.set_current_page(page)
         return page
         
-    def load(self, doc):
+    def add(self, doc):
         self.add_page(doc.name, DocView(doc))
 
     def help(self):
         doc = project.Project.open(os.path.join(guidir, "ui"), "help.txt", force = True).load()
         doc.name = "Help"
-        self.load(doc)
+        self.add(doc)
 
     def new(self):
-        self.add_page("New story", DocView(), prepend = False)
+        doc = project.Document(tree = project.Document.empty("New story"))
+        self.add(doc)
+
+    def save(self):
+        page  = self.get_current_page()
+        child = self.get_nth_page(page)
+        if type(child) is DocView:
+            child.save()
 
     def close(self, child):
         if child == self.opentab:
@@ -258,10 +282,11 @@ class DocOpen(Gtk.VBox):
 
 class DocView(Gtk.Frame):
 
-    def __init__(self, doc = None):
+    def __init__(self, doc):
         super(DocView, self).__init__()
         
-        if doc is None: doc = project.Document()
+        #if doc is None: doc = project.Document()
+        self.doc = doc
         
         draft = doc.root.find("./body/part")
         notes = doc.root.find("./notes/part")
@@ -285,7 +310,7 @@ class DocView(Gtk.Frame):
         self.draftview.grab_focus()
     
     def onKeyPress(self, widget, event):
-        mods   = event.state & Gtk.accelerator_get_default_mod_mask()
+        mods = event.state & Gtk.accelerator_get_default_mod_mask()
         key = Gtk.accelerator_name(
             event.keyval,
             mods,
@@ -303,6 +328,35 @@ class DocView(Gtk.Frame):
         if DocView.position < 0: return
         self.pane.set_position(DocView.position)
         #print("Set pos:", DocView.position)
+
+    def save(self):
+        if self.doc.filename is None:
+            mainwindow = Gtk.Window.list_toplevels()[0]
+            
+            dialog = Gtk.FileChooserDialog(
+                "Save as...", mainwindow,
+                Gtk.FileChooserAction.SAVE,
+                (
+                    Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                    Gtk.STOCK_SAVE, Gtk.ResponseType.OK
+                )
+            )
+
+            if self.doc.origin:
+                print("Origin:", self.doc.origin)
+                suggested = os.path.splitext(self.doc.origin)[0] + ".mawe"
+                dialog.set_filename(suggested)
+                dialog.set_current_name(os.path.basename(suggested))
+
+            response = dialog.run()
+            dialog.destroy()
+            
+            if response != Gtk.ResponseType.OK:
+                print("Cancelled")
+                return
+            self.doc.filename = dialog.get_filename()
+
+        print("Saving as:", self.doc.filename)
 
     def onUnmap(self, widget):
         DocView.position = self.pane.get_position()
@@ -327,12 +381,19 @@ class DocView(Gtk.Frame):
                 
             selectnotes.connect("toggled", lambda w: switchBuffer(self, w))
 
-            box.pack_start(Button(icon = "open-menu-symbolic", tooltip_text = "Open menu"), False, False, 0)
+            box.pack_start(IconButton("open-menu-symbolic", "Open menu"), False, False, 0)
+            # Menu items
+            # - Export
+            # - Open containing folder
+            # - Save
+            # - Save as
+            # - Revert
+            # - Close
             box.pack_start(Button("Title"), False, False, 0)
-            box.pack_start(VSeparator(), False, False, 2)
-            box.pack_start(Button("Export"), False, False, 0)
-            box.pack_start(Button("Save"), False, False, 0)
-            box.pack_start(Button("Revert"), False, False, 0)
+            #box.pack_start(VSeparator(), False, False, 2)
+            #box.pack_start(Button("Export"), False, False, 0)
+            #box.pack_start(Button("Save"), False, False, 0)
+            #box.pack_start(Button("Revert"), False, False, 0)
             box.pack_start(VSeparator(), False, False, 2)
             
             box.pack_start(Label(""), True, True, 0)
@@ -390,7 +451,7 @@ class DocView(Gtk.Frame):
         def scenelist():
             box = VBox()
             #box.pack_start(toolbar(), False, False, 0)
-            box.pack_start(self.scenelist, True, True, 0)
+            box.pack_start(self.scenelist, True, True, 2)
             return box
 
         def notes():
@@ -407,7 +468,7 @@ class DocView(Gtk.Frame):
         stack, switcher = Stack("Notes", scenelist(), notes())
 
         box = VBox()
-        box.pack_start(toolbar(switcher), False, False, 1)
+        box.pack_start(toolbar(switcher), False, False, 0)
         box.pack_start(stack, True, True, 0)
         return box
 
@@ -439,6 +500,8 @@ class MainWindow(Gtk.Window):
         add_shortcuts(self, [
             ("<Ctrl>Q", lambda *a: self.onDestroy(self)),
             ("<Ctrl>O", lambda *a: self.docs.open()),
+            ("<Ctrl>S", lambda *a: self.docs.save()),
+            ("F1", lambda *a: self.docs.help()),
         ])
 
         settings = config["Window"]
@@ -454,20 +517,12 @@ class MainWindow(Gtk.Window):
         DocView.position = config["DocView"]["Pane"]
 
         if workset:
-            for doc in workset:
-                print(doc)
-                self.load(doc)
+            for project in workset:
+                print(project)
+                doc = project.load()
+                self.docs.add(doc)
         else:
-            self.new()
-
-    def load(self, doc):
-        mawe = doc.load()
-        self.docs.load(mawe)
-        print("Loaded:", mawe)
-        #mawe.saveas(mawe.filename)
-
-    def new(self):
-        self.docs.new()
+            self.docs.new()
 
     def onDestroy(self, widget):
         try:

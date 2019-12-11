@@ -1,2 +1,6 @@
 #draftview { background: #FFF; }
 #draftview:selected { background: #9AB87C; }
+
+#doc-close-btn { border-radius: 30px; }
+#doc-close-btn:hover { background: #CCC; }
+

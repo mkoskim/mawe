@@ -32,6 +32,9 @@ FEATURES needed to start using the editor in daily work:
 
 Other features:
 
+- History entry to file: This can be used to track history, e.g.
+  writing competitions where the text has been sent.
+
 - Save list of open tabs for restoring: remember errors
 
 - Add error handling when loading documents

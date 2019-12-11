@@ -35,7 +35,7 @@ def mount(*files):
 	    if os.path.isdir(filename):
 		    _scan(filename)
 	    elif os.path.isfile(filename):
-		    requested.append(Project.open(os.getcwd(), filename, force = True))
+		    requested.append(Project.open(os.getcwd(), os.path.abspath(filename), force = True))
 	    else:
 		    ERROR("%s: Not a file/folder." % filename)
 

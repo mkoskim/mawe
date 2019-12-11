@@ -120,7 +120,7 @@ class Moe(Base):
 
         #----------------------------------------------------------------------
         
-        mawe = Document.empty()
+        mawe = Document.empty(root.find("./TitleItem/title").text)
 
         def create_scene(element, visible):
             if visible:
@@ -192,10 +192,7 @@ class Moe(Base):
             elif child.tag == "settings":  pass # Safe to ignore, settings were moved to .moerc
             else: tools.log("%s: <story>: Unknown child '%s'" % (self.fullname, child.tag))
 
-        return Document(
-            os.path.splitext(self.fullname)[0] + ".mawe",
-            tree = mawe
-        )
+        return Document(tree = mawe, origin = self.fullname)
 
 ###############################################################################
 #
@@ -213,7 +210,7 @@ class Text(Base):
         lines = tools.readfile(self.fullname)
         lines = lines.split("\n")
 
-        mawe  = Document.empty()
+        mawe  = Document.empty(os.path.basename(self.fullname))
         scene = ET.SubElement(mawe.find("./body/part"), "scene")
 
         for line in lines:
@@ -221,8 +218,8 @@ class Text(Base):
             paragraph.text = line
 
         return Document(
-            os.path.splitext(self.fullname)[0] + ".mawe",
-            tree = mawe
+            tree = mawe,
+            origin = self.fullname
         )
 
 ###############################################################################

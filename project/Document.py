@@ -33,7 +33,7 @@ class FormatError(Exception):
 
 class Document:
 
-    def __init__(self, filename = None, tree = None):
+    def __init__(self, filename = None, tree = None, origin = None):
 
         # TODO: Track somehow if the file was really loaded from filename,
         # or if it was created when converting files. If Document was created
@@ -41,12 +41,13 @@ class Document:
         # we have here suggestion for it)
         
         self.filename = filename
+        self.origin   = origin
 
         if tree is None:
             if self.filename:
                 tree = ET.parse(self.filename)
             else:
-                tree = Document.empty()
+                tree = Document.empty("")
 
         self.tree = tree
         self.root = tree.getroot()
@@ -63,8 +64,10 @@ class Document:
         print(self.name, self.uuid)
 
     @staticmethod
-    def empty():
-        return ET.parse(os.path.join(os.path.dirname(__file__), "Empty.mawe"))
+    def empty(name):
+        tree = ET.parse(os.path.join(os.path.dirname(__file__), "Empty.mawe"))
+        tree.find("./body/head/title").text = name
+        return tree
 
     def __str__(self):
         return "<Document %s @ %s>" % (self.name, self.filename)

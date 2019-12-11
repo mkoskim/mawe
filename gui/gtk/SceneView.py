@@ -154,7 +154,6 @@ class SceneView(GtkSource.View):
             return True
 
         self.combokeys = {
-            "<Primary>s": self.save,
             "<Primary>z": undo,
             "<Primary><Shift>z": redo,
             "<Alt>a": {
@@ -352,34 +351,6 @@ class SceneView(GtkSource.View):
         self.remove_block("#")
         self.toggle_block("<<")
         self.buffer.end_user_action()
-
-    #--------------------------------------------------------------------------
-
-    def save(self):
-        def dump_styles():
-            for styleid in self.buffer.get_language().get_style_ids():
-                style = self.buffer.get_style_scheme().get_style(styleid)
-                print(styleid, style)
-            
-        def dumptag(tag):
-            print(tag.get_property("name"))
-
-        def dumptags():
-            self.tagtbl.foreach(dumptag)
-         
-        def dump_source_marks_at(at = None):
-            for mark in self.get_source_marks(at):
-                print(mark.get_property("category"), mark.get_property("name"))
-
-        def dump_text():
-            text = self.buffer.get_text(*self.buffer.get_bounds(), True)
-            print(text)
-
-        #dump_source_marks_at()
-        #dump_contexts_at(self.get_cursor_iter())
-        #dump_text()
-        #self.wordcount()
-        return True
 
     #--------------------------------------------------------------------------
     
