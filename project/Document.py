@@ -7,7 +7,21 @@
 import xml.etree.ElementTree as ET
 from tools.error import *
 import os
+import uuid
 
+#------------------------------------------------------------------------------
+#
+# Some plans. We need a dictionary holding Documents, and they can be
+# retrieved by UUID (so that you know if you have one open already).
+# Documents need to track the buffers - which buffers are connected to
+# what XML element, so that when saving, you can go and grab the
+# buffers.
+#
+# When closing, we need to go through dirty buffers and save them to disk.
+#
+# REMEMBER: When we add views to other doc buffers, we need to keep track
+# where there are open views.
+#
 #------------------------------------------------------------------------------
 
 class FormatError(Exception):
@@ -20,15 +34,28 @@ class FormatError(Exception):
 class Document:
 
     def __init__(self, filename = None, tree = None):
+
         self.filename = filename
+
         if tree is None:
             if self.filename:
                 tree = ET.parse(self.filename)
             else:
                 tree = Document.empty()
+
         self.tree = tree
         self.root = tree.getroot()
         self.name = self.root.find("./body/head/title").text
+
+        # If doc does not yet have UUID, generate one: docs converted
+        # from other formats lack one.
+        
+        if not "uuid" in self.root.attrib:
+            uid = str(uuid.uuid4())
+            self.root.set("uuid", uid)
+            print("New UUID", uid)
+        self.uuid = self.root.get("uuid")
+        print(self.name, self.uuid)
 
     @staticmethod
     def empty():

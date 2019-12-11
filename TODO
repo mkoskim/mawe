@@ -3,6 +3,9 @@ FEATURES needed to start using the editor in daily work:
 - File saving (file format): Don't save & load files in markup format
   used in editor. It can change in future.
 
+- psep (paragraph separator) is missing from the files! Maybe empty
+  "<p />" is enough?
+
 - File loading / project manager: It is first enough to have mawe files
   in moe project manager. But for workspaces and tabbed editing, we need
   built-in project manager.
@@ -19,15 +22,23 @@ FEATURES needed to start using the editor in daily work:
 
 - Path for project manager
 
-- Postpone: We can now support just one-part files
-
-- Postpone: We don't need versioning yet.
-
 - Add UUID to file format, so that project manager recognizes files even
   if they are moved. We could add UUID to moe files, too. UUID could help
   linking documents together.
 
+-------------------------------------------------------------------------------
+
 Other features:
+
+- When choosing with grab, show the selections in the listbox
+
+- Postpone: We can now support just one-part files
+
+- Postpone: We don't need versioning yet.
+
+- Postpone: We can live without being able to mix buffers from several
+  documents together in one view. That is, it is enough if we can choose
+  between doc's draft and notes buffers.
 
 - Search and replace: it is very useful feature I have missed in moe a lot
 
@@ -35,9 +46,45 @@ Other features:
   to store workset configurations to a shared drive, but keep window settings
   on local machine.
 
+- Many current software have combined open/new window. Many of them are
+  interesting and full of action. There's many ways to open things
+  (open folder, clone from repo, choose recent, start new). It wouldn't
+  be bad idea, right?
+  
+  * Absolutely this feature, new button inside open dialog.
+
+- A synopsis editor would be cool, I think. I already sketched it with
+  moe, but it has been underused.
+
+-------------------------------------------------------------------------------
+
+Problematic issue: Single doc vs split view:
+
+- In split view, you need lots of space for both docs.
+
+- But when having just index at left, it can't fill the space.
+
+- Could there be some sort of feature, "left" and "right" gutter for the
+  doc:
+  
+  - When in single doc mode, both gutters are visible: index at left
+  
+  - When in split view, gutters are invisible and the pane is in different
+    position.
+    
+  - Basically: We are not that interested in pane position: we are much
+    more interested in doc view width!!!
+
+  - Split view is absolutely mandatory feature.
+
+  - Just find out some ideas for right gutter when split view is not
+    used, and index is visible.
+
 -------------------------------------------------------------------------------
 
 FIX:
+
+- There is a bug in refreshing scene word counters. Track it down and fix it.
 
 - We can not just switch buffer to textview - Undo/redo will not work in
   that case. Instead, when switching buffers, we need to create new views.

@@ -41,6 +41,12 @@ class Button(Gtk.Button):
 
         if onclick: self.connect("clicked", lambda w: onclick())
         self.set_relief(Gtk.ReliefStyle.NONE)
+
+    def disable(self):
+        self.set_sensitive(False)
+        
+    def enable(self):
+        self.set_sensitive(True)
         
 class StockButton(Button):
 
@@ -139,9 +145,9 @@ class DocNotebook(Gtk.Notebook):
 
         self.set_scrollable(True)
         
-        self.opentab = DocOpen()
+        self.opentab = DocOpen(self)
         self.openbtn = StockButton("gtk-open", onclick = self.open)
-        newbtn       = StockButton("gtk-new", onclick = self.new)
+        #newbtn       = StockButton("gtk-new", onclick = self.new)
         #self.openbtn = Button(
         #    icon = "document-open-symbolic",
         #    onclick = self.open,
@@ -150,13 +156,13 @@ class DocNotebook(Gtk.Notebook):
         #    icon = "document-new-symbolic",
         #    onclick = self.new,
         #)
+        #newbtn.set_property("tooltip_text", "Create new document")
         self.openbtn.set_property("tooltip_text", "Open document")
-        newbtn.set_property("tooltip_text", "Create new document")
           
         start = Box(visible = True)
         #start.pack_start(MenuButton("<Workset>"), False, False, 0)
+        #start.pack_start(newbtn, False, False, 1)
         start.pack_start(self.openbtn, False, False, 1)
-        start.pack_start(newbtn, False, False, 1)
         self.set_action_widget(start, Gtk.PackType.START)
 
         end = Box(visible = True)
@@ -195,12 +201,12 @@ class DocNotebook(Gtk.Notebook):
         self.add_page(doc.name, DocView(doc))
 
     def new(self):
-        self.add_page("New story", DocView(), prepend = True)
+        self.add_page("New story", DocView(), prepend = False)
 
     def close(self, child):
         if child == self.opentab:
             self.opentab.hide()
-            self.openbtn.show()
+            self.openbtn.enable()
         else:
             # Unmap first to update pane pos
             child.unmap()
@@ -210,19 +216,37 @@ class DocNotebook(Gtk.Notebook):
     def open(self):
         page = self.page_num(self.opentab)
         if page < 0:
-            self.add_page("Open file...", self.opentab, prepend = True)
+            self.add_page("Open file...", self.opentab, prepend = False)
         else:
             self.opentab.show()
-            self.reorder_child(self.opentab, 0)
-            self.set_current_page(0)
+            self.reorder_child(self.opentab, -1)
+            self.set_current_page(-1)
             
-        self.openbtn.hide()
+        self.openbtn.disable()
 
     def onSwitchPage(self, notebook, child, pagenum):
         if child == self.opentab: return
         if self.page_num(self.opentab) != -1:
             self.opentab.hide()
-            self.openbtn.show()
+            self.openbtn.enable()
+
+###############################################################################
+#
+# Document open view
+#
+###############################################################################
+
+class DocOpen(Gtk.Frame):
+
+    def __init__(self, notebook):
+        super(DocOpen, self).__init__()
+
+        self.add(Button("New", onclick = self.openNew))
+        self.notebook = notebook
+        #self.show_all()
+
+    def openNew(self):
+        self.notebook.new()
 
 ###############################################################################
 #
@@ -380,17 +404,6 @@ class DocView(Gtk.Frame):
 
 ###############################################################################
 #
-# Document open view
-#
-###############################################################################
-
-class DocOpen(Gtk.Frame):
-
-    def __init__(self):
-        super(DocOpen, self).__init__()
-
-###############################################################################
-#
 # Main window
 #
 ###############################################################################
@@ -441,7 +454,7 @@ class MainWindow(Gtk.Window):
         mawe = doc.load()
         self.docs.load(mawe)
         print(mawe)
-        #mawe.saveas()
+        mawe.saveas(mawe.filename)
 
     def new(self):
         self.docs.new()
