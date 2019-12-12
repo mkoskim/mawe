@@ -91,7 +91,6 @@ class ScrolledSceneView(Gtk.ScrolledWindow):
     def set_buffer(self, buffer): return self.view.set_buffer(buffer)
     def scroll_to_mark(self, mark, within, use_align, xalign, yalign):
         self.view.scroll_to_mark(mark, within, use_align, xalign, yalign)
-    def grab_focus(self): return self.view.grab_focus()
         
 #------------------------------------------------------------------------------
 

@@ -78,16 +78,25 @@ Simplified structure of a file:
             <part> ... </part>
         </body>
         
-        <!-- older versions of the story -->
-        <version name="A"> ... </version>
-        <version name="B"> ... </version>
-
         <!-- Story meta text (plans, sketches, clips) -->
         <meta>
             <part> ... </part>
             <part> ... </part>
         </meta>            
+
+        <!-- Story history: competitions, etc etc -->
+        <log>
+        </log>
+
+        <!-- older versions of the story -->
+
+        <version name="A"> ... </version>
+        <version name="B"> ... </version>
+        ...
+
     </story>
+
+NOTE: We could implement also compressed format: pack the file with gzip.
 
 NOTE: We remove the scene "visibility" attribute. Every scene in body is visible.
 No scene in other groups is visible. This will simplify the system. If writer
