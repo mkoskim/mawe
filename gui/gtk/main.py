@@ -157,7 +157,7 @@ class Label(Gtk.Label):
     def __init__(self, label, **kwargs):
         if "visible" not in kwargs: kwargs["visible"] = True
         super(Label, self).__init__(label, **kwargs)
-        self.set_justify(Gtk.Justification.LEFT)
+        self.set_xalign(0.0)
 
 #------------------------------------------------------------------------------
 
@@ -214,12 +214,11 @@ def add_shortcuts(widget, table):
 class DocNotebook(Gtk.Notebook):
 
     def __init__(self):
-        super(DocNotebook, self).__init__()
+        super(DocNotebook, self).__init__(name = "DocNotebook")
 
         self.set_scrollable(True)
         self.popup_enable()
-        self.set_show_border(False)
-        
+
         self.opentab = DocOpen(self)
         self.openbtn = StockButton("gtk-open", onclick = lambda w: self.ui_open())
         self.openbtn.set_property("tooltip_text", "Open document")
@@ -266,15 +265,15 @@ class DocNotebook(Gtk.Notebook):
             page = self.append_page_menu(child, label, child.menulabel)
 
         self.set_tab_reorderable(child, True)
-        self.child_set_property(child, "tab-expand", True)
-        self.child_set_property(child, "tab-fill", True)
+        #self.child_set_property(child, "tab-expand", True)
+        #self.child_set_property(child, "tab-fill", True)
 
         child.show_all()
         self.set_current_page(page)
         return page
         
     def add(self, doc):
-        self.add_page(DocView(doc))
+        self.add_page(DocView(self, doc))
 
     def ui_help(self):
         doc = project.Project.open(os.path.join(guidir, "ui/help.txt")).load()
@@ -298,11 +297,19 @@ class DocNotebook(Gtk.Notebook):
         if child == self.opentab:
             self.opentab.hide()
             self.openbtn.enable()
-        else:
-            # Unmap first to update pane pos
-            child.unmap()
-            page = self.page_num(child)
-            self.remove_page(page)
+            return
+            
+        if type(child) is DocView:
+            print("Dirty check")
+            if child.get_dirty():
+                pass
+            child.onUnmap(child)
+
+        self._remove_child(child)
+        
+    def _remove_child(self, child):
+        page = self.page_num(child)
+        self.remove_page(page)
 
     def ui_open(self):
         page = self.page_num(self.opentab)
@@ -312,7 +319,7 @@ class DocNotebook(Gtk.Notebook):
             self.opentab.show()
             self.reorder_child(self.opentab, -1)
             self.set_current_page(-1)
-            
+
         self.openbtn.disable()
 
     def onSwitchPage(self, notebook, child, pagenum):
@@ -323,18 +330,45 @@ class DocNotebook(Gtk.Notebook):
 
 ###############################################################################
 #
+# Pages for doc notebook
+#
+###############################################################################
+
+class DocPage(Gtk.Frame):
+
+    def __init__(self, notebook, name):
+        super(DocPage, self).__init__()
+        
+        self.notebook = notebook
+
+        self.name      = name
+        self.tablabel  = Label(name)
+        self.menulabel = Label(name, name = "menulabel")
+        
+        self.context = self.get_style_context()
+        self.context.add_class("DocPage")
+        
+        self.connect_after("map", lambda w: self.set_window_title())
+
+    def set_window_title(self):
+        self.get_toplevel().set_title(self.name + " - mawe")
+
+    def set_name(self, name):
+        self.name = name
+        self.tablabel.set_text(name)
+        self.menulabel.set_text(name)
+        self.set_window_title()
+
+###############################################################################
+#
 # Document open view
 #
 ###############################################################################
 
-class DocOpen(Gtk.Frame):
+class DocOpen(DocPage):
 
     def __init__(self, notebook):
-        super(DocOpen, self).__init__()
-        self.notebook = notebook
-
-        self.tablabel  = Label("Open file")
-        self.menulabel = Label("Open file")
+        super(DocOpen, self).__init__(notebook, "Open file")
 
         chooser = Gtk.FileChooserWidget()
         chooser.set_create_folders(True)
@@ -373,7 +407,6 @@ class DocOpen(Gtk.Frame):
 
     def onChooser(self, chooser):
         filename = chooser.get_filename()
-        print("Chosed:", filename)
         self.notebook.ui_new(filename)
 
     def storeDirectory(self, chooser):
@@ -388,21 +421,21 @@ class DocOpen(Gtk.Frame):
 #
 ###############################################################################
 
-class DocView(Gtk.Frame):
+class DocView(DocPage):
 
-    def __init__(self, doc):
-        super(DocView, self).__init__()
+    #--------------------------------------------------------------------------
+    
+    def __init__(self, notebook, doc):
+        super(DocView, self).__init__(notebook, doc.name)
         
         self.doc = doc
+        self.dirty = False
+
+        print("Filename:", doc.filename)
+        print("Origin:", doc.origin)
         
-        draft = doc.root.find("./body/part")
-        notes = doc.root.find("./notes/part")
-
-        self.tablabel  = Label(doc.name)
-        self.menulabel = Label(doc.name)
-
-        self.draftbuf  = SceneBuffer(draft)
-        self.notesbuf  = SceneBuffer(notes)
+        self.draftbuf = self.set_buffer(self.doc.root.find("./body/part"))
+        self.notesbuf = self.set_buffer(self.doc.root.find("./notes/part"))
         
         # Try to get rid of these
         self.draftview = ScrolledSceneView(self.draftbuf, "Times 12")
@@ -420,6 +453,14 @@ class DocView(Gtk.Frame):
         self.connect("key-press-event", self.onKeyPress)
 
         #self.draftview.grab_focus()
+        
+    def set_buffer(self, content):
+        def onBufModified(self, buf):
+            if buf.get_modified(): self.set_dirty()
+
+        buf = SceneBuffer(content)        
+        buf.connect("modified-changed", lambda buf: onBufModified(self, buf))
+        return buf
         
     #--------------------------------------------------------------------------
 
@@ -450,47 +491,81 @@ class DocView(Gtk.Frame):
     def onUnmap(self, widget):
         DocView.position = self.pane.get_position()
         #print("Update pos:", DocView.position)
+
+        # Untouched empty files can be removed without questions
+        if not self.get_dirty() and self.doc.origin is None:
+            self.notebook._remove_child(self)
     
     #--------------------------------------------------------------------------
+    
+    def set_name(self, text = None):
+        if text: self.doc.find("./body/head/title").text = text
+        super(DocView, self).set_name((self.get_dirty() and "*" or "") + self.doc.name)
 
+    def get_dirty(self): return self.dirty        
+
+    def set_dirty(self, status = True):
+        print("Dirty:", status)
+        if self.dirty != status:
+            self.dirty = status
+            self.set_name()
+
+    #--------------------------------------------------------------------------
+    # Saving
+    #--------------------------------------------------------------------------
+    
+    def _choose_file(self, suggested):
+        mainwindow = self.get_toplevel()
+        
+        dialog = Gtk.FileChooserDialog(
+            "Save as...", mainwindow,
+            Gtk.FileChooserAction.SAVE,
+            (
+                Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                Gtk.STOCK_SAVE, Gtk.ResponseType.OK
+            )
+        )
+
+        dialog.set_do_overwrite_confirmation(True)
+
+        if suggested:
+            suggested = os.path.splitext(suggested)[0] + ".mawe"
+            dialog.set_filename(suggested)
+            dialog.set_current_name(os.path.basename(suggested))
+
+        if dialog.run() != Gtk.ResponseType.OK:
+            dialog.destroy()
+            return
+            
+        name = dialog.get_filename()
+        dialog.destroy()
+        return name
+    
     def ui_save(self):
         if self.doc.filename is None:
-            mainwindow = self.get_toplevel()
-            
-            dialog = Gtk.FileChooserDialog(
-                "Save as...", mainwindow,
-                Gtk.FileChooserAction.SAVE,
-                (
-                    Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-                    Gtk.STOCK_SAVE, Gtk.ResponseType.OK
-                )
-            )
-
-            if self.doc.origin:
-                suggested = os.path.splitext(self.doc.origin)[0] + ".mawe"
-                dialog.set_filename(suggested)
-                dialog.set_current_name(os.path.basename(suggested))
-
-            if dialog.run() != Gtk.ResponseType.OK:
-                dialog.destroy()
-                return
-                
-            self.doc.filename = dialog.get_filename()
-            dialog.destroy()
-
+            name = self._choose_file(self.doc.origin)
+            if name is None: return False
+            self.doc.filename = name
         self._save()
+        return True
+        
+    def ui_saveas(self):
+        name = self._choose_file(self.doc.origin)
+        if name is None: return False
+        self.doc.filename = name
+        self._save()
+        return True
 
-    def _choose_file(self): pass
-    
     def _save(self):
         print("Saving as:", self.doc.filename)
         self.folderbtn.enable()
     
-    def _setname(self, text):
-        self.doc.find("./body/head/title").text = text
-        self.tablabel.set_text(text)
-        self.menulabel.set_text(text)
+        self.doc.origin = self.doc.filename
 
+        self.set_dirty(False)
+        self.draftbuf.set_modified(False)
+        self.notesbuf.set_modified(False)
+        
     #--------------------------------------------------------------------------
 
     def create_view(self):
@@ -647,10 +722,10 @@ class MainWindow(Gtk.Window):
         self.docs = DocNotebook()
         self.add(self.docs)
 
-        self.connect("delete-event", lambda w, e: self.onDestroy(w))
+        self.connect("delete-event", lambda w, e: self.onDelete(w))
 
         add_shortcuts(self, [
-            ("<Ctrl>Q", lambda *a: self.onDestroy(self)),
+            ("<Ctrl>Q", lambda *a: self.onDelete(self)),
 
             ("<Ctrl>O", lambda *a: self.docs.ui_open()),
             ("<Ctrl>S", lambda *a: self.docs.ui_save()),
@@ -672,14 +747,18 @@ class MainWindow(Gtk.Window):
         DocView.position = config["DocView"]["Pane"]
 
         if workset:
-            for project in workset:
-                print(project)
-                doc = project.load()
-                self.docs.add(doc)
+            for p in workset: self.docs.add(p.load())
+        elif len(project.Manager.projects):
+            self.docs.ui_open()
         else:
             self.docs.ui_new()
-
-    def onDestroy(self, widget):
+        
+    def onDelete(self, widget):
+    
+        # Check for dirty files
+        # Attempt to save them
+        # If saving fails, return True to stop processing
+        
         try:
             settings = config["Window"]
 
@@ -689,9 +768,9 @@ class MainWindow(Gtk.Window):
             pos = self.get_position()
             settings["Position"] = { "X": pos.root_x, "Y": pos.root_y }
 
-            # Unmap page from notebook to get pane position updated
+            # Call onUnmap to get pane position updated
             child = self.docs.get_current_child()
-            if child: child.unmap()
+            if type(child) is DocView: child.onUnmap(child)
             config["DocView"]["Pane"] = DocView.position
 
             config_save()

@@ -31,6 +31,7 @@ class SceneBuffer(GtkSource.Buffer):
             self.insert(self.get_start_iter(), content)
             self.end_not_undoable_action()
 
+        self.set_modified(False)
         self.place_cursor(self.get_start_iter())
         self.update_tags(*self.get_bounds())
 

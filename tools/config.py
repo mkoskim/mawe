@@ -30,7 +30,7 @@ def config_load():
         config = defaults
 
 def config_save():
-    print("Saving config", filename)
+    #print("Saving config", filename)
     #print(json.dumps(config, indent = 4))
     json.dump(config, open(filename, "w"), indent = 4)
 

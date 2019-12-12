@@ -46,6 +46,7 @@ class Document:
         if tree is None:
             if self.filename:
                 tree = ET.parse(self.filename)
+                self.origin = self.filename
             else:
                 tree = Document.empty()
 
@@ -59,9 +60,7 @@ class Document:
         if not "uuid" in self.root.attrib:
             uid = str(uuid.uuid4())
             self.root.set("uuid", uid)
-            print("New UUID", uid)
         self.uuid = self.root.get("uuid")
-        print(self.name, self.uuid)
 
     @staticmethod
     def empty(name = None):
