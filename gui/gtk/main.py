@@ -95,7 +95,7 @@ class DocNotebook(Gtk.Notebook):
         self.add_page(DocView(self, doc))
 
     def can_close(self):
-        print("Pages:", self.get_n_pages())
+        #print("Pages:", self.get_n_pages())
         for i in range(self.get_n_pages()):
             child = self.get_nth_page(i)
             if not child.can_close(): return False
@@ -279,7 +279,7 @@ class DocView(DocPage):
         print("Origin:", doc.origin)
 
         self.draftbuf = self.set_buffer(self.doc.root.find("./body/part"))
-        self.notesbuf = self.set_buffer(self.doc.root.find("./notes/part"))
+        self.notesbuf = self.set_buffer("") #self.doc.root.find("./notes/part"))
 
         # Try to get rid of these
         self.draftview = ScrolledSceneView(self.draftbuf, "Times 12")
