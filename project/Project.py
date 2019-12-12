@@ -16,12 +16,12 @@ import tools
 class Project:
 
     @staticmethod
-    def open(drive, path, force = False):
-        fullname = os.path.join(drive, path)
+    def open(fullname, validonly = False):
+        fullname = os.path.abspath(fullname)
         dirname  = os.path.dirname(fullname)
         filename = os.path.basename(fullname)
         
-        if os.path.splitext(path)[1] in [".moe", ".mawe"]:
+        if os.path.splitext(fullname)[1] in [".moe", ".mawe"]:
             tree = ET.parse(fullname)
             root = tree.getroot()
             
@@ -30,9 +30,9 @@ class Project:
             
             format = root.get("format", "moe")
             if format == "mawe":
-                return Mawe(drive, path, root)
+                return Mawe(fullname, root)
             elif format == "moe":
-                return Moe(drive, path, root)
+                return Moe(fullname, root)
 
             raise FormatError("%s: Unknown story format '%s'" % (fullname, format))
                 
@@ -42,19 +42,16 @@ class Project:
             if not mainfile:
                 mainfile = LaTeX.reDocName.search(content)
                 if not mainfile: return None
-            mainfile = mainfile.group("filename")
+            mainfile = os.path.join(dirname, mainfile.group("filename"))
 
             mainfile, ext = os.path.splitext(mainfile)
-            if os.path.isfile(os.path.join(dirname, mainfile) + ".moe"): return
-            if os.path.isfile(os.path.join(dirname, mainfile) + ".mawe"): return
+            if os.path.isfile(mainfile + ".moe"): return
+            if os.path.isfile(mainfile + ".mawe"): return
             
-            return LaTeX(
-                drive,
-                os.path.join(os.path.relpath(dirname, drive), mainfile + ".tex")
-            )
+            return LaTeX(mainfile + ".tex")
 
-        if force: return Text(drive, path)
-        return None
+        if validonly: return None
+        return Text(fullname)
 
 ###############################################################################
 #
@@ -63,15 +60,8 @@ class Project:
 ###############################################################################
 
 class Base:
-    def __init__(self, drive, path, format = None):
-        self.format   = format
-        self.drive    = drive
-        self.path     = path
-
-        if drive and path:
-            self.fullname = os.path.join(drive, path)
-        else:
-            self.fullname = None
+    def __init__(self, filename, format = None):
+        self.fullname = filename
         
     def __str__(self):
         if self.fullname: return self.fullname
@@ -81,14 +71,12 @@ class Base:
 
 class Mawe(Base):
 
-    def __init__(self, drive, path, root = None):
-        super(Mawe, self).__init__(drive, path, "mawe")
+    def __init__(self, filename, root = None):
+        super(Mawe, self).__init__(filename, "mawe")
         self.name = root.find("./body/head/title").text
 
     def load(self):
-        if not self.fullname: return
-
-        return Document(self.fullname)
+        if self.fullname: return Document(self.fullname)
 
 ###############################################################################
 #
@@ -102,8 +90,8 @@ class Mawe(Base):
 
 class Moe(Base):
 
-    def __init__(self, drive, path, root):
-        super(Moe, self).__init__(drive, path, "moe")
+    def __init__(self, filename, root):
+        super(Moe, self).__init__(filename, "moe")
 
         self.name = root.find("./TitleItem/title").text
         
@@ -202,8 +190,8 @@ class Moe(Base):
 
 class Text(Base):
 
-    def __init__(self, drive, path, format = "text"):
-        super(Text, self).__init__(drive, path, format)
+    def __init__(self, filename, format = "text"):
+        super(Text, self).__init__(filename, format)
         self.name = os.path.basename(self.fullname)
 
     def load(self):
@@ -252,8 +240,8 @@ class LaTeX(Text):
         r"\s*\{(?P<year>.*?)\}", re.MULTILINE|re.DOTALL|re.UNICODE
     )
 
-    def __init__(self, drive, path):
-        super(LaTeX, self).__init__(drive, path, "latex")
+    def __init__(self, filename):
+        super(LaTeX, self).__init__(filename, "latex")
 
         #tools.log(self.fullname)
         content = tools.readfile(self.fullname)

@@ -10,6 +10,16 @@ from tools import *
 import project
 import os
 
+#------------------------------------------------------------------------------
+
+def run(workset = None):
+
+    MainWindow(workset).show_all()
+    
+    import signal
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    Gtk.main()
+
 ###############################################################################
 #
 # Some overrides
@@ -27,11 +37,15 @@ class Button(Gtk.Button):
         return None
 
     @staticmethod
+    def icon2image(name):
+        icon = Gio.ThemedIcon(name=name)
+        return Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
+    
+    @staticmethod
     def geticon(kwargs):
         name = Button.getarg(kwargs, "icon")
         if name:
-            icon = Gio.ThemedIcon(name=name)
-            kwargs["image"] = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
+            kwargs["image"] = Button.icon2image(name)
             kwargs["always-show-image"] = True
 
     def __init__(self, label = None, **kwargs):
@@ -42,7 +56,7 @@ class Button(Gtk.Button):
         
         super(Button, self).__init__(label, **kwargs)
 
-        if onclick: self.connect("clicked", lambda w: onclick())
+        if onclick: self.connect("clicked", onclick)
         self.set_relief(Gtk.ReliefStyle.NONE)
 
     def disable(self):
@@ -71,9 +85,7 @@ class MenuButton(Gtk.MenuButton):
         super(MenuButton, self).__init__(label, **kwargs)
 
         if label:
-            icon = Gio.ThemedIcon(name="pan-down-symbolic")
-            image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
-            self.set_image(image)
+            self.set_image(Button.icon2image("pan-down-symbolic"))
             self.set_image_position(Gtk.PositionType.RIGHT)
 
         self.set_relief(Gtk.ReliefStyle.NONE)
@@ -83,9 +95,20 @@ class ToggleButton(Gtk.ToggleButton):
 
     def __init__(self, label, **kwargs):
         if "visible" not in kwargs: kwargs["visible"] = True
+        Button.geticon(kwargs)
+        onclick = Button.getarg(kwargs, "onclick")
+        
         super(ToggleButton, self).__init__(label = label, **kwargs)
+
+        if onclick: self.connect("toggled", onclick)
         self.set_relief(Gtk.ReliefStyle.NONE)
 
+    def disable(self):
+        self.set_sensitive(False)
+        
+    def enable(self):
+        self.set_sensitive(True)
+        
 class RadioButton(Gtk.RadioButton):
 
     def __init__(self, label, group = None, **kwargs):
@@ -110,6 +133,23 @@ class VBox(Gtk.VBox):
     def __init__(self, **kwargs):
         super(VBox, self).__init__(**kwargs)
 
+# Create dual page stack: return stack & switcher
+def DuoStack(label, page1, page2, **kwargs):
+
+    stack = Gtk.Stack()
+    stack.add_named(page1, "1")
+    stack.add_named(page2, "2")
+
+    def switchStack(button, stack):
+        name  = button.get_active() and "2" or "1"
+        child = stack.get_child_by_name(name)
+        stack.set_visible_child(child)
+        
+    switcher = ToggleButton(label, **kwargs)
+    switcher.connect("toggled", lambda w: switchStack(w, stack))
+
+    return stack, switcher
+
 #------------------------------------------------------------------------------
 
 class Label(Gtk.Label):
@@ -117,6 +157,7 @@ class Label(Gtk.Label):
     def __init__(self, label, **kwargs):
         if "visible" not in kwargs: kwargs["visible"] = True
         super(Label, self).__init__(label, **kwargs)
+        self.set_justify(Gtk.Justification.LEFT)
 
 #------------------------------------------------------------------------------
 
@@ -129,6 +170,30 @@ class VSeparator(Gtk.VSeparator):
 
     def __init__(self, **kwargs):
         super(VSeparator, self).__init__(**kwargs)
+
+#------------------------------------------------------------------------------
+
+def getHideControl(name, widget, **kwargs):
+
+    def togglehide(button):
+        if button.get_active():
+            widget.show()
+        else:
+            widget.hide()
+
+    button = ToggleButton(name, **kwargs)
+    button.connect("toggled", togglehide)
+    button.connect("map", togglehide)
+
+    return button
+
+class StackSwitcher(Gtk.StackSwitcher):
+
+    def __init__(self, stack, **kwargs):
+        if "visible" not in kwargs: kwargs["visible"] = True
+        super(StackSwitcher, self).__init__(**kwargs)
+        self.set_stack(stack)
+        #self.set_relief(Gtk.ReliefStyle.NONE)
 
 #------------------------------------------------------------------------------
 
@@ -153,9 +218,10 @@ class DocNotebook(Gtk.Notebook):
 
         self.set_scrollable(True)
         self.popup_enable()
+        self.set_show_border(False)
         
         self.opentab = DocOpen(self)
-        self.openbtn = StockButton("gtk-open", onclick = self.open)
+        self.openbtn = StockButton("gtk-open", onclick = lambda w: self.ui_open())
         self.openbtn.set_property("tooltip_text", "Open document")
 
         start = Box(visible = True)
@@ -168,62 +234,67 @@ class DocNotebook(Gtk.Notebook):
         # - Close all
         # - Quit
         start.pack_start(self.openbtn, False, False, 1)
-        start.pack_start(StockButton("gtk-help", onclick = self.help), False, False, 0)
+        start.pack_start(StockButton("gtk-help", onclick = lambda w: self.ui_help()), False, False, 0)
+
         self.set_action_widget(start, Gtk.PackType.START)
 
         end = Box(visible = True)
         self.set_action_widget(end, Gtk.PackType.END)
-        self.connect("switch-page", self.onSwitchPage)
+
+        self.connect_after("switch-page", self.onSwitchPage)
 
     def get_current_child(self):
         page = self.get_current_page()
         return self.get_nth_page(page)
 
-    def add_page(self, name, child, prepend = False):
+    def add_page(self, child, prepend = False):
         label = HBox()
-        label.pack_start(Label(name), True, False, 4)
+        label.pack_start(child.tablabel, True, False, 4)
         label.pack_start(Button(
             icon = "window-close-symbolic",
-            name = "doc-close-btn",
+            name = "round-btn",
             tooltip_text = "Close document",
             image_position = Gtk.PositionType.RIGHT,
-            onclick = lambda: self.close(child),
+            onclick = lambda w: self.ui_close(child),
             ),
             False, False, 0
         )
 
         if prepend:
-            page = self.prepend_page(child, label)
+            page = self.prepend_page_menu(child, label, child.menulabel)
         else:
-            page = self.append_page(child, label)
+            page = self.append_page_menu(child, label, child.menulabel)
 
         self.set_tab_reorderable(child, True)
         self.child_set_property(child, "tab-expand", True)
         self.child_set_property(child, "tab-fill", True)
-        self.set_menu_label_text(child, name)
-        child.show()
+
+        child.show_all()
         self.set_current_page(page)
         return page
         
     def add(self, doc):
-        self.add_page(doc.name, DocView(doc))
+        self.add_page(DocView(doc))
 
-    def help(self):
-        doc = project.Project.open(os.path.join(guidir, "ui"), "help.txt", force = True).load()
+    def ui_help(self):
+        doc = project.Project.open(os.path.join(guidir, "ui/help.txt")).load()
         doc.name = "Help"
         self.add(doc)
 
-    def new(self):
-        doc = project.Document(tree = project.Document.empty("New story"))
+    def ui_new(self, filename = None):
+        if filename:
+            doc = project.Project.open(filename).load()
+        else:
+            doc = project.Document(tree = project.Document.empty("New Story"))
         self.add(doc)
 
-    def save(self):
-        page  = self.get_current_page()
-        child = self.get_nth_page(page)
+    def ui_save(self):
+        child = self.get_current_child()
         if type(child) is DocView:
-            child.save()
+            child.ui_save()
 
-    def close(self, child):
+    def ui_close(self, child = None):
+        if child is None: child = self.get_current_child();
         if child == self.opentab:
             self.opentab.hide()
             self.openbtn.enable()
@@ -233,10 +304,10 @@ class DocNotebook(Gtk.Notebook):
             page = self.page_num(child)
             self.remove_page(page)
 
-    def open(self):
+    def ui_open(self):
         page = self.page_num(self.opentab)
         if page < 0:
-            self.add_page("Open file...", self.opentab, prepend = False)
+            self.add_page(self.opentab, prepend = False)
         else:
             self.opentab.show()
             self.reorder_child(self.opentab, -1)
@@ -256,23 +327,60 @@ class DocNotebook(Gtk.Notebook):
 #
 ###############################################################################
 
-class DocOpen(Gtk.VBox):
+class DocOpen(Gtk.Frame):
 
     def __init__(self, notebook):
         super(DocOpen, self).__init__()
         self.notebook = notebook
 
-        toolbar = HBox()
-        toolbar.pack_start(Button("New", onclick = self.openNew), False, False, 0)
+        self.tablabel  = Label("Open file")
+        self.menulabel = Label("Open file")
+
+        chooser = Gtk.FileChooserWidget()
+        chooser.set_create_folders(True)
+
+        chooser.connect("file-activated", self.onChooser)
+
+        self.chooserDir = os.getcwd()
+        chooser.connect("map", self.restoreDirectory)
+        chooser.connect("unmap", self.storeDirectory)
+
+        #chooser.set_extra_widget(Button("New", onclick = lambda w: self.openNew()))
 
         text = Gtk.TextView()
-
-        self.pack_start(toolbar, False, False, 0)
-        self.pack_start(text, True, True, 0)
+        for path in project.Manager.projects:
+            text.get_buffer().insert_at_cursor(path + "\n")
+        scrolled = Gtk.ScrolledWindow()
+        scrolled.add(text)
+        manager = scrolled
+        
+        stack = Gtk.Stack()
+        stack.add_titled(chooser, "files", "Files")
+        stack.add_titled(manager, "projects", "Projects")
+        
+        toolbar = HBox()
+        toolbar.pack_start(StackSwitcher(stack), False, False, 1)
+        toolbar.pack_start(StockButton("gtk-new", onclick = self.onNew), False, False, 1)
+        
+        box = VBox()
+        box.pack_start(toolbar, False, False, 1)
+        box.pack_start(stack, True, True, 1)
+        self.add(box)
         self.show_all()
 
-    def openNew(self):
-        self.notebook.new()
+    def onNew(self, widget):
+        self.notebook.ui_new()
+
+    def onChooser(self, chooser):
+        filename = chooser.get_filename()
+        print("Chosed:", filename)
+        self.notebook.ui_new(filename)
+
+    def storeDirectory(self, chooser):
+        self.chooserDir = chooser.get_current_folder()
+    
+    def restoreDirectory(self, chooser):
+        chooser.set_current_folder(self.chooserDir)
 
 ###############################################################################
 #
@@ -285,14 +393,18 @@ class DocView(Gtk.Frame):
     def __init__(self, doc):
         super(DocView, self).__init__()
         
-        #if doc is None: doc = project.Document()
         self.doc = doc
         
         draft = doc.root.find("./body/part")
         notes = doc.root.find("./notes/part")
 
+        self.tablabel  = Label(doc.name)
+        self.menulabel = Label(doc.name)
+
         self.draftbuf  = SceneBuffer(draft)
         self.notesbuf  = SceneBuffer(notes)
+        
+        # Try to get rid of these
         self.draftview = ScrolledSceneView(self.draftbuf, "Times 12")
         self.notesview = ScrolledSceneView(self.notesbuf, "Times 12")
         self.scenelist = ScrolledSceneList(self.draftbuf, self.draftview)
@@ -300,15 +412,17 @@ class DocView(Gtk.Frame):
         self.pane = Gtk.Paned()
         self.pane.add2(self.create_view())
         self.pane.add1(self.create_index())
+
+        self.add(self.pane)
         
         self.connect("map", self.onMap)
         self.connect("unmap", self.onUnmap)
         self.connect("key-press-event", self.onKeyPress)
+
+        #self.draftview.grab_focus()
         
-        self.add(self.pane)
-        self.show_all()
-        self.draftview.grab_focus()
-    
+    #--------------------------------------------------------------------------
+
     def onKeyPress(self, widget, event):
         mods = event.state & Gtk.accelerator_get_default_mod_mask()
         key = Gtk.accelerator_name(
@@ -322,6 +436,10 @@ class DocView(Gtk.Frame):
             self.draftview.grab_focus()
             return True
 
+    #--------------------------------------------------------------------------
+    # Paned control
+    #--------------------------------------------------------------------------
+    
     position = -1
 
     def onMap(self, widget):
@@ -329,9 +447,15 @@ class DocView(Gtk.Frame):
         self.pane.set_position(DocView.position)
         #print("Set pos:", DocView.position)
 
-    def save(self):
+    def onUnmap(self, widget):
+        DocView.position = self.pane.get_position()
+        #print("Update pos:", DocView.position)
+    
+    #--------------------------------------------------------------------------
+
+    def ui_save(self):
         if self.doc.filename is None:
-            mainwindow = Gtk.Window.list_toplevels()[0]
+            mainwindow = self.get_toplevel()
             
             dialog = Gtk.FileChooserDialog(
                 "Save as...", mainwindow,
@@ -343,34 +467,69 @@ class DocView(Gtk.Frame):
             )
 
             if self.doc.origin:
-                print("Origin:", self.doc.origin)
                 suggested = os.path.splitext(self.doc.origin)[0] + ".mawe"
                 dialog.set_filename(suggested)
                 dialog.set_current_name(os.path.basename(suggested))
 
-            response = dialog.run()
-            dialog.destroy()
-            
-            if response != Gtk.ResponseType.OK:
-                print("Cancelled")
+            if dialog.run() != Gtk.ResponseType.OK:
+                dialog.destroy()
                 return
+                
             self.doc.filename = dialog.get_filename()
+            dialog.destroy()
 
-        print("Saving as:", self.doc.filename)
+        self._save()
 
-    def onUnmap(self, widget):
-        DocView.position = self.pane.get_position()
-        #print("Update pos:", DocView.position)
+    def _choose_file(self): pass
     
+    def _save(self):
+        print("Saving as:", self.doc.filename)
+        self.folderbtn.enable()
+    
+    def _setname(self, text):
+        self.doc.find("./body/head/title").text = text
+        self.tablabel.set_text(text)
+        self.menulabel.set_text(text)
+
+    #--------------------------------------------------------------------------
+
     def create_view(self):
 
+        def titleeditor():
+            titleedit = Gtk.Frame()
+            #titleedit.set_label("Edit title")
+            titleedit.set_shadow_type(Gtk.ShadowType.IN)
+            titleedit.set_border_width(1)
+            titleedit.add(Label("Title"))
+            return titleedit, getHideControl(
+                "Title",
+                titleedit,
+                tooltip_text = "Edit story header info"
+            )
+        
+        def exportsettings():
+            # Add backcover text here. Remember to store it, too.
+            titleedit = Gtk.Frame()
+            #titleedit.set_label("Edit title")
+            titleedit.set_shadow_type(Gtk.ShadowType.IN)
+            titleedit.set_border_width(1)
+            titleedit.add(Label("Export"))
+            return titleedit, getHideControl("Export", titleedit)
+        
         def toolbar():
             box = HBox()
 
-            selectnotes = ToggleButton(
-                "Notes", draw_indicator = False,
-            )
+            dialogs = VBox()
+            dialogs.pack_start(box, False, False, 0)
+            
+            titleedit,  titleswitch  = titleeditor()
+            exportview, exportswitch = exportsettings()
 
+            dialogs.pack_start(titleedit,  False, False, 0)
+            dialogs.pack_start(exportview, False, False, 0)
+            
+            selectnotes = ToggleButton("Notes")
+                        
             def switchBuffer(self, widget):
                 if not widget.get_active():
                     self.draftview.set_buffer(self.draftbuf)
@@ -378,10 +537,10 @@ class DocView(Gtk.Frame):
                 else:
                     self.draftview.set_buffer(self.notesbuf)
                     self.scenelist.set_buffer(self.notesbuf)
-                
-            selectnotes.connect("toggled", lambda w: switchBuffer(self, w))
 
-            box.pack_start(IconButton("open-menu-symbolic", "Open menu"), False, False, 0)
+            selectnotes = ToggleButton("Notes", onclick = lambda w: switchBuffer(self, w))
+
+            box.pack_start(IconButton("open-menu-symbolic", "Open menu"), False, False, 1)
             # Menu items
             # - Export
             # - Open containing folder
@@ -389,20 +548,28 @@ class DocView(Gtk.Frame):
             # - Save as
             # - Revert
             # - Close
-            box.pack_start(Button("Title"), False, False, 0)
+            box.pack_start(titleswitch, False, False, 1)
+            box.pack_start(exportswitch, False, False, 0)
             #box.pack_start(VSeparator(), False, False, 2)
-            #box.pack_start(Button("Export"), False, False, 0)
             #box.pack_start(Button("Save"), False, False, 0)
             #box.pack_start(Button("Revert"), False, False, 0)
             box.pack_start(VSeparator(), False, False, 2)
             
             box.pack_start(Label(""), True, True, 0)
 
+            self.folderbtn = Button(
+                "Folder",
+                tooltip_text="Open document folder",
+                onclick = lambda w: xdgfolder(self.doc.filename)
+            )
+            if self.doc.filename is None: self.folderbtn.disable()
+
+            box.pack_start(self.folderbtn, False, False, 0)
             box.pack_start(selectnotes, False, False, 0)
             box.pack_start(VSeparator(), False, False, 2)
-            box.pack_start(self.draftbuf.stats.words, False, False, 4)
-            box.pack_start(self.draftbuf.stats.chars, False, False, 6)
-            return box
+            box.pack_start(self.draftbuf.stats.words, False, False, 2)
+            box.pack_start(self.draftbuf.stats.chars, False, False, 4)
+            return dialogs
 
         def view():
             text = self.draftview
@@ -419,39 +586,24 @@ class DocView(Gtk.Frame):
             return box
 
         box = VBox()
-        box.pack_start(toolbar(), False, False, 0)
+        box.pack_start(toolbar(), False, False, 1)
         box.pack_start(view(), True, True, 0)
         box.pack_end(statusbar(), False, False, 0)
         return box
 
     def create_index(self):
     
-        # Create dual page stack: return stack & switcher
-        def Stack(label, page1, page2):
-
-            stack = Gtk.Stack()
-            stack.add_named(page1, "1")
-            stack.add_named(page2, "2")
-
-            def switchStack(self, button, stack):
-                name  = button.get_active() and "2" or "1"
-                child = stack.get_child_by_name(name)
-                stack.set_visible_child(child)
-                
-            switcher = ToggleButton(label, tooltip_text = "Switch to notes")
-            switcher.connect("toggled", lambda w: switchStack(self, w, stack))
-
-            return stack, switcher
-
         def toolbar(switcher):
             box = HBox()
-            box.pack_start(switcher, False, False, 0)
+            box.pack_start(switcher, False, False, 1)
             return box
 
         def scenelist():
             box = VBox()
             #box.pack_start(toolbar(), False, False, 0)
-            box.pack_start(self.scenelist, True, True, 2)
+            box.pack_start(self.scenelist, True, True, 0)
+            self.scenelist.set_border_width(1)
+            self.scenelist.set_shadow_type(Gtk.ShadowType.IN)
             return box
 
         def notes():
@@ -465,10 +617,10 @@ class DocView(Gtk.Frame):
             text.set_shadow_type(Gtk.ShadowType.IN)
             return text
 
-        stack, switcher = Stack("Notes", scenelist(), notes())
+        stack, switcher = DuoStack("Notes", scenelist(), notes())
 
         box = VBox()
-        box.pack_start(toolbar(switcher), False, False, 0)
+        box.pack_start(toolbar(switcher), False, False, 1)
         box.pack_start(stack, True, True, 0)
         return box
 
@@ -499,9 +651,12 @@ class MainWindow(Gtk.Window):
 
         add_shortcuts(self, [
             ("<Ctrl>Q", lambda *a: self.onDestroy(self)),
-            ("<Ctrl>O", lambda *a: self.docs.open()),
-            ("<Ctrl>S", lambda *a: self.docs.save()),
-            ("F1", lambda *a: self.docs.help()),
+
+            ("<Ctrl>O", lambda *a: self.docs.ui_open()),
+            ("<Ctrl>S", lambda *a: self.docs.ui_save()),
+            ("<Ctrl>W", lambda *a: self.docs.ui_close()),
+
+            ("F1", lambda *a: self.docs.ui_help()),
         ])
 
         settings = config["Window"]
@@ -522,7 +677,7 @@ class MainWindow(Gtk.Window):
                 doc = project.load()
                 self.docs.add(doc)
         else:
-            self.docs.new()
+            self.docs.ui_new()
 
     def onDestroy(self, widget):
         try:
@@ -544,15 +699,4 @@ class MainWindow(Gtk.Window):
             import traceback
             print(traceback.format_exc())
         Gtk.main_quit()
-
-#------------------------------------------------------------------------------
-
-def run(workset = None):
-    
-    win = MainWindow(workset)
-    win.show_all()
-
-    import signal
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
-    Gtk.main()
 

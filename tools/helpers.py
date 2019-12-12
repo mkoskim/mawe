@@ -7,6 +7,22 @@
 from tools.error import *
 
 #-------------------------------------------------------------------------
+
+import os
+
+if os.name == "posix":
+
+    # Open folders, text files, RTF, doc, links, PDF, EPUB, ...
+    def xdgopen(filename):
+        os.system("xdg-open %s &" % (filename))
+
+    def xdgfolder(filename):
+        xdgopen(os.path.dirname(filename))
+        
+else:
+    ERROR("Unknown platform: %s" % os.name)
+
+#-------------------------------------------------------------------------
 # File reading/writing TODO: This is old code, need to check if Python
 # can nowadays detect the file encoding automatically.
 #-------------------------------------------------------------------------

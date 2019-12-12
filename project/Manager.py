@@ -35,7 +35,7 @@ def mount(*files):
 	    if os.path.isdir(filename):
 		    _scan(filename)
 	    elif os.path.isfile(filename):
-		    requested.append(Project.open(os.getcwd(), os.path.abspath(filename), force = True))
+		    requested.append(Project.open(filename))
 	    else:
 		    ERROR("%s: Not a file/folder." % filename)
 
@@ -44,8 +44,9 @@ def mount(*files):
 #------------------------------------------------------------------------------
 
 def _scan(drive):
+    drive = os.path.abspath(drive)
     print("Scanning:", drive)
-
+    
     scanned = []
     links   = []
     
@@ -54,8 +55,6 @@ def _scan(drive):
         for dir in dirs:
             scanned.append(dir)
 
-            rpath = os.path.relpath(dir, drive)
-            
             for file in os.listdir(dir):
                 path = os.path.join(dir, file)
                 if os.path.islink(path):
@@ -63,7 +62,7 @@ def _scan(drive):
                 elif os.path.isfile(path):
 	                try:
 	                    if path not in projects:
-	                        project = Project.open(drive, os.path.join(rpath, file))
+	                        project = Project.open(path, validonly = True)
 	                        if project: projects[project.fullname] = project
 	                except Exception as e:
 	                    log(e.__class__.__name__ + ":", str(e))

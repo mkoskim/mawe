@@ -47,7 +47,7 @@ class Document:
             if self.filename:
                 tree = ET.parse(self.filename)
             else:
-                tree = Document.empty("")
+                tree = Document.empty()
 
         self.tree = tree
         self.root = tree.getroot()
@@ -64,7 +64,7 @@ class Document:
         print(self.name, self.uuid)
 
     @staticmethod
-    def empty(name):
+    def empty(name = None):
         tree = ET.parse(os.path.join(os.path.dirname(__file__), "Empty.mawe"))
         tree.find("./body/head/title").text = name
         return tree

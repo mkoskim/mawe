@@ -1,6 +1,17 @@
 #draftview { background: #FFF; }
 #draftview:selected { background: #9AB87C; }
 
-#doc-close-btn { border-radius: 30px; }
-#doc-close-btn:hover { background: #CCC; }
+#round-btn { border-radius: 50%; padding: 2px; }
+#round-btn:hover { background: #CCC; }
 
+/*
+.button { border: 1px solid #888; }
+.button { background: transparent; }
+*/
+
+.button {
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 8px;
+    padding-right: 8px;
+}

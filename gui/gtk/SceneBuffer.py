@@ -24,16 +24,18 @@ class SceneBuffer(GtkSource.Buffer):
 
         self.set_highlight_matching_brackets(False)
 
-        self.connect_after("delete-range", self.afterDeleteRange)
-        self.connect_after("insert-text",  self.afterInsertText)
-
         if content:
             if type(content) == ET.Element:
                 content = self.from_mawe(content)
             self.begin_not_undoable_action()
             self.insert(self.get_start_iter(), content)
             self.end_not_undoable_action()
-            self.place_cursor(self.get_start_iter())
+
+        self.place_cursor(self.get_start_iter())
+        self.update_tags(*self.get_bounds())
+
+        self.connect_after("delete-range", self.afterDeleteRange)
+        self.connect_after("insert-text",  self.afterInsertText)
 
     #--------------------------------------------------------------------------
     
