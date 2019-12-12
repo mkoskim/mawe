@@ -79,16 +79,16 @@ class SceneBuffer(GtkSource.Buffer):
             editable = False,
         )
         
-        self.create_tag("fold:protect", editable = False),
         self.create_tag("fold:hidden",
             editable   = False,
             invisible  = True,
-            paragraph_background = "#DDD",
-            foreground = "#888",
-            scale = 0.8,
+            #paragraph_background = "#DDD",
+            #foreground = "#888",
+            #scale = 0.8,
         )
+        #self.create_tag("fold:protect", editable = False),
 
-        self.create_tag("debug:update",
+        self.tag_debug = self.create_tag("debug:update",
             background = "#DDD",
         )
 
@@ -96,7 +96,7 @@ class SceneBuffer(GtkSource.Buffer):
         self.tag_scenehdr    = self.tagtbl.lookup("scene:heading")
         self.tag_scenefolded = self.tagtbl.lookup("scene:folded")
         self.tag_fold_hide   = self.tagtbl.lookup("fold:hidden")
-        self.tag_fold_prot   = self.tagtbl.lookup("fold:protect")
+        #self.tag_fold_prot   = self.tagtbl.lookup("fold:protect")
 
         self.tag_reapplied = [
             self.tag_scenehdr, self.tag_scenefolded,
@@ -115,20 +115,26 @@ class SceneBuffer(GtkSource.Buffer):
         at.forward_chars(char_delta)
         return at
 
-    def get_line_start(self, at = None):
+    #--------------------------------------------------------------------------
+    # Line iterators (start, end)    
+    #--------------------------------------------------------------------------
+    
+    def get_line_start(self, at = None, offset = 0):
         if at is None:
             start = self.get_cursor_iter()
         else:
             start = at.copy()
         start.set_line_offset(0)
+        if offset: start.forward_chars(offset)
         return start
     
-    def get_line_end(self, at = None):
+    def get_line_end(self, at = None, offset = 0):
         if at is None:
             end = self.get_cursor_iter()
         else:
             end = at.copy()
         if not end.ends_line(): end.forward_to_line_end()
+        if offset: end.forward_chars(offset)
         return end
             
     def get_line_iter(self, at = None):
@@ -141,10 +147,16 @@ class SceneBuffer(GtkSource.Buffer):
     def make_iter_to_line(self, line, offset = 0):
         at = self.get_start_iter()
         at.set_line(line)
-        at.set_line_offset(offset)
+        at.set_line_offset(0)
+        if offset: at.forward_chars(offset)
         return at
 
+    def is_empty_line(self, at):
+        return self.get_line_start(at).equal(self.get_line_end(at))
+
     #--------------------------------------------------------------------------
+    # Examining buffer content
+    #--------------------------------------------------------------------------    
 
     def get_text_forward(self, start, count):
         end = self.copy_iter(start, 0, count)
@@ -170,6 +182,130 @@ class SceneBuffer(GtkSource.Buffer):
         
     #--------------------------------------------------------------------------
 
+    def has_tags(self, at, *tags):
+        for tag in tags:
+            if type(tag) is str: tag = self.tagtbl.lookup(tag)
+            if at.has_tag(tag): return True
+        return False
+    
+    def remove_tags(self, start, end, *tags):
+        for tag in tags:
+            if type(tag) is str: tag = self.tagtbl.lookup(tag)
+            self.remove_tag(tag, start, end)
+    
+    #--------------------------------------------------------------------------
+    # Improve update cycle
+    #--------------------------------------------------------------------------
+
+    def afterInsertText(self, buffer, end, text, length, *args):
+        start = self.copy_iter(end, 0, -length)
+        self.update(start, end)
+    
+    def afterDeleteRange(self, buffer, start, end, *args):
+        self.update(start, end)
+        
+    def update(self, start, end):
+        self.update_indent(start, end)
+        self.update_marks(start, end)
+        self.update_stats()
+    
+    #--------------------------------------------------------------------------
+    # Update indent and basic tags
+    #--------------------------------------------------------------------------
+
+    def update_indent(self, start, end):
+
+        #self.dump_range("Update", start, end)
+
+        first_line = start.get_line()
+        last_line  = end.get_line()
+
+        self.remove_tag(self.tag_debug, *self.get_bounds())
+        self.apply_tag(self.tag_debug,
+            self.make_iter_to_line(first_line),
+            self.get_line_end(self.make_iter_to_line(last_line))
+        )
+
+        #----------------------------------------------------------------------
+
+        def nextindent(line):
+            line_start = self.make_iter_to_line(line)
+            if self.is_empty_line(line_start): return False
+            if self.line_starts_with("##", line_start): return False
+            return True
+
+        if first_line > 0:
+            indentmode = nextindent(first_line - 1)
+        else:
+            indentmode = False
+
+        for line in range(first_line, last_line + 1):
+            line_start = self.make_iter_to_line(line)
+            line_end   = self.get_line_end(line_start)
+
+            self.remove_tags(line_start, line_end, "indent")
+
+            if self.line_starts_with("##", line_start):
+                indentmode = False
+            elif line_start.equal(line_end):
+                indentmode = False
+            else:
+                if line != 0 and indentmode:
+                    self.apply_tag_by_name("indent", line_start, line_end)
+                self.update_spans(line_start, line_end)
+                indentmode = True
+
+        line_start = self.make_iter_to_line(last_line + 1)
+        line_end   = self.get_line_end(line_start)
+
+        self.remove_tags(line_start, line_end, "indent")
+
+        if   line_start.equal(self.get_end_iter()): pass
+        elif line_start.equal(line_end): pass
+        elif self.line_starts_with("##"): pass
+        elif indentmode:
+            self.apply_tag_by_name("indent", line_start, line_end)
+
+    #--------------------------------------------------------------------------
+
+    re_bold   = re.compile(r"(\*[^\*\s]\*)|(\*[^\*\s][^\*]*\*)")
+    re_italic = re.compile(r"(\_[^\_\s]\_)|(\_[^\_\s][^\_]*\_)")
+
+    block_styles = {
+        "<<": "synopsis",
+        "//": "comment",
+        "!!": "missing",
+    }
+
+    def update_spans(self, start, end):
+
+        start = start.copy()
+        end   = end.copy()
+
+        self.remove_tags(start, end, *self.tag_reapplied)
+
+        text  = self.get_text(start, end, True)
+
+        if text[:2] in SceneBuffer.block_styles:
+            self.apply_tag_by_name(SceneBuffer.block_styles[text[:2]], start, end)
+
+        def set_tags(tagname, regex):
+            for m in regex.finditer(text):
+                start.set_line_offset(m.start())
+                end.set_line_offset(m.end())
+                self.apply_tag_by_name(tagname, start, end)
+                #print(m.start(), m.end(), m.group())
+
+        set_tags("bold",   SceneBuffer.re_bold)
+        set_tags("italic", SceneBuffer.re_italic)
+
+    #--------------------------------------------------------------------------
+    # Iterators for scene marks
+    #--------------------------------------------------------------------------    
+
+    def has_scene_mark(self, at, category):
+        return len(self.get_source_marks_at_iter(at, category)) > 0
+
     def scene_first_iter(self):
         at = self.get_start_iter()
         if self.has_scene_mark(at): return at
@@ -189,7 +325,7 @@ class SceneBuffer(GtkSource.Buffer):
 
     def scene_start_iter(self, at = None):
         if at is None: at = self.get_cursor_iter()
-        if self.has_scene_mark(at): return at.copy()
+        if self.has_scene_mark(at, "scene"): return at.copy()
         return self.scene_prev_iter(at)
         
     def scene_end_iter(self, at = None):
@@ -199,221 +335,107 @@ class SceneBuffer(GtkSource.Buffer):
         return end
 
     #--------------------------------------------------------------------------
-
-    def has_tags(self, at, *tags):
-        for tag in tags:
-            if type(tag) is str: tag = self.tagtbl.lookup(tag)
-            if at.has_tag(tag): return True
-        return False
-    
-    def remove_tags(self, start, end, *tags):
-        for tag in tags:
-            if type(tag) is str: tag = self.tagtbl.lookup(tag)
-            self.remove_tag(tag, start, end)
-    
-    #--------------------------------------------------------------------------
-    # Marks
+    # Update scene marks
     #--------------------------------------------------------------------------
 
     def init_marks(self):
         self.marklist = Gtk.ListStore(object, str, int, int, int)
         self.markiter = {}
 
-    #def has_scene_mark(self, at):
-    #    marks = self.get_source_marks_at_iter(at, "scene")
-    #    return len(marks) > 0
-
     def get_marks(self, category, start, end):
         marks = []
         at = start.copy()
         while at.compare(end) < 1:
-            marks = marks + self.get_source_marks_at_iter(at)
+            marks = marks + self.get_source_marks_at_iter(at, category)
             if not self.forward_iter_to_source_mark(at, category): break
         return marks
 
-    def create_scene_mark(self, at):
-        start, end = self.get_line_iter(at)
+    def update_marks(self, start, end):
 
-        if len(self.get_source_marks_at_iter(start, "scene")) == 1:
-            mark = self.get_source_marks_at_iter(start, "scene")[0]
-            listiter = self.markiter[mark]
-        else:
-            previter = self.scene_prev_iter(at)
-            if previter:
-                prevmark = self.get_source_marks_at_iter(previter)[0]
-                previter = self.markiter[prevmark]
-            else:
-                previter = None
-            mark  = self.create_source_mark(None, "scene", start)
-            listiter = self.marklist.insert_after(previter, [mark, "", 0, 0, 0])
+        #----------------------------------------------------------------------
+        # Remove all marks in dirty area
+        #----------------------------------------------------------------------
 
-        self.markiter[mark] = listiter
-        name  = self.get_text(start, end, False)[2:].strip()        
-        self.marklist.set_value(listiter, 1, name)
+        marks = self.get_marks("scene", start, end)
+        print("Removing %d marks" % len(marks))
+        for mark in marks:
+            self.delete_mark(mark)
+            at = self.markiter[mark]
+            self.marklist.remove(at)
+            del self.markiter[mark]
 
-        #self.dump_mark("Created", mark)
-        if self.is_folded(start):
-            fold_start = end.copy()
-            fold_start.forward_char()
-            fold_end = self.scene_end_iter(end)
-            self.apply_tag(self.tag_fold_hide, fold_start, fold_end)
-            self.apply_tag(self.tag_fold_prot, start, fold_end)
-            #print("Scene hide: %d chars" % (fold_end.get_offset() - start.get_offset()))
-            
-        return mark
-
-    def remove_mark(self, mark, category = "scene"):
-        start = self.get_iter_at_mark(mark)
-        end   = self.scene_end_iter(start)
-        self.remove_tag(self.tag_fold_hide, start, end)
-        self.remove_tag(self.tag_fold_prot, start, end)
+        #----------------------------------------------------------------------
+        # Scan dirty area for scene breaks (lines starting with ##)
+        #----------------------------------------------------------------------
         
-        if (start.starts_line()
-            and len(self.get_source_marks_at_iter(start, category)) == 1
-            and self.line_starts_with("##", start)): return
-
-        self.delete_mark(mark)
-        at = self.markiter[mark]
-        self.marklist.remove(at)
-        del self.markiter[mark]
-
-        #self.dump_mark("Delete", mark)
-
-    def remove_marks(self, start, end, category = "scene"):
-        #start = self.get_line_start(start)
-        #end   = self.get_line_end(end)
-
-        for mark in self.get_marks(category, start, end):
-            self.remove_mark(mark, category)
-
-    #--------------------------------------------------------------------------
-    # Improve update cycle
-    #--------------------------------------------------------------------------
-
-    def afterInsertText(self, buffer, end, text, length, *args):
-        start = self.copy_iter(end, 0, -length)
-        self.update(start, end)
-    
-    def afterDeleteRange(self, buffer, start, end, *args):
-        self.update(start, end)
-    
-    #--------------------------------------------------------------------------
-
-    def update(self, start, end):
-        first_line = start.get_line()
-        last_line  = end.get_line()
-
-        def get_initial_mode(line):
-            line_start = self.make_iter_to_line(line)
-            starts_with = self.get_text_forward(line_start, 2)
-            if starts_with == "##": return (False, False)
-            if line == 0: return (False, True)
-            if line_start.equal(self.get_line_end(line_start)): return (False, False)
-            return (self.has_tags(line_start, "indent"), True)
-
-        def apply_indent(start, end, mode, nextmode):
-            if mode: self.apply_tag_by_name("indent", start, end)
-            return (mode, nextmode)
-
-        if first_line != 0:
-            previndent, indentmode = get_initial_mode(first_line - 1)
+        marks_to_update = []
+        
+        at = self.scene_start_iter(start)
+        if at != None:
+            mark = self.get_source_marks_at_iter(at, "scene")
+            assert len(mark) == 1
+            mark = mark[0]
+            marks_to_update.append(mark)
+            listiter = self.markiter[mark]
+            block_start = at.copy()
         else:
-            previndent, indentmode = (False, False)
+            listiter = None
+            block_start = self.get_start_iter()
 
-        for line in range(first_line, last_line + 1):
-            line_start = self.make_iter_to_line(line)
-            line_end   = self.get_line_end(line_start)
+        at = start.copy()
+        
+        while at.in_range(start, end):
+            if at.starts_line() and self.get_text_forward(at, 2) == "##":
+                mark = self.create_source_mark(None, "scene", at)
+                marks_to_update.append(mark)
 
-            self.dump_range("Update %d (%d)" % (indentmode, previndent), line_start, line_end)
-
-            self.remove_tags(line_start, line_end, *self.tag_reapplied, "indent")
-            if line_start.equal(line_end):
-                previndent, indentmode = apply_indent(line_start, line_end, False, True)
-                continue
-
-            starts_with = self.get_text_forward(line_start, 2)
-
-            if starts_with == "##":
-                previndent, indentmode = apply_indent(line_start, line_end, False, False)
-            else:
-                self.update_spans(line_start, line_end)
+                line_end = self.get_line_end(at)
+                text = self.get_text(at, line_end, True).strip()
                 
-                if starts_with == "<<":
-                    previndent, indentmode = apply_indent(line_start, line_end, previndent, previndent)
-                    self.apply_tag_by_name("synopsis", line_start, line_end)
-                elif starts_with == "//":
-                    previndent, indentmode = apply_indent(line_start, line_end, previndent, previndent)
-                    self.apply_tag_by_name("comment", line_start, line_end)
-                elif starts_with == "!!":
-                    previndent, indentmode = apply_indent(line_start, line_end, previndent, previndent)
-                    self.apply_tag_by_name("missing", line_start, line_end)
+                if listiter is None:
+                    listiter = self.marklist.insert(0, [mark, text, 0, 0, 0])
                 else:
-                    previndent, indentmode = apply_indent(line_start, line_end, indentmode, True)
-                    #self.dump_range("Update %d" % indentmode, line_start, line_end)
+                    listiter = self.marklist.insert_after(listiter, [mark, text, 0, 0, 0])
+                
+                self.markiter[mark] = listiter
 
-        def apply_next_indent(line, previndent, indentmode):
-            line_start = self.make_iter_to_line(line)
-            line_end   = self.get_line_end(line_start)
+            if at.is_end(): break
 
-            if line_start.equal(self.get_start_iter()): return
-            if line_start.equal(self.get_end_iter()): return
+            at = self.make_iter_to_line(at.get_line() + 1)
 
-            self.remove_tags(line_start, line_end, "indent")
-            if line_start.equal(line_end): return
+        if len(marks_to_update) == 0: return
+        
+        block_end = self.get_iter_at_mark(marks_to_update[-1])
+        block_end = self.scene_end_iter(block_end)
 
-            starts_with = self.get_text_forward(line_start, 2)
-            if starts_with == "##": return
-            if starts_with in ["!!", "//", "<<"]:
-                if previndent: self.apply_tag_by_name("indent", line_start, line_end)
-            if indentmode:
-                self.apply_tag_by_name("indent", line_start, line_end)
+        self.remove_tag(self.tag_scenehdr,    block_start, block_end)
+        self.remove_tag(self.tag_scenefolded, block_start, block_end)
+        self.remove_tag(self.tag_fold_hide,   block_start, block_end)
+        
+        #----------------------------------------------------------------------
+        # Iterate over changed scenes
+        #----------------------------------------------------------------------
 
-        apply_next_indent(last_line + 1, previndent, indentmode)
-
-
-            #print("Update line:", starts_with, line)
-
-        #print("Update:", first_line, last_line)
-        #self.remove_marks(start, end, "scene")
-
-    #--------------------------------------------------------------------------
-
-    re_bold   = re.compile(r"(\*[^\*\s]\*)|(\*[^\*\s][^\*]*\*)")
-    re_italic = re.compile(r"(\_[^\_\s]\_)|(\_[^\_\s][^\_]*\_)")
-
-    def update_spans(self, start, end):
-        start = start.copy()
-        end   = end.copy()
-        text  = self.get_text(start, end, True)
-
-        def set_tags(tagname, regex):
-            for m in regex.finditer(text):
-                start.set_line_offset(m.start())
-                end.set_line_offset(m.end())
-                self.apply_tag_by_name(tagname, start, end)
-                #print(m.start(), m.end(), m.group())
-
-        set_tags("bold",   SceneBuffer.re_bold)
-        set_tags("italic", SceneBuffer.re_italic)
-
-    def update_scene(self, start, end):
-        self.apply_tag(self.tag_scenehdr, start, end)
-        if self.is_folded(start):
-            self.apply_tag(self.tag_scenefolded, start, end)
-
-        self.create_scene_mark(start)
-
-    def update_scene_stats(self, start, end):
-        start = self.scene_prev_iter(start)
-        if start is None: start = self.get_start_iter()
-        end   = self.scene_end_iter(end)
-
-        for mark in self.get_marks("scene", start, end):
-            index = self.markiter[mark]
-            start = self.get_iter_at_mark(mark)
-            end   = self.scene_end_iter(start)
+        for mark in marks_to_update:
+            scene_start = self.get_iter_at_mark(mark)
+            scene_end   = self.scene_end_iter(scene_start)
+            line_end    = self.get_line_end(scene_start)
             
-            words, _, comments, missing = self.wordcount(start, end, True)
+            self.apply_tag(self.tag_scenehdr, scene_start, line_end)
+
+            if self.is_folded(scene_start):
+                self.apply_tag(self.tag_scenefolded, scene_start, scene_end)
+                
+                fold_start = end.copy()
+                fold_start.forward_char()
+                self.apply_tag(self.tag_fold_hide, fold_start, scene_end)
+
+            index = self.markiter[mark]
+
+            name = self.get_text(scene_start, line_end, True)
+            self.marklist.set_value(index, 1, name)
+            
+            words, _, comments, missing = self.wordcount(scene_start, scene_end, True)
             self.marklist.set_value(index, 2, words)
             self.marklist.set_value(index, 3, comments)
             self.marklist.set_value(index, 4, missing)
@@ -504,10 +526,16 @@ class SceneBuffer(GtkSource.Buffer):
             content = self.from_mawe(content)
 
         self.begin_not_undoable_action()
+        
         start, end = self.get_bounds()
-        self.remove_marks(start, end, None)
+
+        self.remove_source_marks(start, end, None)
+        self.marklist.clear()
+        self.markiter = { }
+
         self.delete(start, end)
         self.insert(self.get_start_iter(), content)
+
         self.end_not_undoable_action()
 
         self.set_modified(False)
