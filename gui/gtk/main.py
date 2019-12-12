@@ -279,7 +279,7 @@ class DocView(DocPage):
         print("Origin:", doc.origin)
 
         self.draftbuf = self.set_buffer(self.doc.root.find("./body/part"))
-        self.notesbuf = self.set_buffer("") #self.doc.root.find("./notes/part"))
+        self.notesbuf = self.set_buffer(self.doc.root.find("./notes/part"))
 
         # Try to get rid of these
         self.draftview = ScrolledSceneView(self.draftbuf, "Times 12")
@@ -386,7 +386,7 @@ class DocView(DocPage):
         print("Saving as:", self.doc.filename)
 
         draft = self.draftbuf.to_mawe()
-        #notes = self.notesbuf.to_mawe()
+        notes = self.notesbuf.to_mawe()
 
         self.draftbuf.revert(draft)
 
@@ -482,9 +482,10 @@ class DocView(DocPage):
             self.folderbtn = Button(
                 "Folder",
                 tooltip_text="Open document folder",
-                onclick = lambda w: xdgfolder(self.doc.filename)
+                onclick = lambda w: xdgfolder(self.doc.filename and self.doc.filename or self.doc.origin)
             )
-            if self.doc.filename is None: self.folderbtn.disable()
+            if self.doc.filename is None and self.doc.origin is None:
+                self.folderbtn.disable()
 
             box.pack_start(self.folderbtn, False, False, 0)
             box.pack_start(selectnotes, False, False, 0)

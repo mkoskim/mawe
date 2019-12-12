@@ -22,6 +22,14 @@ FEATURES needed to start using the editor in daily work:
 
 Other features:
 
+- Some sort of "loopback" device to test file saving and loading:
+  save a file, and load it back to editor. It would be great if that
+  would be as complete chain as possible. I have experience how nasty
+  bugs are if they are in the document save part, making corrupted files.
+
+- Drag'n'drop mawe and moe files to editor. In case you work with file
+  manager or similar.
+
 - Cursor marks? For example, Alt-1 to place a mark, and Shit-Alt-1 to go
   back.
 

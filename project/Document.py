@@ -35,14 +35,12 @@ class Document:
 
     def __init__(self, filename = None, tree = None, origin = None):
 
-        # TODO: Track somehow if the file was really loaded from filename,
-        # or if it was created when converting files. If Document was created
-        # by conversion, still ask filename when attempting to save (although
-        # we have here suggestion for it)
-        
         self.filename = filename
         self.origin   = origin
 
+        # TODO: It would be great if we could have "loopback" device for
+        # file save testing.
+        
         if tree is None:
             if self.filename:
                 tree = ET.parse(self.filename)

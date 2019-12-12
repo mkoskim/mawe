@@ -80,8 +80,8 @@ class SceneBuffer(GtkSource.Buffer):
         )
         
         self.create_tag("fold:hidden",
-            editable   = False,
             invisible  = True,
+            editable   = False,
             #paragraph_background = "#DDD",
             #foreground = "#888",
             #scale = 0.8,
@@ -220,12 +220,6 @@ class SceneBuffer(GtkSource.Buffer):
         first_line = start.get_line()
         last_line  = end.get_line()
 
-        self.remove_tag(self.tag_debug, *self.get_bounds())
-        self.apply_tag(self.tag_debug,
-            self.make_iter_to_line(first_line),
-            self.get_line_end(self.make_iter_to_line(last_line))
-        )
-
         #----------------------------------------------------------------------
 
         def nextindent(line):
@@ -356,7 +350,7 @@ class SceneBuffer(GtkSource.Buffer):
         # Remove all marks in dirty area
         #----------------------------------------------------------------------
 
-        marks = self.get_marks("scene", start, end)
+        marks = self.get_marks("scene", self.get_line_start(start), self.get_line_end(end))
         print("Removing %d marks" % len(marks))
         for mark in marks:
             self.delete_mark(mark)
@@ -368,6 +362,7 @@ class SceneBuffer(GtkSource.Buffer):
         # Scan dirty area for scene breaks (lines starting with ##)
         #----------------------------------------------------------------------
         
+        print("Scanning marks to update")
         marks_to_update = []
         
         at = self.scene_start_iter(start)
@@ -382,31 +377,33 @@ class SceneBuffer(GtkSource.Buffer):
             listiter = None
             block_start = self.get_start_iter()
 
-        at = start.copy()
+        self.dump_iter("Scan start:", at)
+
+        at = self.get_line_start(start)
         
-        while at.in_range(start, end):
-            if at.starts_line() and self.get_text_forward(at, 2) == "##":
+        while at.compare(end) < 1:
+            if self.get_text_forward(at, 2) == "##":
                 mark = self.create_source_mark(None, "scene", at)
                 marks_to_update.append(mark)
 
-                line_end = self.get_line_end(at)
-                text = self.get_text(at, line_end, True).strip()
-                
                 if listiter is None:
-                    listiter = self.marklist.insert(0, [mark, text, 0, 0, 0])
+                    listiter = self.marklist.insert(0, [mark, "", 0, 0, 0])
                 else:
-                    listiter = self.marklist.insert_after(listiter, [mark, text, 0, 0, 0])
+                    listiter = self.marklist.insert_after(listiter, [mark, "", 0, 0, 0])
                 
                 self.markiter[mark] = listiter
 
             if at.is_end(): break
 
-            at = self.make_iter_to_line(at.get_line() + 1)
+            at.forward_line()
 
         if len(marks_to_update) == 0: return
         
         block_end = self.get_iter_at_mark(marks_to_update[-1])
         block_end = self.scene_end_iter(block_end)
+
+        #self.remove_tag(self.tag_debug, *self.get_bounds())
+        #self.apply_tag(self.tag_debug, block_start, block_end)
 
         self.remove_tag(self.tag_scenehdr,    block_start, block_end)
         self.remove_tag(self.tag_scenefolded, block_start, block_end)
@@ -416,6 +413,8 @@ class SceneBuffer(GtkSource.Buffer):
         # Iterate over changed scenes
         #----------------------------------------------------------------------
 
+        print("Updating %d marks" % len(marks_to_update))
+
         for mark in marks_to_update:
             scene_start = self.get_iter_at_mark(mark)
             scene_end   = self.scene_end_iter(scene_start)
@@ -424,10 +423,11 @@ class SceneBuffer(GtkSource.Buffer):
             self.apply_tag(self.tag_scenehdr, scene_start, line_end)
 
             if self.is_folded(scene_start):
-                self.apply_tag(self.tag_scenefolded, scene_start, scene_end)
+                self.apply_tag(self.tag_scenefolded, self.copy_iter(scene_start, 0, -1), scene_end)
                 
-                fold_start = end.copy()
-                fold_start.forward_char()
+                fold_start = line_end
+                #fold_start = end.copy()
+                #fold_start.forward_char()
                 self.apply_tag(self.tag_fold_hide, fold_start, scene_end)
 
             index = self.markiter[mark]
