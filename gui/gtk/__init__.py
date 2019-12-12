@@ -18,6 +18,8 @@ from gui.gtk.SceneView   import (
     SceneList, ScrolledSceneList,
 )
 
+import gui.gtk.dialog
+
 import os
 guidir = os.path.dirname(__file__)
 

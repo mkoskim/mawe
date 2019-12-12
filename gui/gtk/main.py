@@ -3,10 +3,12 @@ from gui.gtk import (
     ScrolledSceneView, SceneView,
     ScrolledSceneList, SceneList,
     SceneBuffer,
+    dialog,
     guidir,
 )
 
 from tools import *
+from gui.gtk.overrides import *
 import project
 import os
 
@@ -19,191 +21,6 @@ def run(workset = None):
     import signal
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     Gtk.main()
-
-###############################################################################
-#
-# Some overrides
-#
-###############################################################################
-
-class Button(Gtk.Button):
-
-    @staticmethod
-    def getarg(kwargs, name):
-        if name in kwargs:
-            result = kwargs[name]
-            del kwargs[name]
-            return result
-        return None
-
-    @staticmethod
-    def icon2image(name):
-        icon = Gio.ThemedIcon(name=name)
-        return Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
-    
-    @staticmethod
-    def geticon(kwargs):
-        name = Button.getarg(kwargs, "icon")
-        if name:
-            kwargs["image"] = Button.icon2image(name)
-            kwargs["always-show-image"] = True
-
-    def __init__(self, label = None, **kwargs):
-        if "visible" not in kwargs: kwargs["visible"] = True
-
-        Button.geticon(kwargs)
-        onclick = Button.getarg(kwargs, "onclick")
-        
-        super(Button, self).__init__(label, **kwargs)
-
-        if onclick: self.connect("clicked", onclick)
-        self.set_relief(Gtk.ReliefStyle.NONE)
-
-    def disable(self):
-        self.set_sensitive(False)
-        
-    def enable(self):
-        self.set_sensitive(True)
-        
-class StockButton(Button):
-
-    def __init__(self, label, **kwargs):
-        if "visible" not in kwargs: kwargs["visible"] = True
-        kwargs["use_stock"] = True
-        super(StockButton, self).__init__(label, **kwargs)
-        self.set_always_show_image(True)
-
-class IconButton(Button):
-
-    def __init__(self, icon, tooltip, **kwargs):
-        super(IconButton, self).__init__(None, icon = icon, tooltip_text = tooltip, **kwargs)
-
-class MenuButton(Gtk.MenuButton):
-
-    def __init__(self, label, **kwargs):
-        if "visible" not in kwargs: kwargs["visible"] = True
-        super(MenuButton, self).__init__(label, **kwargs)
-
-        if label:
-            self.set_image(Button.icon2image("pan-down-symbolic"))
-            self.set_image_position(Gtk.PositionType.RIGHT)
-
-        self.set_relief(Gtk.ReliefStyle.NONE)
-        self.set_always_show_image(True)
-
-class ToggleButton(Gtk.ToggleButton):
-
-    def __init__(self, label, **kwargs):
-        if "visible" not in kwargs: kwargs["visible"] = True
-        Button.geticon(kwargs)
-        onclick = Button.getarg(kwargs, "onclick")
-        
-        super(ToggleButton, self).__init__(label = label, **kwargs)
-
-        if onclick: self.connect("toggled", onclick)
-        self.set_relief(Gtk.ReliefStyle.NONE)
-
-    def disable(self):
-        self.set_sensitive(False)
-        
-    def enable(self):
-        self.set_sensitive(True)
-        
-class RadioButton(Gtk.RadioButton):
-
-    def __init__(self, label, group = None, **kwargs):
-        if "visible" not in kwargs: kwargs["visible"] = True
-        super(RadioButton, self).__init__(label = label, group = group, **kwargs)
-        self.set_relief(Gtk.ReliefStyle.NONE)
-
-#------------------------------------------------------------------------------
-
-class Box(Gtk.Box):
-
-    def __init__(self, **kwargs):
-        super(Box, self).__init__(**kwargs)
-
-class HBox(Gtk.HBox):
-
-    def __init__(self, **kwargs):
-        super(HBox, self).__init__(**kwargs)
-
-class VBox(Gtk.VBox):
-
-    def __init__(self, **kwargs):
-        super(VBox, self).__init__(**kwargs)
-
-# Create dual page stack: return stack & switcher
-def DuoStack(label, page1, page2, **kwargs):
-
-    stack = Gtk.Stack()
-    stack.add_named(page1, "1")
-    stack.add_named(page2, "2")
-
-    def switchStack(button, stack):
-        name  = button.get_active() and "2" or "1"
-        child = stack.get_child_by_name(name)
-        stack.set_visible_child(child)
-        
-    switcher = ToggleButton(label, **kwargs)
-    switcher.connect("toggled", lambda w: switchStack(w, stack))
-
-    return stack, switcher
-
-#------------------------------------------------------------------------------
-
-class Label(Gtk.Label):
-
-    def __init__(self, label, **kwargs):
-        if "visible" not in kwargs: kwargs["visible"] = True
-        super(Label, self).__init__(label, **kwargs)
-        self.set_xalign(0.0)
-
-#------------------------------------------------------------------------------
-
-class HSeparator(Gtk.HSeparator):
-
-    def __init__(self, **kwargs):
-        super(HSeparator, self).__init__(**kwargs)
-
-class VSeparator(Gtk.VSeparator):
-
-    def __init__(self, **kwargs):
-        super(VSeparator, self).__init__(**kwargs)
-
-#------------------------------------------------------------------------------
-
-def getHideControl(name, widget, **kwargs):
-
-    def togglehide(button):
-        if button.get_active():
-            widget.show()
-        else:
-            widget.hide()
-
-    button = ToggleButton(name, **kwargs)
-    button.connect("toggled", togglehide)
-    button.connect("map", togglehide)
-
-    return button
-
-class StackSwitcher(Gtk.StackSwitcher):
-
-    def __init__(self, stack, **kwargs):
-        if "visible" not in kwargs: kwargs["visible"] = True
-        super(StackSwitcher, self).__init__(**kwargs)
-        self.set_stack(stack)
-        #self.set_relief(Gtk.ReliefStyle.NONE)
-
-#------------------------------------------------------------------------------
-
-def add_shortcuts(widget, table):
-    accel = Gtk.AccelGroup()
-    widget.add_accel_group(accel)
-
-    for shortcut, fn in table:
-        key, mod = Gtk.accelerator_parse(shortcut)
-        accel.connect(key, mod, 0, fn)
 
 ###############################################################################
 #
@@ -244,7 +61,9 @@ class DocNotebook(Gtk.Notebook):
 
     def get_current_child(self):
         page = self.get_current_page()
-        return self.get_nth_page(page)
+        child = self.get_nth_page(page)
+        if child and not child.get_visible(): return None
+        return child
 
     def add_page(self, child, prepend = False):
         label = HBox()
@@ -275,9 +94,26 @@ class DocNotebook(Gtk.Notebook):
     def add(self, doc):
         self.add_page(DocView(self, doc))
 
+    def can_close(self):
+        print("Pages:", self.get_n_pages())
+        for i in range(self.get_n_pages()):
+            child = self.get_nth_page(i)
+            if not child.can_close(): return False
+        return True
+        
+    def save_all(self):
+        pass
+        
+    def close_all(self):
+        pass
+
+    def exit(self):
+        pass
+        
     def ui_help(self):
         doc = project.Project.open(os.path.join(guidir, "ui/help.txt")).load()
-        doc.name = "Help"
+        doc.name = "Instructions"
+        doc.origin = None
         self.add(doc)
 
     def ui_new(self, filename = None):
@@ -297,19 +133,18 @@ class DocNotebook(Gtk.Notebook):
         if child == self.opentab:
             self.opentab.hide()
             self.openbtn.enable()
-            return
+            return False
             
         if type(child) is DocView:
-            print("Dirty check")
-            if child.get_dirty():
-                pass
+            if not child.can_close(): return False
             child.onUnmap(child)
 
         self._remove_child(child)
+        return True
         
     def _remove_child(self, child):
         page = self.page_num(child)
-        self.remove_page(page)
+        if page != -1: self.remove_page(page)
 
     def ui_open(self):
         page = self.page_num(self.opentab)
@@ -327,6 +162,12 @@ class DocNotebook(Gtk.Notebook):
         if self.page_num(self.opentab) != -1:
             self.opentab.hide()
             self.openbtn.enable()
+        self.set_window_title()
+
+    def set_window_title(self):
+        child = self.get_current_child()
+        name  = child and child.name or None
+        self.get_toplevel().set_title((name and name + " - " or "") + "mawe")
 
 ###############################################################################
 #
@@ -348,16 +189,19 @@ class DocPage(Gtk.Frame):
         self.context = self.get_style_context()
         self.context.add_class("DocPage")
         
-        self.connect_after("map", lambda w: self.set_window_title())
+        self.connect_after("map",   lambda w: self.update_title())
+        self.connect_after("unmap", lambda w: self.update_title())
 
-    def set_window_title(self):
-        self.get_toplevel().set_title(self.name + " - mawe")
+    def update_title(self):
+        self.notebook.set_window_title()
 
     def set_name(self, name):
         self.name = name
         self.tablabel.set_text(name)
         self.menulabel.set_text(name)
-        self.set_window_title()
+        self.update_title()
+
+    def can_close(self): return True
 
 ###############################################################################
 #
@@ -514,43 +358,26 @@ class DocView(DocPage):
     # Saving
     #--------------------------------------------------------------------------
     
-    def _choose_file(self, suggested):
-        mainwindow = self.get_toplevel()
-        
-        dialog = Gtk.FileChooserDialog(
-            "Save as...", mainwindow,
-            Gtk.FileChooserAction.SAVE,
-            (
-                Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-                Gtk.STOCK_SAVE, Gtk.ResponseType.OK
+    def can_close(self):
+        if self.get_dirty():
+            answer = dialog.SaveOrDiscard(self, 
+                "'%s' not saved. Save or discard changes?" % self.doc.name
             )
-        )
+            if answer == Gtk.ResponseType.CANCEL: return False
+            if answer == Gtk.ResponseType.YES:
+                if not self.ui_save(): return False
+        return True
 
-        dialog.set_do_overwrite_confirmation(True)
-
-        if suggested:
-            suggested = os.path.splitext(suggested)[0] + ".mawe"
-            dialog.set_filename(suggested)
-            dialog.set_current_name(os.path.basename(suggested))
-
-        if dialog.run() != Gtk.ResponseType.OK:
-            dialog.destroy()
-            return
-            
-        name = dialog.get_filename()
-        dialog.destroy()
-        return name
-    
     def ui_save(self):
         if self.doc.filename is None:
-            name = self._choose_file(self.doc.origin)
+            name = dialog.SaveAs(self, self.doc.origin)
             if name is None: return False
             self.doc.filename = name
         self._save()
         return True
         
     def ui_saveas(self):
-        name = self._choose_file(self.doc.origin)
+        name = self.SaveAs(self, self.doc.origin)
         if name is None: return False
         self.doc.filename = name
         self._save()
@@ -705,6 +532,14 @@ class DocView(DocPage):
 #
 ###############################################################################
 
+def add_shortcuts(widget, table):
+    accel = Gtk.AccelGroup()
+    widget.add_accel_group(accel)
+
+    for shortcut, fn in table:
+        key, mod = Gtk.accelerator_parse(shortcut)
+        accel.connect(key, mod, 0, fn)
+
 class MainWindow(Gtk.Window):
 
     def __init__(self, workset):
@@ -755,9 +590,7 @@ class MainWindow(Gtk.Window):
         
     def onDelete(self, widget):
     
-        # Check for dirty files
-        # Attempt to save them
-        # If saving fails, return True to stop processing
+        if not self.docs.can_close(): return True
         
         try:
             settings = config["Window"]
