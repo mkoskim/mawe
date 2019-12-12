@@ -51,3 +51,19 @@ def SaveOrDiscard(self, question):
     dialog.destroy()
     return answer            
 
+#------------------------------------------------------------------------------
+
+def YesNo(self, question):
+    mainwindow = self.get_toplevel()
+
+    dialog = Gtk.MessageDialog(
+        parent = mainwindow,
+        flags = Gtk.DialogFlags.MODAL,
+        type = Gtk.MessageType.WARNING,
+        buttons=Gtk.ButtonsType.YES_NO,
+        message_format = question,
+    )
+    answer = dialog.run()
+    dialog.destroy()
+    return answer            
+

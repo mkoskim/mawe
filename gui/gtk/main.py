@@ -17,7 +17,7 @@ import os
 def run(workset = None):
 
     MainWindow(workset).show_all()
-    
+
     import signal
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     Gtk.main()
@@ -90,7 +90,7 @@ class DocNotebook(Gtk.Notebook):
         child.show_all()
         self.set_current_page(page)
         return page
-        
+
     def add(self, doc):
         self.add_page(DocView(self, doc))
 
@@ -100,16 +100,16 @@ class DocNotebook(Gtk.Notebook):
             child = self.get_nth_page(i)
             if not child.can_close(): return False
         return True
-        
+
     def save_all(self):
         pass
-        
+
     def close_all(self):
         pass
 
     def exit(self):
         pass
-        
+
     def ui_help(self):
         doc = project.Project.open(os.path.join(guidir, "ui/help.txt")).load()
         doc.name = "Instructions"
@@ -134,14 +134,14 @@ class DocNotebook(Gtk.Notebook):
             self.opentab.hide()
             self.openbtn.enable()
             return False
-            
+
         if type(child) is DocView:
             if not child.can_close(): return False
             child.onUnmap(child)
 
         self._remove_child(child)
         return True
-        
+
     def _remove_child(self, child):
         page = self.page_num(child)
         if page != -1: self.remove_page(page)
@@ -179,16 +179,16 @@ class DocPage(Gtk.Frame):
 
     def __init__(self, notebook, name):
         super(DocPage, self).__init__()
-        
+
         self.notebook = notebook
 
         self.name      = name
         self.tablabel  = Label(name)
         self.menulabel = Label(name, name = "menulabel")
-        
+
         self.context = self.get_style_context()
         self.context.add_class("DocPage")
-        
+
         self.connect_after("map",   lambda w: self.update_title())
         self.connect_after("unmap", lambda w: self.update_title())
 
@@ -231,15 +231,15 @@ class DocOpen(DocPage):
         scrolled = Gtk.ScrolledWindow()
         scrolled.add(text)
         manager = scrolled
-        
+
         stack = Gtk.Stack()
         stack.add_titled(chooser, "files", "Files")
         stack.add_titled(manager, "projects", "Projects")
-        
+
         toolbar = HBox()
         toolbar.pack_start(StackSwitcher(stack), False, False, 1)
         toolbar.pack_start(StockButton("gtk-new", onclick = self.onNew), False, False, 1)
-        
+
         box = VBox()
         box.pack_start(toolbar, False, False, 1)
         box.pack_start(stack, True, True, 1)
@@ -255,7 +255,7 @@ class DocOpen(DocPage):
 
     def storeDirectory(self, chooser):
         self.chooserDir = chooser.get_current_folder()
-    
+
     def restoreDirectory(self, chooser):
         chooser.set_current_folder(self.chooserDir)
 
@@ -268,44 +268,44 @@ class DocOpen(DocPage):
 class DocView(DocPage):
 
     #--------------------------------------------------------------------------
-    
+
     def __init__(self, notebook, doc):
         super(DocView, self).__init__(notebook, doc.name)
-        
+
         self.doc = doc
         self.dirty = False
 
         print("Filename:", doc.filename)
         print("Origin:", doc.origin)
-        
+
         self.draftbuf = self.set_buffer(self.doc.root.find("./body/part"))
         self.notesbuf = self.set_buffer(self.doc.root.find("./notes/part"))
-        
+
         # Try to get rid of these
         self.draftview = ScrolledSceneView(self.draftbuf, "Times 12")
         self.notesview = ScrolledSceneView(self.notesbuf, "Times 12")
         self.scenelist = ScrolledSceneList(self.draftbuf, self.draftview)
-        
+
         self.pane = Gtk.Paned()
         self.pane.add2(self.create_view())
         self.pane.add1(self.create_index())
 
         self.add(self.pane)
-        
+
         self.connect("map", self.onMap)
         self.connect("unmap", self.onUnmap)
         self.connect("key-press-event", self.onKeyPress)
 
         #self.draftview.grab_focus()
-        
+
     def set_buffer(self, content):
         def onBufModified(self, buf):
             if buf.get_modified(): self.set_dirty()
 
-        buf = SceneBuffer(content)        
+        buf = SceneBuffer(content)
         buf.connect("modified-changed", lambda buf: onBufModified(self, buf))
         return buf
-        
+
     #--------------------------------------------------------------------------
 
     def onKeyPress(self, widget, event):
@@ -324,7 +324,7 @@ class DocView(DocPage):
     #--------------------------------------------------------------------------
     # Paned control
     #--------------------------------------------------------------------------
-    
+
     position = -1
 
     def onMap(self, widget):
@@ -339,17 +339,16 @@ class DocView(DocPage):
         # Untouched empty files can be removed without questions
         if not self.get_dirty() and self.doc.origin is None:
             self.notebook._remove_child(self)
-    
+
     #--------------------------------------------------------------------------
-    
+
     def set_name(self, text = None):
         if text: self.doc.find("./body/head/title").text = text
         super(DocView, self).set_name((self.get_dirty() and "*" or "") + self.doc.name)
 
-    def get_dirty(self): return self.dirty        
+    def get_dirty(self): return self.dirty
 
     def set_dirty(self, status = True):
-        print("Dirty:", status)
         if self.dirty != status:
             self.dirty = status
             self.set_name()
@@ -357,10 +356,10 @@ class DocView(DocPage):
     #--------------------------------------------------------------------------
     # Saving
     #--------------------------------------------------------------------------
-    
+
     def can_close(self):
         if self.get_dirty():
-            answer = dialog.SaveOrDiscard(self, 
+            answer = dialog.SaveOrDiscard(self,
                 "'%s' not saved. Save or discard changes?" % self.doc.name
             )
             if answer == Gtk.ResponseType.CANCEL: return False
@@ -375,7 +374,7 @@ class DocView(DocPage):
             self.doc.filename = name
         self._save()
         return True
-        
+
     def ui_saveas(self):
         name = self.SaveAs(self, self.doc.origin)
         if name is None: return False
@@ -385,14 +384,33 @@ class DocView(DocPage):
 
     def _save(self):
         print("Saving as:", self.doc.filename)
-        self.folderbtn.enable()
-    
-        self.doc.origin = self.doc.filename
+
+        draft = self.draftbuf.to_mawe()
+        #notes = self.notesbuf.to_mawe()
+
+        self.draftbuf.revert(draft)
+
+        #from project.Document import ET
+        #ET.dump(draft)
 
         self.set_dirty(False)
         self.draftbuf.set_modified(False)
         self.notesbuf.set_modified(False)
-        
+
+        self.doc.origin = self.doc.filename
+        self.folderbtn.enable()
+
+    def ui_revert(self):
+        if self.get_dirty():
+            answer = dialog.YesNo(self,
+                "You will loose all modifications since last save.\n" +
+                "Do you want to continue?"
+            )
+            if answer != Gtk.ResponseType.YES: return
+        self.draftbuf.revert(self.doc.root.find("./body/part"))
+        self.notesbuf.revert(self.doc.root.find("./notes/part"))
+        self.set_dirty(False)
+
     #--------------------------------------------------------------------------
 
     def create_view(self):
@@ -408,7 +426,7 @@ class DocView(DocPage):
                 titleedit,
                 tooltip_text = "Edit story header info"
             )
-        
+
         def exportsettings():
             # Add backcover text here. Remember to store it, too.
             titleedit = Gtk.Frame()
@@ -417,21 +435,21 @@ class DocView(DocPage):
             titleedit.set_border_width(1)
             titleedit.add(Label("Export"))
             return titleedit, getHideControl("Export", titleedit)
-        
+
         def toolbar():
             box = HBox()
 
             dialogs = VBox()
             dialogs.pack_start(box, False, False, 0)
-            
+
             titleedit,  titleswitch  = titleeditor()
             exportview, exportswitch = exportsettings()
 
             dialogs.pack_start(titleedit,  False, False, 0)
             dialogs.pack_start(exportview, False, False, 0)
-            
+
             selectnotes = ToggleButton("Notes")
-                        
+
             def switchBuffer(self, widget):
                 if not widget.get_active():
                     self.draftview.set_buffer(self.draftbuf)
@@ -442,21 +460,23 @@ class DocView(DocPage):
 
             selectnotes = ToggleButton("Notes", onclick = lambda w: switchBuffer(self, w))
 
-            box.pack_start(IconButton("open-menu-symbolic", "Open menu"), False, False, 1)
-            # Menu items
+            # Menu items. REMEMBER! We can use left side, too, for example for exporting,
+            # history entries and so on!
             # - Export
             # - Open containing folder
             # - Save
             # - Save as
             # - Revert
             # - Close
+
+            box.pack_start(IconButton("open-menu-symbolic", "Open menu"), False, False, 1)
             box.pack_start(titleswitch, False, False, 1)
             box.pack_start(exportswitch, False, False, 0)
             #box.pack_start(VSeparator(), False, False, 2)
             #box.pack_start(Button("Save"), False, False, 0)
-            #box.pack_start(Button("Revert"), False, False, 0)
+            box.pack_start(Button("Revert", onclick = lambda w: self.ui_revert()), False, False, 0)
             box.pack_start(VSeparator(), False, False, 2)
-            
+
             box.pack_start(Label(""), True, True, 0)
 
             self.folderbtn = Button(
@@ -494,7 +514,7 @@ class DocView(DocPage):
         return box
 
     def create_index(self):
-    
+
         def toolbar(switcher):
             box = HBox()
             box.pack_start(switcher, False, False, 1)
@@ -544,7 +564,7 @@ class MainWindow(Gtk.Window):
 
     def __init__(self, workset):
         super(MainWindow, self).__init__()
-        
+
         self.style   = Gtk.CssProvider()
         self.context = Gtk.StyleContext()
         self.context.add_provider_for_screen(
@@ -571,14 +591,14 @@ class MainWindow(Gtk.Window):
 
         settings = config["Window"]
         if "Position" in settings: self.move(
-            settings["Position"]["X"],        
+            settings["Position"]["X"],
             settings["Position"]["Y"]
         )
         self.resize(
             settings["Size"]["X"],
             settings["Size"]["Y"]
         )
-        
+
         DocView.position = config["DocView"]["Pane"]
 
         if workset:
@@ -587,11 +607,11 @@ class MainWindow(Gtk.Window):
             self.docs.ui_open()
         else:
             self.docs.ui_new()
-        
+
     def onDelete(self, widget):
-    
+
         if not self.docs.can_close(): return True
-        
+
         try:
             settings = config["Window"]
 

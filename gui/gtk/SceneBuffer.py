@@ -24,15 +24,7 @@ class SceneBuffer(GtkSource.Buffer):
 
         self.set_highlight_matching_brackets(False)
 
-        if content:
-            if type(content) == ET.Element:
-                content = self.from_mawe(content)
-            self.begin_not_undoable_action()
-            self.insert(self.get_start_iter(), content)
-            self.end_not_undoable_action()
-
-        self.set_modified(False)
-        self.place_cursor(self.get_start_iter())
+        if content: self.revert(content)
         self.update_tags(*self.get_bounds())
 
         self.connect_after("delete-range", self.afterDeleteRange)
@@ -169,11 +161,11 @@ class SceneBuffer(GtkSource.Buffer):
     def afterInsertText(self, buffer, end, text, length, *args):
         start = self.copy_iter(end, 0, -length)
         #self.dump_range("Insert", start, end)
-        self.remove_scene_marks(start, end)
+        self.remove_marks(start, end, "scene")
         self.update_tags(start, end)
     
     def afterDeleteRange(self, buffer, start, end, *args):
-        self.remove_scene_marks(start, end)
+        self.remove_marks(start, end, "scene")
         self.update_tags(start, end)
     
     #--------------------------------------------------------------------------
@@ -258,14 +250,14 @@ class SceneBuffer(GtkSource.Buffer):
     def is_scenebreak(self, at):
         return self.line_starts_with("##", at)
 
-    def remove_scene_mark(self, mark):
+    def remove_mark(self, mark, category = "scene"):
         start = self.get_iter_at_mark(mark)
         end   = self.scene_end_iter(start)
         self.remove_tag(self.tag_fold_hide, start, end)
         self.remove_tag(self.tag_fold_prot, start, end)
         
         if (start.starts_line()
-            and len(self.get_source_marks_at_iter(start, "scene")) == 1
+            and len(self.get_source_marks_at_iter(start, category)) == 1
             and self.line_starts_with("##", start)): return
 
         self.delete_mark(mark)
@@ -275,12 +267,12 @@ class SceneBuffer(GtkSource.Buffer):
 
         #self.dump_mark("Delete", mark)
 
-    def remove_scene_marks(self, start, end):
+    def remove_marks(self, start, end, category = "scene"):
         start = self.get_line_start_iter(start)
         end   = self.get_line_end_iter(end)
 
-        for mark in self.get_marks("scene", start, end):
-            self.remove_scene_mark(mark)
+        for mark in self.get_marks(category, start, end):
+            self.remove_mark(mark, category)
 
     def update_scene(self, start, end):
         self.apply_tag(self.tag_scenehdr, start, end)
@@ -376,10 +368,8 @@ class SceneBuffer(GtkSource.Buffer):
         self.apply_tag_by_name("indent", start, end)
         #self.dump_range("Update indent", start, end)
     
-    re_bold   = re.compile("(\*[^\*\s]\*)|(\*[^\*\s][^\*]*\*)")
-    re_italic = re.compile("(\_[^\_\s]\_)|(\_[^\_\s][^\_]*\_)")
-    re_wc     = re.compile("\w+")
-    re_multispace = re.compile("\s+")
+    re_bold   = re.compile(r"(\*[^\*\s]\*)|(\*[^\*\s][^\*]*\*)")
+    re_italic = re.compile(r"(\_[^\_\s]\_)|(\_[^\_\s][^\_]*\_)")
 
     def update_spans(self, start, end):
         start = start.copy()
@@ -422,37 +412,7 @@ class SceneBuffer(GtkSource.Buffer):
 
     #--------------------------------------------------------------------------
 
-    def dump_iter(self, prefix, at):
-        print("%s: %d:%d" % (prefix, *self.get_line_and_offset(at)))
-        
-    def dump_range(self, prefix, start, end):
-        print("%s: %d:%d - %d:%d" % (
-            prefix,
-            *self.get_line_and_offset(start),
-            *self.get_line_and_offset(end)
-        ))
-
-    def dump_mark(self, prefix, mark):
-        if mark in self.marks:
-            text = self.marks[mark]
-        else:
-            text = None
-        category = mark.get_category()
-        name = mark.get_name()
-        line, offset = self.get_line_and_offset(self.get_iter_at_mark(mark))
-        print("%s %s.%s: %d:%d %s" % (
-            prefix,
-            category, name,
-            line + 1, offset,
-            text[:20]
-        ))
-
-    def dump_marks(self, category, start, end):
-        print("Marks:")
-        for mark in self.get_marks(category, start, end):
-            self.dump_mark("-", mark)
-
-    #--------------------------------------------------------------------------
+    re_wc = re.compile(r"\w+")
 
     def wordcount(self, start, end, details = False):
         text  = self.get_text(start, end, True)
@@ -494,6 +454,7 @@ class SceneBuffer(GtkSource.Buffer):
             text = "## %s\n" % scene.get("name", "<Scene>")
             for paragraph in list(scene):
                 if   paragraph.tag == "p":        text = text + strip(paragraph.text) + "\n"
+                elif paragraph.tag == "br":       text = text + "\n"
                 elif paragraph.tag == "comment":  text = text + "//" + strip(paragraph.text) + "\n"
                 elif paragraph.tag == "synopsis": text = text + "<<" + strip(paragraph.text) + "\n"
                 elif paragraph.tag == "missing":  text = text + "!!" + strip(paragraph.text) + "\n"
@@ -506,6 +467,95 @@ class SceneBuffer(GtkSource.Buffer):
             else: log("Unknown element: %s" % child.tag)
         return text
     
+    def revert(self, content):
+        if type(content) == ET.Element:
+            content = self.from_mawe(content)
+
+        self.begin_not_undoable_action()
+        start, end = self.get_bounds()
+        self.remove_marks(start, end, None)
+        self.delete(start, end)
+        self.insert(self.get_start_iter(), content)
+        self.end_not_undoable_action()
+
+        self.set_modified(False)
+        self.place_cursor(self.get_start_iter())
+
+    re_scenes     = re.compile(r"^##", re.M)
+    re_tripleLF   = re.compile(r"\n\n+", re.M)
+    re_multispace = re.compile(r"\s+")
+
     def to_mawe(self):
-        pass
+        text   = self.get_text(*self.get_bounds(), True).lstrip()
+        if text[:2] != "##": text = "##\n" + text
+
+        scenes = SceneBuffer.re_scenes.split(text)[1:]
+
+        part = ET.Element("part")
+
+        for scene in scenes:
+            name, *scene = *scene.rstrip().split("\n", 1), ""
+            scene = "".join(scene)
+
+            if name[-len(SceneBuffer.fold_mark):] == SceneBuffer.fold_mark:
+                name = name[:-3]
+            name  = name.strip()
+
+            elem = ET.SubElement(part, "scene")
+            elem.set("name", name)
+
+            def addlines(subscene):
+                for line in subscene.split("\n"): 
+                    line = re.sub(SceneBuffer.re_multispace, " ", line.strip())
+                    if   line[:2] == "<<": ET.SubElement(elem, "synopsis").text = line[2:]
+                    elif line[:2] == "//": ET.SubElement(elem, "comment").text = line[2:]
+                    elif line[:2] == "!!": ET.SubElement(elem, "missing").text = line[2:]
+                    elif len(line): ET.SubElement(elem, "p").text = line
+                    else: pass
+
+            scene = scene.strip()
+            scene = re.sub(SceneBuffer.re_tripleLF, "\n\n", scene)
+
+            subscenes = scene.split("\n\n")
+
+            for subscene in subscenes[:-1]:
+                addlines(subscene)
+                ET.SubElement(elem, "br")
+            addlines(subscenes[-1])
+
+            #ET.dump(elem)
+
+        return part
+
+    #--------------------------------------------------------------------------
+
+    def dump_iter(self, prefix, at):
+        print("%s: %d:%d" % (prefix, *self.get_line_and_offset(at)))
+        
+    def dump_range(self, prefix, start, end):
+        print("%s: %d:%d - %d:%d" % (
+            prefix,
+            *self.get_line_and_offset(start),
+            *self.get_line_and_offset(end)
+        ))
+
+    def dump_mark(self, prefix, mark):
+        if mark in self.marks:
+            text = self.marks[mark]
+        else:
+            text = None
+        category = mark.get_category()
+        name = mark.get_name()
+        line, offset = self.get_line_and_offset(self.get_iter_at_mark(mark))
+        print("%s %s.%s: %d:%d %s" % (
+            prefix,
+            category, name,
+            line + 1, offset,
+            text[:20]
+        ))
+
+    def dump_marks(self, category, start, end):
+        print("Marks:")
+        for mark in self.get_marks(category, start, end):
+            self.dump_mark("-", mark)
 

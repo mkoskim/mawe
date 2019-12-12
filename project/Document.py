@@ -77,6 +77,7 @@ class Document:
     #--------------------------------------------------------------------------
 
     def saveas(self, filename):
+        filename = "output.mawe"
         print("Saving:", filename)
 
         self.root.find("./body/head").insert(0, ET.Comment(Document.comment_head % self.name))
@@ -85,7 +86,12 @@ class Document:
         self.root.find("./notes").append(ET.Comment(Document.comment_versions))
 
         Document.prettyFormat(self.root)
-        self.tree.write(filename, encoding="utf-8")
+
+        # We do XML serialization first to string, so if there is errors in the
+        # tree, we are not getting corrupted file.
+        content = ET.tostring(self.root, encoding="utf-8")
+        writefile(filename, content)
+        #self.tree.write(filename, encoding="utf-8")
 
     @staticmethod
     def prettyFormat(root, level = 0):

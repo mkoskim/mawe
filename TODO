@@ -3,25 +3,18 @@ FEATURES needed to start using the editor in daily work:
 - File saving (file format): Don't save & load files in markup format
   used in editor. It can change in future.
 
-        # TODO: Track somehow if the file was really loaded from filename,
-        # or if it was created when converting files. If Document was created
-        # by conversion, still ask filename when attempting to save (although
-        # we have here suggestion for it)
-
 - psep (paragraph separator) is missing from the files! Maybe empty
   "<p />" is enough? It is not. We need a separator.
 
-- File loading / project manager: It is first enough to have mawe files
-  in moe project manager. But for workspaces and tabbed editing, we need
-  built-in project manager.
+- Project manager: It is first enough to have mawe files in moe project
+  manager. But for workspaces and tabbed editing, we need built-in project
+  manager.
 
 - File export: RTF, text (for texifier)
 
 - Settings editor
 
 - Header info editor
-
-- Changed-mark: Ask to save modified files when exiting.
 
 - Path for project manager
 
@@ -31,6 +24,9 @@ FEATURES needed to start using the editor in daily work:
 -------------------------------------------------------------------------------
 
 Other features:
+
+- Cursor marks? For example, Alt-1 to place a mark, and Shit-Alt-1 to go
+  back.
 
 - History entry to file: This can be used to track history, e.g.
   writing competitions where the text has been sent.
@@ -180,3 +176,12 @@ DONE:
 - DONE: Add UUID to file format, so that project manager recognizes files even
   if they are moved.
   
+- DONE: File loading
+
+- DONE: Changed-mark: Ask to save modified files when exiting.
+
+- DONE: # TODO: Track somehow if the file was really loaded from filename,
+        # or if it was created when converting files. If Document was created
+        # by conversion, still ask filename when attempting to save (although
+        # we have here suggestion for it)
+
