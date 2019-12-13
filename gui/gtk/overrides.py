@@ -113,6 +113,21 @@ class VBox(Gtk.VBox):
     def __init__(self, **kwargs):
         super(VBox, self).__init__(**kwargs)
 
+def Boxed(box, *widgets):
+    for widget in widgets:
+        packtype, expand, pad = Gtk.PackType.START, False, 0
+        
+        if type(widget) == tuple:
+            widget, packtype, expand, pad = widget
+        
+        if packtype == Gtk.PackType.START:
+            box.pack_start(widget, expand, expand, pad)
+        else:
+          box.pack_end(widget, expand, expand, pad)
+    return box
+    
+#------------------------------------------------------------------------------
+
 # Create dual page stack: return stack & switcher
 def DuoStack(label, page1, page2, **kwargs):
 

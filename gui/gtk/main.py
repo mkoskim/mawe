@@ -445,14 +445,13 @@ class DocView(DocPage):
             return titleedit, getHideControl("Export", titleedit)
 
         def bottombar():
-            box = HBox()
-            box.pack_start(Button("..."), False, False, 0)
-
-            box.pack_start(Label(""), True, True, 0)
-
-            box.pack_start(self.draftbuf.stats.words, False, False, 2)
-            box.pack_start(self.draftbuf.stats.chars, False, False, 4)
-
+            box = Boxed(
+                HBox(),
+                Button("..."),
+                (Label(""), Gtk.PackType.START, True, 2),
+                (self.draftbuf.stats.words, Gtk.PackType.START, False, 2),
+                (self.draftbuf.stats.chars, Gtk.PackType.START, False, 4)
+            )
             return box
 
         def topbar():
