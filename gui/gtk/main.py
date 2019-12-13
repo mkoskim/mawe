@@ -112,7 +112,7 @@ class DocNotebook(Gtk.Notebook):
 
     def ui_help(self):
         doc = project.Project.open(os.path.join(guidir, "ui/help.txt")).load()
-        doc.name = "Instructions"
+        doc.name = "Mawe: User's Guide"
         doc.origin = None
         self.add(doc)
 
@@ -371,25 +371,34 @@ class DocView(DocPage):
         if self.doc.filename is None:
             name = dialog.SaveAs(self, self.doc.origin)
             if name is None: return False
-            self.doc.filename = name
-        self._save()
+            self._save(name)
+        else:
+            self._save(self.doc.filename)
         return True
 
     def ui_saveas(self):
         name = self.SaveAs(self, self.doc.origin)
         if name is None: return False
-        self.doc.filename = name
-        self._save()
+        self._save(name)
         return True
 
-    def _save(self):
-        print("Saving as:", self.doc.filename)
+    def _save(self, filename):
+        print("Saving as:", filename)
 
-        draft = self.draftbuf.to_mawe()
-        notes = self.notesbuf.to_mawe()
+        root = self.doc.root
 
-        self.draftbuf.revert(draft)
+        body = root.find("./body")
+        body.remove(body.find("part"))
+        body.append(self.draftbuf.to_mawe())
 
+        notes = root.find("./notes")
+        notes.remove(notes.find("part"))
+        notes.append(self.notesbuf.to_mawe())
+
+        self.doc.save(filename)
+
+        #self.draftbuf.revert(draft)
+        
         #from project.Document import ET
         #ET.dump(draft)
 
@@ -397,7 +406,6 @@ class DocView(DocPage):
         self.draftbuf.set_modified(False)
         self.notesbuf.set_modified(False)
 
-        self.doc.origin = self.doc.filename
         self.folderbtn.enable()
 
     def ui_revert(self):
@@ -500,7 +508,7 @@ class DocView(DocPage):
 
             box.pack_start(self.folderbtn, False, False, 0)
             box.pack_start(selectnotes, False, False, 0)
-            box.pack_start(VSeparator(), False, False, 2)
+            #box.pack_start(VSeparator(), False, False, 2)
             return dialogs
 
         def view():

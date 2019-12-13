@@ -52,6 +52,12 @@ class Document:
         self.root = tree.getroot()
         self.name = self.root.find("./body/head/title").text
 
+        # Inject comments
+        self.root.find("./body/head").insert(0, ET.Comment(Document.comment_head % self.name))
+        self.root.find("./body/head").append(ET.Comment(Document.comment_hr))
+        self.root.find("./body").append(ET.Comment(Document.comment_notes))
+        self.root.find("./notes").append(ET.Comment(Document.comment_versions))
+
         # If doc does not yet have UUID, generate one: docs converted
         # from other formats lack one.
         
@@ -74,31 +80,34 @@ class Document:
     # do this by modifying the tag tails.
     #--------------------------------------------------------------------------
 
-    def saveas(self, filename):
+    def save(self, filename):
         filename = "output.mawe"
+        
+        self.filename = filename
+        self.origin   = filename
+
         print("Saving:", filename)
 
-        self.root.find("./body/head").insert(0, ET.Comment(Document.comment_head % self.name))
-        self.root.find("./body/head").append(ET.Comment(Document.comment_hr))
-        self.root.find("./body").append(ET.Comment(Document.comment_notes))
-        self.root.find("./notes").append(ET.Comment(Document.comment_versions))
+        # Make saved file bit more readable
+        def pretty(root, level = 0):
+            for child in root.iter():
+                if child.text: child.text = child.text.strip()
+                if len(list(child)):
+                    if child.text: child.text = "\n" + child.text
+                    else: child.text = "\n"
+                child.tail = "\n"
 
-        Document.prettyFormat(self.root)
+        pretty(self.root)
 
         # We do XML serialization first to string, so if there is errors in the
         # tree, we are not getting corrupted file.
         content = ET.tostring(self.root, encoding="utf-8")
-        writefile(filename, content)
-        #self.tree.write(filename, encoding="utf-8")
 
-    @staticmethod
-    def prettyFormat(root, level = 0):
-        for child in root.iter():
-            if child.text: child.text = child.text.strip()
-            if len(list(child)):
-                if child.text: child.text = "\n" + child.text
-                else: child.text = "\n"
-            child.tail = "\n"
+        f = open(filename, "wb")
+        f.write(content)
+        f.close()
+
+        #self.tree.write(filename, encoding="utf-8")
 
     comment_head = """/
 ===============================================================================

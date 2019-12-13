@@ -1,26 +1,24 @@
 FEATURES needed to start using the editor in daily work:
 
-- File saving (file format): Don't save & load files in markup format
-  used in editor. It can change in future.
-
 - Project manager: It is first enough to have mawe files in moe project
   manager. But for workspaces and tabbed editing, we need built-in project
   manager.
 
-- File export: RTF, text (for texifier)
-
-- Settings editor
-
 - Header info editor
 
-- Path for project manager
+- Project search path
 
-- We could add UUID to moe files, too. UUID could help linking documents
-  together.
+- File export: RTF, tex (for texifier)
+
+- Settings editor
 
 -------------------------------------------------------------------------------
 
 Other features:
+
+- Gtk: Box packer (for easing box creations)
+
+- Try detachable tabs
 
 - Some sort of "loopback" device to test file saving and loading:
   save a file, and load it back to editor. It would be great if that
@@ -34,9 +32,10 @@ Other features:
   back.
 
 - History entry to file: This can be used to track history, e.g.
-  writing competitions where the text has been sent.
+  writing competitions where the text has been sent. <notes> part
+  could be perfect for this!!!
 
-- Save list of open tabs for restoring: remember errors
+- Save list of open tabs for restoring: remember check errors
 
 - Add error handling when loading documents
 
@@ -192,4 +191,10 @@ DONE:
 
 - DONE: (it is br now) psep (paragraph separator) is missing from the files! Maybe
   empty "<p />" is enough? It is not. We need a separator.
+
+- DONE: File saving (file format): Don't save & load files in markup format
+  used in editor. It can change in future.
+
+- DONE: We could add UUID to moe files, too. UUID could help linking documents
+  together.
 
