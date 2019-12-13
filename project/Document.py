@@ -81,7 +81,7 @@ class Document:
     #--------------------------------------------------------------------------
 
     def save(self, filename):
-        filename = "output.mawe"
+        #filename = "output.mawe"
         
         self.filename = filename
         self.origin   = filename
