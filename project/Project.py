@@ -95,8 +95,8 @@ class Moe(Base):
 
         self.name = root.find("./TitleItem/title").text
         
-    reDblEnter  = re.compile("\n+")
-    reSeparator = re.compile("\n\s*\-\s*\-\s*\-[\s\-]*\n")
+    reDblEnter  = re.compile(r"\n+")
+    reSeparator = re.compile(r"\n\s*\-\s*\-\s*\-[\s\-]*\n")
 
     def load(self):
         if not self.fullname: return
@@ -246,11 +246,11 @@ class LaTeX(Text):
         #tools.log(self.fullname)
         content = tools.readfile(self.fullname)
 
-        content = self.reTEXcomment.sub("", content)
-        docinfo = self.reTEXExtractHeader.search(content)
+        content = LaTeX.reTEXcomment.sub("", content)
+        docinfo = LaTeX.reTEXExtractHeader.search(content)
 
         if not docinfo:
-            docinfo = self.reTEXExtractResearchHeader.search(content)
+            docinfo = LaTeX.reTEXExtractResearchHeader.search(content)
             if not docinfo: return
 
         # wc = extractStats(dirname)

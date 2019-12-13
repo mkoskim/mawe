@@ -269,6 +269,7 @@ class SceneBuffer(GtkSource.Buffer):
         "<<": "synopsis",
         "//": "comment",
         "!!": "missing",
+        "**": "scene:heading",
     }
 
     def update_spans(self, start, end):

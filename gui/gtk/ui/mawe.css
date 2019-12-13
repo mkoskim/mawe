@@ -1,8 +1,10 @@
 #draftview { background: #FFF; }
 #draftview:selected { background: #9AB87C; }
 
-#round-btn { border: 1px solid transparent; border-radius: 50%; padding: 2px; }
+#round-btn { border: 1px solid transparent; border-radius: 50%; padding: 1px; }
 #round-btn:hover { border: 1px solid #AAA; background: #CCC; }
+
+#tablabel { padding-left: 10px; padding-right: 10px; }
 
 /*
 .button { border: 1px solid #888; }
@@ -10,10 +12,10 @@
 */
 
 button {
-    padding-top: 3px;
-    padding-bottom: 3px;
-    padding-left: 8px;
-    padding-right: 8px;
+    padding-top:    4px;
+    padding-bottom: 4px;
+    padding-left:   10px;
+    padding-right:  10px;
 }
 
 #DocNotebook.frame {

@@ -183,7 +183,7 @@ class DocPage(Gtk.Frame):
         self.notebook = notebook
 
         self.name      = name
-        self.tablabel  = Label(name)
+        self.tablabel  = Label(name, name = "tablabel")
         self.menulabel = Label(name, name = "menulabel")
 
         self.context = self.get_style_context()
@@ -436,7 +436,18 @@ class DocView(DocPage):
             titleedit.add(Label("Export"))
             return titleedit, getHideControl("Export", titleedit)
 
-        def toolbar():
+        def bottombar():
+            box = HBox()
+            box.pack_start(Button("..."), False, False, 0)
+
+            box.pack_start(Label(""), True, True, 0)
+
+            box.pack_start(self.draftbuf.stats.words, False, False, 2)
+            box.pack_start(self.draftbuf.stats.chars, False, False, 4)
+
+            return box
+
+        def topbar():
             box = HBox()
 
             dialogs = VBox()
@@ -490,8 +501,6 @@ class DocView(DocPage):
             box.pack_start(self.folderbtn, False, False, 0)
             box.pack_start(selectnotes, False, False, 0)
             box.pack_start(VSeparator(), False, False, 2)
-            box.pack_start(self.draftbuf.stats.words, False, False, 2)
-            box.pack_start(self.draftbuf.stats.chars, False, False, 4)
             return dialogs
 
         def view():
@@ -504,19 +513,15 @@ class DocView(DocPage):
             text.set_shadow_type(Gtk.ShadowType.IN)
             return text
 
-        def statusbar():
-            box = Gtk.HBox()
-            return box
-
         box = VBox()
-        box.pack_start(toolbar(), False, False, 1)
+        box.pack_start(topbar(), False, False, 1)
         box.pack_start(view(), True, True, 0)
-        box.pack_end(statusbar(), False, False, 0)
+        box.pack_end(bottombar(), False, False, 0)
         return box
 
     def create_index(self):
 
-        def toolbar(switcher):
+        def topbar(switcher):
             box = HBox()
             box.pack_start(switcher, False, False, 1)
             return box
@@ -540,11 +545,17 @@ class DocView(DocPage):
             text.set_shadow_type(Gtk.ShadowType.IN)
             return text
 
+        def bottombar():
+            box = HBox()
+            box.pack_start(Button("..."), False, False, 0)
+            return box
+
         stack, switcher = DuoStack("Notes", scenelist(), notes())
 
         box = VBox()
-        box.pack_start(toolbar(switcher), False, False, 1)
+        box.pack_start(topbar(switcher), False, False, 1)
         box.pack_start(stack, True, True, 0)
+        box.pack_end(bottombar(), False, False, 0)
         return box
 
 ###############################################################################
