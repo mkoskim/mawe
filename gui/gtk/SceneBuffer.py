@@ -424,7 +424,7 @@ class SceneBuffer(GtkSource.Buffer):
             self.apply_tag(self.tag_scenehdr, scene_start, line_end)
 
             if self.is_folded(scene_start):
-                self.apply_tag(self.tag_scenefolded, self.copy_iter(scene_start, 0, -1), scene_end)
+                self.apply_tag(self.tag_scenefolded, scene_start, scene_end)
                 
                 fold_start = line_end
                 #fold_start = end.copy()

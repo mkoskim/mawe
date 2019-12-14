@@ -181,7 +181,8 @@ class SceneView(GtkSource.View):
             "<Alt>Left": None,
             "<Alt>Right": None,
 
-            #"Return": self.enter,
+            "Return": self.unfold_current,
+            "space":  self.unfold_current,
         })
 
     #--------------------------------------------------------------------------
@@ -205,6 +206,8 @@ class SceneView(GtkSource.View):
     def onKeyPress(self, widget, event):
         mod = event.state & Gtk.accelerator_get_default_mod_mask()
         key = (event.keyval, mod)
+
+        #print(Gtk.accelerator_name(event.keyval, mod))
 
         if self.combokey is None:
             if not key in self.combokeys: return False
@@ -278,27 +281,42 @@ class SceneView(GtkSource.View):
         self.buffer.end_user_action()
         self.scroll_mark_onscreen(self.buffer.get_insert())
 
-    def foreach_scene(self, func, exclude_current = True):
+    def foreach_scene(self, func):
         scenes = self.buffer.get_marks("scene", *self.buffer.get_bounds())
         for scene in scenes:
             start = self.buffer.get_iter_at_mark(scene)
-            if exclude_current:
-                end = self.buffer.scene_end_iter(start)
-                cursor = self.buffer.get_cursor_iter()
-                if cursor.in_range(start, end): continue
             func(start)
 
-    def fold_all(self, exclude_current = True):
+    def fold_all(self):
+        self.buffer.place_cursor(self.buffer.scene_start_iter())
         self.buffer.begin_user_action()
-        self.foreach_scene(self.buffer.fold_on, exclude_current)
+        self.foreach_scene(self.buffer.fold_on)
         self.buffer.end_user_action()
         self.scroll_mark_onscreen(self.buffer.get_insert())
 
-    def unfold_all(self, exclude_current = False):
+    def unfold_all(self):
         self.buffer.begin_user_action()
-        self.foreach_scene(self.buffer.fold_off, exclude_current)
+        self.foreach_scene(self.buffer.fold_off)
         self.buffer.end_user_action()
         self.scroll_mark_onscreen(self.buffer.get_insert())
+
+    def unfold_current(self):
+        scene = self.buffer.scene_start_iter()
+
+        if not scene: return
+        if not self.buffer.is_folded(scene): return
+        
+        self.buffer.begin_user_action()
+        self.buffer.fold_off(scene)
+        self.buffer.end_user_action()
+        
+        cursor = self.buffer.get_cursor_iter()
+        cursor.forward_line()
+        self.buffer.place_cursor(cursor)
+        self.scroll_mark_onscreen(self.buffer.get_insert())
+        return True
+
+    
 
     def select_and_fold(self):
         if self.buffer.get_has_selection():
