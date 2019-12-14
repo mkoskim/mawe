@@ -1,5 +1,5 @@
 from gui.gtk import (
-    Gtk, Gdk, Gio,
+    Gtk, Gdk, Gio, GObject,
     ScrolledSceneView, SceneView,
     ScrolledSceneList, SceneList,
     SceneBuffer,
@@ -216,14 +216,14 @@ class OpenView(DocPage):
     def __init__(self, notebook):
         super(OpenView, self).__init__(notebook, "Open file")
 
+        self.config = config["OpenView"]
+
         chooser = Gtk.FileChooserWidget()
         chooser.set_create_folders(True)
 
         chooser.connect("file-activated", self.onChooser)
-
-        self.chooserDir = os.getcwd()
-        chooser.connect("map", self.restoreDirectory)
-        chooser.connect("unmap", self.storeDirectory)
+        chooser.connect("map", self.dir_restore)
+        chooser.connect("unmap", self.dir_store)
 
         #chooser.set_extra_widget(Button("New", onclick = lambda w: self.openNew()))
 
@@ -255,17 +255,31 @@ class OpenView(DocPage):
         filename = chooser.get_filename()
         self.notebook.ui_new(filename)
 
-    def storeDirectory(self, chooser):
-        self.chooserDir = chooser.get_current_folder()
+    def dir_store(self, chooser):
+        self.config["Directory"] = chooser.get_current_folder()
 
-    def restoreDirectory(self, chooser):
-        chooser.set_current_folder(self.chooserDir)
+    def dir_restore(self, chooser):
+        chooser.set_current_folder(self.config["Directory"])
 
 ###############################################################################
 #
 # Document view
 #
 ###############################################################################
+
+class EntryBuffer(Gtk.EntryBuffer):
+
+    __gsignals__ = {
+        "changed" : (GObject.SIGNAL_RUN_LAST, None, ()),
+    }
+
+    def __init__(self, key = None):
+        super(EntryBuffer, self).__init__()
+
+        self.key = key
+        self.connect("deleted-text",  lambda e, pos, n: e.emit("changed"))
+        self.connect("inserted-text", lambda e, pos, t, n: e.emit("changed"))
+
 
 class DocView(DocPage):
 
@@ -287,9 +301,9 @@ class DocView(DocPage):
             "./body/part": SceneBuffer(),
             "./notes/part": SceneBuffer(),
 
-            "./body/head/title": Gtk.EntryBuffer(),
-            "./body/head/subtitle": Gtk.EntryBuffer(),
-            "./body/head/author": Gtk.EntryBuffer(),
+            "./body/head/title":    EntryBuffer("./body/head/title"),
+            "./body/head/subtitle": EntryBuffer(),
+            "./body/head/author":   EntryBuffer(),
         }
 
         self.buffers_revert()
@@ -318,12 +332,13 @@ class DocView(DocPage):
     
     def buffers_revert(self):
         for key, buf in self.buffers.items():
-            print(key)
             child = self.doc.root.find(key)
+            if child is None:
+                child = self.doc.create(key)
             if type(buf) is SceneBuffer:
                 buf.revert(child)
                 buf.set_modified(False)
-            elif type(buf) is Gtk.EntryBuffer:
+            elif type(buf) is EntryBuffer:
                 text = child.text
                 if text is None: text = ""
                 buf.set_text(text, -1)
@@ -335,10 +350,8 @@ class DocView(DocPage):
         for key, buf in self.buffers.items():
             child = self.doc.root.find(key)
             if type(buf) is SceneBuffer:
-                parent = self.doc.root.find(key + "/..")
-                parent.remove(child)
-                parent.append(buf.to_mawe()) 
-            elif type(buf) is Gtk.EntryBuffer:
+                self.doc.replace(key, buf.to_mawe())
+            elif type(buf) is EntryBuffer:
                 child.text = buf.get_text()
             else: ERROR("Unknown buffer type: %s", type(buf))
 
@@ -352,14 +365,13 @@ class DocView(DocPage):
 
                 buf.connect("modified-changed", lambda buf: modified1(self, buf))
 
-            elif type(buf) is Gtk.EntryBuffer:
+            elif type(buf) is EntryBuffer:
 
-                def modified2(self, buf, key):
+                def modified2(self, buf):
                     self.set_dirty()
-                    if key == "./body/head/title": self.set_name(buf.get_text())
+                    if buf.key == "./body/head/title": self.set_name(buf.get_text())
 
-                buf.connect("deleted-text", lambda e, pos, n: modified2(self, e, key))
-                buf.connect("inserted-text", lambda e, pos, t, n: modified2(self, e, key))
+                buf.connect("changed", lambda e: modified2(self, e))
 
             else: ERROR("Unknown buffer type: %s", type(buf))
 
@@ -442,7 +454,7 @@ class DocView(DocPage):
         return True
 
     def _save(self, filename):
-        print("Saving as:", filename)
+        #print("Saving as:", filename)
 
         self.buffers_store()
         self.doc.save(filename)

@@ -4,14 +4,16 @@
 <!--/
 ===============================================================================
 
-Story: help.txt
+Story: <Element 'title' at 0x7fad73806c28>
 
 ===============================================================================
 /-->
-<title>help.txt</title>
+<title>Mawe: User's Guide</title>
 <!--/
 ===============================================================================
 /-->
+<author />
+<subtitle />
 </head>
 <!--/
 ===============================================================================
@@ -21,15 +23,16 @@ Notes
 ===============================================================================
 /-->
 <part>
-<scene name="Mawe User's Guide">
-<p>Hotkeys:</p>
-<p>Alt-X - Fold/unfold current scene</p>
-<p>Alt-G - Select &amp; unfold current scene</p>
-<p>Alt-A + Alt-F - Fold all (current scene excluded)</p>
-<p>Alt-A + Alt-U - Unfold all</p>
+<scene name="Before We Go">
+<p>While you are reading, feel free to try out things. Take a look to the bottom of this page. There you can see *Revert* button, which reverts the changes you made to the last saved version. Try it here, write something or delete something, and press *Revert* to get your modifications undone.</p>
 </scene>
-<scene name="Line tags">
-<p>Scenes: Create a scene by starting a line with '##'.</p>
+<scene name="Basics">
+<missing>Open &amp; New file...</missing>
+<missing>Title editor</missing>
+<missing>Notes section</missing>
+</scene>
+<scene name="Marking Up">
+<p>*##*</p>
 <br />
 <p>Comments:</p>
 <br />
@@ -42,6 +45,15 @@ Notes
 <p>Missing:</p>
 <br />
 <missing>Am I missing something here? Point, maybe?</missing>
+</scene>
+<scene name="Shortcut Reference">
+<p>List of shortcuts:</p>
+<p>*Ctrl-S* - Save document</p>
+<p>*Ctrl-W* - Close document</p>
+<p>*Alt-X* - Fold/unfold current scene</p>
+<p>*Alt-G* - Select &amp; unfold current scene</p>
+<p>*Alt-A + Alt-F* - Fold all (current scene excluded)</p>
+<p>*Alt-A + Alt-U* - Unfold all</p>
 </scene>
 </part>
 </body>

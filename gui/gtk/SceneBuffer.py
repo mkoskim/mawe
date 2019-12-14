@@ -352,7 +352,7 @@ class SceneBuffer(GtkSource.Buffer):
         #----------------------------------------------------------------------
 
         marks = self.get_marks("scene", self.get_line_start(start), self.get_line_end(end))
-        print("Removing %d marks" % len(marks))
+        #print("Removing %d marks" % len(marks))
         for mark in marks:
             self.delete_mark(mark)
             at = self.markiter[mark]
@@ -363,7 +363,7 @@ class SceneBuffer(GtkSource.Buffer):
         # Scan dirty area for scene breaks (lines starting with ##)
         #----------------------------------------------------------------------
         
-        print("Scanning marks to update")
+        #print("Scanning marks to update")
         marks_to_update = []
         
         at = self.scene_start_iter(start)
@@ -378,7 +378,7 @@ class SceneBuffer(GtkSource.Buffer):
             listiter = None
             block_start = self.get_start_iter()
 
-        self.dump_iter("Scan start:", at)
+        #self.dump_iter("Scan start:", at)
 
         at = self.get_line_start(start)
         
@@ -414,7 +414,7 @@ class SceneBuffer(GtkSource.Buffer):
         # Iterate over changed scenes
         #----------------------------------------------------------------------
 
-        print("Updating %d marks" % len(marks_to_update))
+        #print("Updating %d marks" % len(marks_to_update))
 
         for mark in marks_to_update:
             scene_start = self.get_iter_at_mark(mark)
@@ -433,7 +433,7 @@ class SceneBuffer(GtkSource.Buffer):
 
             index = self.markiter[mark]
 
-            name = self.get_text(scene_start, line_end, True)
+            name = self.get_text(scene_start, line_end, True)[2:].strip()
             self.marklist.set_value(index, 1, name)
             
             words, _, comments, missing = self.wordcount(scene_start, scene_end, True)

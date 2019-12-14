@@ -72,13 +72,19 @@ class Document:
         tree.find("./body/head/title").text = title
         return tree
 
+    def create(self, key):
+        path = key.split("/")
+        parent = self.root.find("/".join(path[:-1]))
+        return ET.SubElement(parent, path[-1])
+
+    def replace(self, key, elem):
+        child  = self.root.find(key)
+        parent = self.root.find(key + "/..")
+        parent.remove(child)
+        return parent.append(elem)
+
     def __str__(self):
         return "<Document %s @ %s>" % (self.title, self.filename)
-
-    #def get_head(self, field):       return self.root.find("./body/head").find(field).text
-    #def set_head(self, field, text): self.root.find("./body/head").find(field).text = text
-
-    #title = property(lambda self: self.get_head("title"), lambda self, t: self.set_head("title", t))
 
     #--------------------------------------------------------------------------
     # Try to save in pretty format, it helps debugging possible problems. We
@@ -91,7 +97,7 @@ class Document:
         self.filename = filename
         self.origin   = filename
 
-        print("Saving:", filename)
+        #print("Saving:", filename)
 
         # Make saved file bit more readable
         def pretty(root, level = 0):

@@ -1,0 +1,70 @@
+-------------------------------------------------------------------------------
+
+- DONE: Interesting... It is much more difficult to import text, latex and RTF
+  files directly to mawe as it was with moe - ah, I was wrong. It was not
+  hard at all. Just looked that at first glance.
+
+- DONE: It could be good, if first line would be reserved for title. Now, this
+  title needs to be updated to either header, or to part. Well, tested it and
+  not necessarily...
+
+- DONE: Many current software have combined open/new window. Many of them are
+  interesting and full of action. There's many ways to open things
+  (open folder, clone from repo, choose recent, start new). It wouldn't
+  be bad idea, right?
+  
+  * Absolutely this feature, new button inside open dialog.
+
+- DONE: Gtk: Box packer (for easing box creations)
+
+- DONE: Header info editor
+
+-------------------------------------------------------------------------------
+
+- DONE: Key combinations, e.g. Alt-A + Alt-F -> Fold all
+
+- DONE: Fold / Unfold all
+
+- FIXED: Move line (Alt-up, alt-down) does not work with markers. Moving
+  header line over another will duplicate the mark.
+
+  We now remove marks from updated regions, and recreate them after update.
+
+- FIXED: (Fix available) GtkSourceView crashes randomly!!! Errors like this:
+  (mawe.py:10556): Gtk-WARNING **: /build/gtk+3.0-2Ut_nl/gtk+3.0-3.18.9/./gtk/gtktextbtree.c:4034: byte index off the end of the line
+
+  (mawe.py:10556): Gtk-ERROR **: Byte index 1362 is off the end of the line
+  Trace/breakpoint trap
+
+- DONE: Import .moe files to get content for testing
+
+- DONE: Visible word/character counts from doc
+
+- DONE: Initial configs (to save window size)
+
+- DONE: Loading moe files in mawe format. Ready for saving.
+
+- DONE: Add UUID to file format, so that project manager recognizes files even
+  if they are moved.
+  
+- DONE: File loading
+
+- DONE: Changed-mark: Ask to save modified files when exiting.
+
+- DONE: # TODO: Track somehow if the file was really loaded from filename,
+        # or if it was created when converting files. If Document was created
+        # by conversion, still ask filename when attempting to save (although
+        # we have here suggestion for it)
+
+- DONE: (it is br now) psep (paragraph separator) is missing from the files! Maybe
+  empty "<p />" is enough? It is not. We need a separator.
+
+- DONE: File saving (file format): Don't save & load files in markup format
+  used in editor. It can change in future.
+
+- DONE: We could add UUID to moe files, too. UUID could help linking documents
+  together.
+
+- DONE: Try detachable tabs. Not good.
+
+

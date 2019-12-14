@@ -4,7 +4,7 @@
 #
 ###############################################################################
 
-import json
+import os, json
 
 config = None
 
@@ -15,26 +15,37 @@ defaults = {
     },
     "DocView": {
         "Pane": -1
+    },
+    "OpenView": {
+        "Directory": os.getcwd(),
     }
 }
 
 filename = "local/mawe.json"
 
+#------------------------------------------------------------------------------
+
+def _migrate(config):
+    if "OpenView" not in config:
+        config["OpenView"] = defaults["OpenView"]
+    return config
+
+#------------------------------------------------------------------------------
+
 def config_load():
     global config
     
     try:
-        config = json.load(open(filename))
-        # Do possible migration
+        config = _migrate(json.load(open(filename)))
     except:
         config = defaults
+
+config_load()
+
+#------------------------------------------------------------------------------
 
 def config_save():
     #print("Saving config", filename)
     #print(json.dumps(config, indent = 4))
     json.dump(config, open(filename, "w"), indent = 4)
-
-config_load()
-#print(config)
-#save_config()
 
