@@ -114,7 +114,7 @@ class DocNotebook(Gtk.Notebook):
 
     def ui_help(self):
         doc = project.Project.open(os.path.join(guidir, "ui/guide.mawe")).load()
-        doc.title = "Mawe: User's Guide"
+        doc.filename = None
         doc.origin = None
         self.add(doc)
 
@@ -406,15 +406,13 @@ class DocView(DocPage):
         #print("Update pos:", DocView.position)
 
         # Untouched empty files can be removed without questions
-        if not self.get_dirty() and self.doc.origin is None:
-            self.notebook._remove_child(self)
+        # if not self.get_dirty() and self.doc.origin is None:
+        #    self.notebook._remove_child(self)
 
     #--------------------------------------------------------------------------
 
     def set_name(self, text = None):
         if text is None: text = self.buffers["./body/head/title"].get_text()
-        # TODO: Title is updated only when having here this print
-        print(text)
         super(DocView, self).set_name((self.get_dirty() and "*" or "") + text)
 
     def get_dirty(self): return self.dirty

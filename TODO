@@ -1,5 +1,7 @@
 FEATURES needed to start using the editor in daily work:
 
+- Remember opened files
+
 - Project manager: It is first enough to have mawe files in moe project
   manager. But for workspaces and tabbed editing, we need built-in project
   manager.
@@ -13,6 +15,16 @@ FEATURES needed to start using the editor in daily work:
 -------------------------------------------------------------------------------
 
 Other features:
+
+- File open: Add recent files
+  
+- File open: Allow users to make directories and create new files: now, if you
+  make a new file, you first press New and then save it to correct
+  folder with wanted name.
+
+- Save: Get name suggestion from title
+
+- When starting Mawe first time (no config yet), make it open help doc
 
 - Let user choose what tab to open on startup (where I left, open file,
   new, project manager)
@@ -37,14 +49,6 @@ Other features:
 - Add error handling when loading documents
 
 - When choosing with grab, show the selections in the listbox
-
-- Postpone: We can now support just one-part files
-
-- Postpone: We don't need versioning yet.
-
-- Postpone: We can live without being able to mix buffers from several
-  documents together in one view. That is, it is enough if we can choose
-  between doc's draft and notes buffers.
 
 - Search and replace: it is very useful feature I have missed in moe a lot
 
@@ -84,9 +88,7 @@ Problematic issue: Single doc vs split view:
 
 -------------------------------------------------------------------------------
 
-FIX:
-
-- There is a bug in refreshing scene word counters. Track it down and fix it.
+QUIRKS, FIX:
 
 - We can not just switch buffer to textview - Undo/redo will not work in
   that case. Instead, when switching buffers, we need to create new views.
@@ -105,10 +107,6 @@ FIX:
   
   * Alt-up, Alt-down: move scene up / down - if you have selections
     (preferably whole scenes), move scenes with cursor.
-
--------------------------------------------------------------------------------
-
-QUIRKS ETC:
 
 - I need to figure out suitable mechanics for managing hidden text tags.
   Whenever the scene header with "folded" mark is detached from hidden
@@ -134,6 +132,14 @@ TODO:
 
 - We could preserve e.g. "## **" to 'chapter' header. In fact, we need to
   make chapters. Just to prevent me using scenes as decorating items.
+
+- Postpone: We can now support just one-part files
+
+- Postpone: We don't need versioning yet.
+
+- Postpone: We can live without being able to mix buffers from several
+  documents together in one view. That is, it is enough if we can choose
+  between doc's draft and notes buffers.
 
 -------------------------------------------------------------------------------
 

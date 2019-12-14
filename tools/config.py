@@ -25,13 +25,6 @@ filename = "local/mawe.json"
 
 #------------------------------------------------------------------------------
 
-def _migrate(config):
-    if "OpenView" not in config:
-        config["OpenView"] = defaults["OpenView"]
-    return config
-
-#------------------------------------------------------------------------------
-
 def config_load():
     global config
     
@@ -40,12 +33,21 @@ def config_load():
     except:
         config = defaults
 
-config_load()
+def config_save():
+    global config
+
+    json.dump(config, open(filename, "w"), indent = 4)
 
 #------------------------------------------------------------------------------
 
-def config_save():
-    #print("Saving config", filename)
-    #print(json.dumps(config, indent = 4))
-    json.dump(config, open(filename, "w"), indent = 4)
+def _migrate(config):
+    global defaults
+
+    if "OpenView" not in config:
+        config["OpenView"] = defaults["OpenView"]
+    return config
+
+#------------------------------------------------------------------------------
+
+config_load()
 

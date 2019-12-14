@@ -52,8 +52,8 @@ class Document:
         self.root = tree.getroot()
         
         # Inject comments
-        title = self.root.find("./body/head/title")
-        self.root.find("./body/head").insert(0, ET.Comment(Document.comment_head % title))
+        name = self.root.find("./body/head/title").text
+        self.root.find("./body/head").insert(0, ET.Comment(Document.comment_head % name))
         self.root.find("./body/head").append(ET.Comment(Document.comment_hr))
         self.root.find("./body").append(ET.Comment(Document.comment_notes))
         self.root.find("./notes").append(ET.Comment(Document.comment_versions))
