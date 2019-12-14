@@ -152,24 +152,29 @@ class SceneView(GtkSource.View):
             self.buffer.redo()
             return True
 
-        self.combokeys = {
-            "<Primary>z": undo,
-            "<Primary><Shift>z": redo,
-            "<Alt>a": {
-                "<Alt>f": self.fold_all,
-                "<Alt>u": self.unfold_all,
-            },
-            "<Alt>c": self.toggle_comment,
-            "<Alt>g": self.select_and_fold,
+        self._parse_keys({
+            "<Ctrl>z": undo,
+            "<Ctrl><Shift>z": redo,
+            
+            "<Alt>a": self.fold_all,
+            "<Alt>s": self.unfold_all,
+            "<Alt>f": self.toggle_fold,
+            "<Alt>x": self.select_and_fold,
+            
+            #"<Alt>a": {
+            #    "<Alt>f": self.fold_all,
+            #    "<Alt>u": self.unfold_all,
+            #},
             "<Alt>l": self.lorem,
-            "<Alt>x": self.toggle_fold,
+            #"<Alt>c": self.toggle_comment,
+            #"<Alt>x": self.toggle_fold,
             
             # Some fixed behaviour
             
-            "<Primary>Up": self.fix_ctrl_up,
-            "<Primary>Down": self.fix_ctrl_down,
-            "<Primary><Shift>Up": self.fix_ctrl_shift_up,
-            "<Primary><Shift>Down": self.fix_ctrl_shift_down,
+            "<Ctrl>Up": self.fix_ctrl_up,
+            "<Ctrl>Down": self.fix_ctrl_down,
+            "<Ctrl><Shift>Up": self.fix_ctrl_shift_up,
+            "<Ctrl><Shift>Down": self.fix_ctrl_shift_down,
             
             "<Alt>Up":   self.move_line_up,
             "<Alt>Down": self.move_line_down,
@@ -177,23 +182,34 @@ class SceneView(GtkSource.View):
             "<Alt>Right": None,
 
             #"Return": self.enter,
-        }
+        })
+
+    #--------------------------------------------------------------------------
+    
+    def _parse_keys(self, table):
+
+        def parse_table(table):
+            lookup = { }
+            for shortcut, item in table.items():
+                key = Gtk.accelerator_parse(shortcut)
+                if type(item) is dict:
+                    lookup[key] = parse_table(item)
+                else:
+                    lookup[key] = item
+            return lookup
+            
+        self.combokeys = parse_table(table)
         self.combokey = None
         self.connect("key-press-event", self.onKeyPress)
 
     def onKeyPress(self, widget, event):
-        #keyval = Gdk.keyval_to_lower(event.keyval)
-        mods   = event.state & Gtk.accelerator_get_default_mod_mask()
-        key = Gtk.accelerator_name(
-            event.keyval,
-            mods, #Gdk.ModifierType(mods)
-        )
-        #print("Key:", key, "Mods:", Gdk.ModifierType(mods))
-        #print("Combo:", self.combokey, "Key:", key)
-        if self.combokey == None:
+        mod = event.state & Gtk.accelerator_get_default_mod_mask()
+        key = (event.keyval, mod)
+
+        if self.combokey is None:
             if not key in self.combokeys: return False
             if type(self.combokeys[key]) is dict:
-                self.combokey = key
+                self.combokey = self.combokeys[key]
                 return True
             elif self.combokeys[key] is None:
                 #self.parent.emit("key-press-event", event.copy())
@@ -203,8 +219,8 @@ class SceneView(GtkSource.View):
         else:
             combo = self.combokey
             self.combokey = None
-            if key in self.combokeys[combo]:
-                return self.combokeys[combo][key]()
+            if key in combo:
+                return combo[key]()
 
     #--------------------------------------------------------------------------
     
