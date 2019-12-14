@@ -113,19 +113,52 @@ class VBox(Gtk.VBox):
     def __init__(self, **kwargs):
         super(VBox, self).__init__(**kwargs)
 
+#------------------------------------------------------------------------------
+
 def Boxed(box, *widgets):
     for widget in widgets:
         packtype, expand, pad = Gtk.PackType.START, False, 0
         
         if type(widget) == tuple:
-            widget, packtype, expand, pad = widget
-        
+            if len(widget) == 2:
+                widget, expand, pad, packtype = *widget, 0, Gtk.PackType.START
+            elif len(widget) == 3:
+                widget, expand, pad, packtype = *widget, Gtk.PackType.START
+            else:
+                widget, expand, pad, packtype = widget
+                    
         if packtype == Gtk.PackType.START:
             box.pack_start(widget, expand, expand, pad)
         else:
           box.pack_end(widget, expand, expand, pad)
     return box
-    
+
+def Grid(*widgets, **kwargs):
+    grid = Gtk.Grid()
+
+    if "column_spacing" in kwargs:
+        grid.set_column_spacing(kwargs["column_spacing"])
+
+    if "row_spacing" in kwargs:
+        grid.set_row_spacing(kwargs["row_spacing"])
+
+    if "expand_column" in kwargs:
+        expand_column = kwargs["expand_column"]
+
+    for y, row in enumerate(widgets):
+        for x, cell in enumerate(row):
+            if type(cell) is tuple:
+                cell, width, height = cell
+            else:
+                cell, width, height = (cell, 1, 1)
+            grid.attach(cell, x, y, width, height)
+
+            if x == expand_column:
+                cell.set_hexpand(True)
+                cell.set_halign(Gtk.Align.FILL)
+
+    return grid
+
 #------------------------------------------------------------------------------
 
 # Create dual page stack: return stack & switcher
@@ -147,12 +180,11 @@ def DuoStack(label, page1, page2, **kwargs):
 
 #------------------------------------------------------------------------------
 
-class Label(Gtk.Label):
-
-    def __init__(self, label, **kwargs):
-        if "visible" not in kwargs: kwargs["visible"] = True
-        super(Label, self).__init__(label, **kwargs)
-        self.set_xalign(0.0)
+def Label(label, **kwargs):
+    if "visible" not in kwargs: kwargs["visible"] = True
+    widget = Gtk.Label(label, **kwargs)
+    widget.set_xalign(0.0)
+    return widget
 
 #------------------------------------------------------------------------------
 
@@ -168,7 +200,7 @@ class VSeparator(Gtk.VSeparator):
 
 #------------------------------------------------------------------------------
 
-def getHideControl(name, widget, **kwargs):
+def HideControl(name, widget, **kwargs):
 
     def togglehide(button):
         if button.get_active():
@@ -182,12 +214,10 @@ def getHideControl(name, widget, **kwargs):
 
     return button
 
-class StackSwitcher(Gtk.StackSwitcher):
-
-    def __init__(self, stack, **kwargs):
-        if "visible" not in kwargs: kwargs["visible"] = True
-        super(StackSwitcher, self).__init__(**kwargs)
-        self.set_stack(stack)
-        #self.set_relief(Gtk.ReliefStyle.NONE)
-
+def StackSwitcher(stack, **kwargs):
+    if "visible" not in kwargs: kwargs["visible"] = True
+    switch = Gtk.StackSwitcher(**kwargs)
+    switch.set_stack(stack)
+    #self.set_relief(Gtk.ReliefStyle.NONE)
+    return switch
 

@@ -6,7 +6,7 @@
 
 import os, re
 from project.Document import ET, FormatError, Document
-import tools
+from tools import *
 
 ###############################################################################
 #
@@ -93,7 +93,7 @@ class Moe(Base):
     def __init__(self, filename, root):
         super(Moe, self).__init__(filename, "moe")
 
-        self.name = root.find("./TitleItem/title").text
+        self.title = root.find("./TitleItem/title").text
         
     reDblEnter  = re.compile(r"\n+")
     reSeparator = re.compile(r"\n\s*\-\s*\-\s*\-[\s\-]*\n")
@@ -164,12 +164,26 @@ class Moe(Base):
             for child in list(element.find("childs")):
                 if   child.tag == "SceneItem": parsescene(child)
                 elif child.tag == "GroupItem": parsegroup(child)
-                else: tools.log("%s<group>: Unknown child '%s'" % (self.fullname, child.tag))
+                else: log("%s<group>: Unknown child '%s'" % (self.fullname, child.tag))
         
         def parsetitle(element):
+            head = mawe.find("./body/head")
+            notehead = mawe.find("./notes/head")
             for child in list(element):
-                if   child.tag == "title": mawe.find("./body/head/title").text = child.text
-                else: tools.log("%s<title>: Unknown child '%s'" % (self.fullname, child.tag))
+                if   child.tag == "title":      head.find("title").text = child.text
+                elif child.tag == "subtitle":   ET.SubElement(head, "subtitle").text = child.text
+                elif child.tag == "author":     ET.SubElement(head, "author").text = child.text
+                elif child.tag == "translated": ET.SubElement(head, "translated").text = child.text
+                elif child.tag == "deadline":   ET.SubElement(head, "deadline").text = child.text
+                elif child.tag == "synopsis":   ET.SubElement(head, "covertext").text = child.text
+                elif child.tag == "status":     ET.SubElement(head, "status").text = child.text
+                elif child.tag == "year":       ET.SubElement(head, "year").text = child.text
+                elif child.tag == "version":    ET.SubElement(head, "version").text = child.text
+                elif child.tag == "published":  ET.SubElement(notehead, "published").text = child.text
+                elif child.tag == "publisher":  ET.SubElement(notehead, "publisher").text = child.text
+                elif child.tag == "website":    pass
+                elif child.tag == "coverpage":  pass
+                else: log("%s<title>: Unknown child '%s'" % (self.fullname, child.tag))
         
         #----------------------------------------------------------------------
         
@@ -178,7 +192,7 @@ class Moe(Base):
             elif child.tag == "SceneItem": parsescene(child)
             elif child.tag == "GroupItem": parsegroup(child)
             elif child.tag == "settings":  pass # Safe to ignore, settings were moved to .moerc
-            else: tools.log("%s: <story>: Unknown child '%s'" % (self.fullname, child.tag))
+            else: log("%s: <story>: Unknown child '%s'" % (self.fullname, child.tag))
 
         return Document(tree = mawe, origin = self.fullname)
 
@@ -243,7 +257,7 @@ class LaTeX(Text):
     def __init__(self, filename):
         super(LaTeX, self).__init__(filename, "latex")
 
-        #tools.log(self.fullname)
+        #log(self.fullname)
         content = tools.readfile(self.fullname)
 
         content = LaTeX.reTEXcomment.sub("", content)

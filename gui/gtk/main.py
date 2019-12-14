@@ -8,7 +8,7 @@ from gui.gtk import (
 )
 
 from tools import *
-from gui.gtk.overrides import *
+from gui.gtk.factory import *
 import project
 import os
 
@@ -30,13 +30,15 @@ def run(workset = None):
 
 class DocNotebook(Gtk.Notebook):
 
+    # TODO: When last file is closed, choose open tab? Without close button?
+
     def __init__(self):
         super(DocNotebook, self).__init__(name = "DocNotebook")
 
         self.set_scrollable(True)
         self.popup_enable()
 
-        self.opentab = DocOpen(self)
+        self.opentab = OpenView(self)
         self.openbtn = StockButton("gtk-open", onclick = lambda w: self.ui_open())
         self.openbtn.set_property("tooltip_text", "Open document")
 
@@ -111,8 +113,8 @@ class DocNotebook(Gtk.Notebook):
         pass
 
     def ui_help(self):
-        doc = project.Project.open(os.path.join(guidir, "ui/help.txt")).load()
-        doc.name = "Mawe: User's Guide"
+        doc = project.Project.open(os.path.join(guidir, "ui/guide.mawe")).load()
+        doc.title = "Mawe: User's Guide"
         doc.origin = None
         self.add(doc)
 
@@ -209,10 +211,10 @@ class DocPage(Gtk.Frame):
 #
 ###############################################################################
 
-class DocOpen(DocPage):
+class OpenView(DocPage):
 
     def __init__(self, notebook):
-        super(DocOpen, self).__init__(notebook, "Open file")
+        super(OpenView, self).__init__(notebook, "Open file")
 
         chooser = Gtk.FileChooserWidget()
         chooser.set_create_folders(True)
@@ -270,21 +272,33 @@ class DocView(DocPage):
     #--------------------------------------------------------------------------
 
     def __init__(self, notebook, doc):
-        super(DocView, self).__init__(notebook, doc.name)
+        super(DocView, self).__init__(
+            notebook,
+            doc.root.find("./body/head/title").text
+        )
 
         self.doc = doc
         self.dirty = False
 
-        print("Filename:", doc.filename)
-        print("Origin:", doc.origin)
+        #print("Filename:", doc.filename)
+        #print("Origin:", doc.origin)
 
-        self.draftbuf = self.set_buffer(self.doc.root.find("./body/part"))
-        self.notesbuf = self.set_buffer(self.doc.root.find("./notes/part"))
+        self.buffers = {
+            "./body/part": SceneBuffer(),
+            "./notes/part": SceneBuffer(),
+
+            "./body/head/title": Gtk.EntryBuffer(),
+            "./body/head/subtitle": Gtk.EntryBuffer(),
+            "./body/head/author": Gtk.EntryBuffer(),
+        }
+
+        self.buffers_revert()
+        self.buffers_connect()
 
         # Try to get rid of these
-        self.draftview = ScrolledSceneView(self.draftbuf, "Times 12")
-        self.notesview = ScrolledSceneView(self.notesbuf, "Times 12")
-        self.scenelist = ScrolledSceneList(self.draftbuf, self.draftview)
+        self.draftview = ScrolledSceneView(self.buffers["./body/part"], "Times 12")
+        self.notesview = ScrolledSceneView(self.buffers["./notes/part"], "Times 12")
+        self.scenelist = ScrolledSceneList(self.buffers["./body/part"], self.draftview)
 
         self.pane = Gtk.Paned()
         self.pane.add2(self.create_view())
@@ -298,13 +312,56 @@ class DocView(DocPage):
 
         #self.draftview.grab_focus()
 
-    def set_buffer(self, content):
-        def onBufModified(self, buf):
-            if buf.get_modified(): self.set_dirty()
+    #--------------------------------------------------------------------------
+    # Buffers to XML tree. TODO: This does not work with multi-part bodies.
+    #--------------------------------------------------------------------------
+    
+    def buffers_revert(self):
+        for key, buf in self.buffers.items():
+            print(key)
+            child = self.doc.root.find(key)
+            if type(buf) is SceneBuffer:
+                buf.revert(child)
+                buf.set_modified(False)
+            elif type(buf) is Gtk.EntryBuffer:
+                text = child.text
+                if text is None: text = ""
+                buf.set_text(text, -1)
+            else: ERROR("Unknown buffer type: %s", type(buf))
 
-        buf = SceneBuffer(content)
-        buf.connect("modified-changed", lambda buf: onBufModified(self, buf))
-        return buf
+        self.set_dirty(False)
+
+    def buffers_store(self):
+        for key, buf in self.buffers.items():
+            child = self.doc.root.find(key)
+            if type(buf) is SceneBuffer:
+                parent = self.doc.root.find(key + "/..")
+                parent.remove(child)
+                parent.append(buf.to_mawe()) 
+            elif type(buf) is Gtk.EntryBuffer:
+                child.text = buf.get_text()
+            else: ERROR("Unknown buffer type: %s", type(buf))
+
+        self.set_dirty(False)
+
+    def buffers_connect(self):
+        for key, buf in self.buffers.items():
+            if type(buf) is SceneBuffer:
+
+                def modified1(self, buf): buf.get_modified() and self.set_dirty()
+
+                buf.connect("modified-changed", lambda buf: modified1(self, buf))
+
+            elif type(buf) is Gtk.EntryBuffer:
+
+                def modified2(self, buf, key):
+                    self.set_dirty()
+                    if key == "./body/head/title": self.set_name(buf.get_text())
+
+                buf.connect("deleted-text", lambda e, pos, n: modified2(self, e, key))
+                buf.connect("inserted-text", lambda e, pos, t, n: modified2(self, e, key))
+
+            else: ERROR("Unknown buffer type: %s", type(buf))
 
     #--------------------------------------------------------------------------
 
@@ -343,8 +400,10 @@ class DocView(DocPage):
     #--------------------------------------------------------------------------
 
     def set_name(self, text = None):
-        if text: self.doc.find("./body/head/title").text = text
-        super(DocView, self).set_name((self.get_dirty() and "*" or "") + self.doc.name)
+        if text is None: text = self.buffers["./body/head/title"].get_text()
+        # TODO: Title is updated only when having here this print
+        print(text)
+        super(DocView, self).set_name((self.get_dirty() and "*" or "") + text)
 
     def get_dirty(self): return self.dirty
 
@@ -354,13 +413,13 @@ class DocView(DocPage):
             self.set_name()
 
     #--------------------------------------------------------------------------
-    # Saving
+    # Saving. TODO: Warn if file was deleted?
     #--------------------------------------------------------------------------
 
     def can_close(self):
         if self.get_dirty():
             answer = dialog.SaveOrDiscard(self,
-                "'%s' not saved. Save or discard changes?" % self.doc.name
+                "'%s' not saved. Save or discard changes?" % self.buffers["./body/head/title"].get_text()
             )
             if answer == Gtk.ResponseType.CANCEL: return False
             if answer == Gtk.ResponseType.YES:
@@ -385,26 +444,13 @@ class DocView(DocPage):
     def _save(self, filename):
         print("Saving as:", filename)
 
-        root = self.doc.root
-
-        body = root.find("./body")
-        body.remove(body.find("part"))
-        body.append(self.draftbuf.to_mawe())
-
-        notes = root.find("./notes")
-        notes.remove(notes.find("part"))
-        notes.append(self.notesbuf.to_mawe())
-
+        self.buffers_store()
         self.doc.save(filename)
 
         #self.draftbuf.revert(draft)
         
         #from project.Document import ET
         #ET.dump(draft)
-
-        self.set_dirty(False)
-        self.draftbuf.set_modified(False)
-        self.notesbuf.set_modified(False)
 
         self.folderbtn.enable()
 
@@ -415,26 +461,38 @@ class DocView(DocPage):
                 "Do you want to continue?"
             )
             if answer != Gtk.ResponseType.YES: return
-        self.draftbuf.revert(self.doc.root.find("./body/part"))
-        self.notesbuf.revert(self.doc.root.find("./notes/part"))
-        self.set_dirty(False)
+
+        self.buffers_revert()
 
     #--------------------------------------------------------------------------
 
     def create_view(self):
 
+        #----------------------------------------------------------------------
+        
         def titleeditor():
-            titleedit = Gtk.Frame()
-            #titleedit.set_label("Edit title")
-            titleedit.set_shadow_type(Gtk.ShadowType.IN)
-            titleedit.set_border_width(1)
-            titleedit.add(Label("Title"))
-            return titleedit, getHideControl(
+        
+            def Edit(key): return Gtk.Entry(buffer = self.buffers[key])
+            
+            grid = Grid(
+                (Label("Title"), Edit("./body/head/title")),
+                (Label("Subtitle"), Edit("./body/head/subtitle")),
+                [(HSeparator(), 2, 1)],
+                (Label("Author"), Edit("./body/head/author")),
+                column_spacing = 10,
+                row_spacing = 2,
+                expand_column = 1,
+            )
+            frame = Gtk.Frame(name = "embeddeddialog")
+            frame.add(grid)
+            return frame, HideControl(
                 "Title",
-                titleedit,
+                frame,
                 tooltip_text = "Edit story header info"
             )
 
+        #----------------------------------------------------------------------
+        
         def exportsettings():
             # Add backcover text here. Remember to store it, too.
             titleedit = Gtk.Frame()
@@ -442,60 +500,25 @@ class DocView(DocPage):
             titleedit.set_shadow_type(Gtk.ShadowType.IN)
             titleedit.set_border_width(1)
             titleedit.add(Label("Export"))
-            return titleedit, getHideControl("Export", titleedit)
+            return titleedit, HideControl("Export", titleedit)
 
-        def bottombar():
-            box = Boxed(
-                HBox(),
-                Button("..."),
-                (Label(""), Gtk.PackType.START, True, 2),
-                (self.draftbuf.stats.words, Gtk.PackType.START, False, 2),
-                (self.draftbuf.stats.chars, Gtk.PackType.START, False, 4)
-            )
-            return box
-
+        #----------------------------------------------------------------------
+        
         def topbar():
-            box = HBox()
-
-            dialogs = VBox()
-            dialogs.pack_start(box, False, False, 0)
-
-            titleedit,  titleswitch  = titleeditor()
-            exportview, exportswitch = exportsettings()
-
-            dialogs.pack_start(titleedit,  False, False, 0)
-            dialogs.pack_start(exportview, False, False, 0)
 
             selectnotes = ToggleButton("Notes")
 
             def switchBuffer(self, widget):
-                if not widget.get_active():
-                    self.draftview.set_buffer(self.draftbuf)
-                    self.scenelist.set_buffer(self.draftbuf)
-                else:
-                    self.draftview.set_buffer(self.notesbuf)
-                    self.scenelist.set_buffer(self.notesbuf)
+                pass
+                # TODO: Fix
+                #if not widget.get_active():
+                #    self.draftview.set_buffer(self.draftbuf)
+                #    self.scenelist.set_buffer(self.draftbuf)
+                #else:
+                #    self.draftview.set_buffer(self.notesbuf)
+                #    self.scenelist.set_buffer(self.notesbuf)
 
             selectnotes = ToggleButton("Notes", onclick = lambda w: switchBuffer(self, w))
-
-            # Menu items. REMEMBER! We can use left side, too, for example for exporting,
-            # history entries and so on!
-            # - Export
-            # - Open containing folder
-            # - Save
-            # - Save as
-            # - Revert
-            # - Close
-
-            box.pack_start(IconButton("open-menu-symbolic", "Open menu"), False, False, 1)
-            box.pack_start(titleswitch, False, False, 1)
-            box.pack_start(exportswitch, False, False, 0)
-            #box.pack_start(VSeparator(), False, False, 2)
-            #box.pack_start(Button("Save"), False, False, 0)
-            box.pack_start(Button("Revert", onclick = lambda w: self.ui_revert()), False, False, 0)
-            box.pack_start(VSeparator(), False, False, 2)
-
-            box.pack_start(Label(""), True, True, 0)
 
             self.folderbtn = Button(
                 "Folder",
@@ -505,10 +528,49 @@ class DocView(DocPage):
             if self.doc.filename is None and self.doc.origin is None:
                 self.folderbtn.disable()
 
-            box.pack_start(self.folderbtn, False, False, 0)
-            box.pack_start(selectnotes, False, False, 0)
-            #box.pack_start(VSeparator(), False, False, 2)
+
+            # Menu items. REMEMBER! We can use left side, too, for example for exporting,
+            # history entries and so on!
+            # - Export
+            # - Open containing folder
+            # - Save
+            # - Save as
+            # - Revert
+            # - Close
+            
+            titleedit,  titleswitch  = titleeditor()
+            exportview, exportswitch = exportsettings()
+
+            toolbar = Boxed(HBox(),
+                IconButton("open-menu-symbolic", "Open menu"),
+                titleswitch,
+                selectnotes,
+                (VSeparator(), False, 2),
+
+                (Label(""), True),
+
+                (VSeparator(), False, 2),
+                exportswitch,
+                self.folderbtn,
+            )
+
+            dialogs = Boxed(VBox(),
+                toolbar,
+                titleedit,
+                exportview,
+            )
+
             return dialogs
+
+        def bottombar():
+
+            box = Boxed(HBox(),
+                Button("Revert", onclick = lambda w: self.ui_revert()),
+                (Label(""), True, 2),
+                (self.buffers["./body/part"].stats.words, False, 2),
+                (self.buffers["./body/part"].stats.chars, False, 4)
+            )
+            return box
 
         def view():
             text = self.draftview
@@ -520,10 +582,11 @@ class DocView(DocPage):
             text.set_shadow_type(Gtk.ShadowType.IN)
             return text
 
-        box = VBox()
-        box.pack_start(topbar(), False, False, 1)
-        box.pack_start(view(), True, True, 0)
-        box.pack_end(bottombar(), False, False, 0)
+        box = Boxed(VBox(),
+            topbar(),
+            (view(), True),
+            bottombar(),
+        )
         return box
 
     def create_index(self):
@@ -559,10 +622,11 @@ class DocView(DocPage):
 
         stack, switcher = DuoStack("Notes", scenelist(), notes())
 
-        box = VBox()
-        box.pack_start(topbar(switcher), False, False, 1)
-        box.pack_start(stack, True, True, 0)
-        box.pack_end(bottombar(), False, False, 0)
+        box = Boxed(VBox(),
+            topbar(switcher),
+            (stack, True),
+            bottombar(),
+        )
         return box
 
 ###############################################################################

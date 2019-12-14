@@ -3,9 +3,7 @@ MAWE
 
 MAWE - My Advanced Writer's Editor - written with Python.
 
-Mawe is a successor for Moe (https://github.com/mkoskim/moe).
-
-Moe itself is very usable editor for writers, and it has been my workhorse for years. Even that it handles certain things better than e.g. Scrivener (in my opinion), it has certain drawbacks, which come from the very fundamental design principles.
+Mawe is a successor for Moe (https://github.com/mkoskim/moe). Moe itself is very usable editor for writers, and it has been my workhorse for years. Even that it handles certain things better than e.g. Scrivener (in my opinion), it has certain drawbacks from its fundamental design decisions.
 
 Mawe tries to fix the problems in moe by taking a different approach at very basic level.
 

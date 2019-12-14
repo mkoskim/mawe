@@ -50,10 +50,10 @@ class Document:
 
         self.tree = tree
         self.root = tree.getroot()
-        self.name = self.root.find("./body/head/title").text
-
+        
         # Inject comments
-        self.root.find("./body/head").insert(0, ET.Comment(Document.comment_head % self.name))
+        title = self.root.find("./body/head/title")
+        self.root.find("./body/head").insert(0, ET.Comment(Document.comment_head % title))
         self.root.find("./body/head").append(ET.Comment(Document.comment_hr))
         self.root.find("./body").append(ET.Comment(Document.comment_notes))
         self.root.find("./notes").append(ET.Comment(Document.comment_versions))
@@ -67,13 +67,18 @@ class Document:
         self.uuid = self.root.get("uuid")
 
     @staticmethod
-    def empty(name = None):
+    def empty(title = None):
         tree = ET.parse(os.path.join(os.path.dirname(__file__), "Empty.mawe"))
-        tree.find("./body/head/title").text = name
+        tree.find("./body/head/title").text = title
         return tree
 
     def __str__(self):
-        return "<Document %s @ %s>" % (self.name, self.filename)
+        return "<Document %s @ %s>" % (self.title, self.filename)
+
+    #def get_head(self, field):       return self.root.find("./body/head").find(field).text
+    #def set_head(self, field, text): self.root.find("./body/head").find(field).text = text
+
+    #title = property(lambda self: self.get_head("title"), lambda self, t: self.set_head("title", t))
 
     #--------------------------------------------------------------------------
     # Try to save in pretty format, it helps debugging possible problems. We

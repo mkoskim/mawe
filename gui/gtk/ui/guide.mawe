@@ -1,0 +1,60 @@
+<story format="mawe" uuid="4384909f-d7cd-4ef3-9686-45b694eff8a5">
+<body>
+<head>
+<!--/
+===============================================================================
+
+Story: help.txt
+
+===============================================================================
+/-->
+<title>help.txt</title>
+<!--/
+===============================================================================
+/-->
+</head>
+<!--/
+===============================================================================
+
+Notes
+
+===============================================================================
+/-->
+<part>
+<scene name="Mawe User's Guide">
+<p>Hotkeys:</p>
+<p>Alt-X - Fold/unfold current scene</p>
+<p>Alt-G - Select &amp; unfold current scene</p>
+<p>Alt-A + Alt-F - Fold all (current scene excluded)</p>
+<p>Alt-A + Alt-U - Unfold all</p>
+</scene>
+<scene name="Line tags">
+<p>Scenes: Create a scene by starting a line with '##'.</p>
+<br />
+<p>Comments:</p>
+<br />
+<comment>This is a comments</comment>
+<br />
+<p>Synopsis:</p>
+<br />
+<synopsis>This is a synopsis</synopsis>
+<br />
+<p>Missing:</p>
+<br />
+<missing>Am I missing something here? Point, maybe?</missing>
+</scene>
+</part>
+</body>
+<notes>
+<!--/
+===============================================================================
+
+Versions
+
+===============================================================================
+/-->
+<part>
+<scene name="" />
+</part>
+</notes>
+</story>
