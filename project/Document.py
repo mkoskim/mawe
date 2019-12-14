@@ -53,10 +53,9 @@ class Document:
         
         # Inject comments
         name = self.root.find("./body/head/title").text
-        self.root.find("./body/head").insert(0, ET.Comment(Document.comment_head % name))
+        self.root.find("./body").insert(0, ET.Comment(Document.comment_head % name))
         self.root.find("./body/head").append(ET.Comment(Document.comment_hr))
-        self.root.find("./body").append(ET.Comment(Document.comment_notes))
-        self.root.find("./notes").append(ET.Comment(Document.comment_versions))
+        self.root.find("./notes").insert(0, ET.Comment(Document.comment_notes))
 
         # If doc does not yet have UUID, generate one: docs converted
         # from other formats lack one.

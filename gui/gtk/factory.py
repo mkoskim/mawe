@@ -1,10 +1,28 @@
 ###############################################################################
 #
-# Some overrides
+# Factory functions, derived Gtk objects and so on.
 #
 ###############################################################################
 
-from gui.gtk import (Gtk, Gdk, Gio)
+from gui.gtk import (Gtk, Gdk, Gio, GObject)
+
+#------------------------------------------------------------------------------
+
+class EntryBuffer(Gtk.EntryBuffer):
+
+    __gsignals__ = {
+        "changed" : (GObject.SIGNAL_RUN_LAST, None, ()),
+    }
+
+    def __init__(self, key = None):
+        super(EntryBuffer, self).__init__()
+
+        self.key = key
+        self.connect("deleted-text",  lambda e, pos, n: e.emit("changed"))
+        self.connect("inserted-text", lambda e, pos, t, n: e.emit("changed"))
+
+
+#------------------------------------------------------------------------------
 
 class Button(Gtk.Button):
 
@@ -45,31 +63,26 @@ class Button(Gtk.Button):
     def enable(self):
         self.set_sensitive(True)
         
-class StockButton(Button):
+def StockButton(label, **kwargs):
+    kwargs["use_stock"] = True
+    btn = Button(label, **kwargs)
+    btn.set_always_show_image(True)
+    return btn
 
-    def __init__(self, label, **kwargs):
-        if "visible" not in kwargs: kwargs["visible"] = True
-        kwargs["use_stock"] = True
-        super(StockButton, self).__init__(label, **kwargs)
-        self.set_always_show_image(True)
+def IconButton(icon, tooltip, **kwargs):
+    return Button(None, icon = icon, tooltip_text = tooltip, **kwargs)
 
-class IconButton(Button):
+def MenuButton(label, **kwargs):
+    if "visible" not in kwargs: kwargs["visible"] = True
+    btn = Gtk.MenuButton(label, **kwargs)
 
-    def __init__(self, icon, tooltip, **kwargs):
-        super(IconButton, self).__init__(None, icon = icon, tooltip_text = tooltip, **kwargs)
+    if label:
+        btn.set_image(Button.icon2image("pan-down-symbolic"))
+        btn.set_image_position(Gtk.PositionType.RIGHT)
 
-class MenuButton(Gtk.MenuButton):
-
-    def __init__(self, label, **kwargs):
-        if "visible" not in kwargs: kwargs["visible"] = True
-        super(MenuButton, self).__init__(label, **kwargs)
-
-        if label:
-            self.set_image(Button.icon2image("pan-down-symbolic"))
-            self.set_image_position(Gtk.PositionType.RIGHT)
-
-        self.set_relief(Gtk.ReliefStyle.NONE)
-        self.set_always_show_image(True)
+    btn.set_relief(Gtk.ReliefStyle.NONE)
+    btn.set_always_show_image(True)
+    return btn
 
 class ToggleButton(Gtk.ToggleButton):
 
@@ -98,24 +111,7 @@ class RadioButton(Gtk.RadioButton):
 
 #------------------------------------------------------------------------------
 
-class Box(Gtk.Box):
-
-    def __init__(self, **kwargs):
-        super(Box, self).__init__(**kwargs)
-
-class HBox(Gtk.HBox):
-
-    def __init__(self, **kwargs):
-        super(HBox, self).__init__(**kwargs)
-
-class VBox(Gtk.VBox):
-
-    def __init__(self, **kwargs):
-        super(VBox, self).__init__(**kwargs)
-
-#------------------------------------------------------------------------------
-
-def Boxed(box, *widgets):
+def _Boxed(box, *widgets):
     for widget in widgets:
         packtype, expand, pad = Gtk.PackType.START, False, 0
         
@@ -132,6 +128,9 @@ def Boxed(box, *widgets):
         else:
           box.pack_end(widget, expand, expand, pad)
     return box
+
+def HBox(*widgets, **kwargs): return _Boxed(Gtk.HBox(**kwargs), *widgets)
+def VBox(*widgets, **kwargs): return _Boxed(Gtk.VBox(**kwargs), *widgets)
 
 def Grid(*widgets, **kwargs):
     grid = Gtk.Grid()

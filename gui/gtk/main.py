@@ -42,23 +42,17 @@ class DocNotebook(Gtk.Notebook):
         self.openbtn = StockButton("gtk-open", onclick = lambda w: self.ui_open())
         self.openbtn.set_property("tooltip_text", "Open document")
 
-        start = Box(visible = True)
-        #start.pack_start(MenuButton("<Workset>"), False, False, 0)
-        #start.pack_start(newbtn, False, False, 1)
-        start.pack_start(IconButton("open-menu-symbolic", "Open menu"), False, False, 0)
-        # Menu items
-        # - Preferences
-        # - Save all
-        # - Close all
-        # - Quit
-        start.pack_start(self.openbtn, False, False, 1)
-        start.pack_start(StockButton("gtk-help", onclick = lambda w: self.ui_help()), False, False, 0)
+        start = HBox(
+            IconButton("open-menu-symbolic", "Open menu"),
+            (self.openbtn, False, 1),
+            StockButton("gtk-help", onclick = lambda w: self.ui_help()),
+            visible = True,
+        )
+
+        end = HBox(visible = True)
 
         self.set_action_widget(start, Gtk.PackType.START)
-
-        end = Box(visible = True)
         self.set_action_widget(end, Gtk.PackType.END)
-
         self.connect_after("switch-page", self.onSwitchPage)
 
     def get_current_child(self):
@@ -68,16 +62,15 @@ class DocNotebook(Gtk.Notebook):
         return child
 
     def add_page(self, child, prepend = False):
-        label = HBox()
-        label.pack_start(child.tablabel, True, False, 4)
-        label.pack_start(Button(
-            icon = "window-close-symbolic",
-            name = "round-btn",
-            tooltip_text = "Close document",
-            image_position = Gtk.PositionType.RIGHT,
-            onclick = lambda w: self.ui_close(child),
+        label = HBox(
+            (child.tablabel, True, 4),
+            Button(
+                icon = "window-close-symbolic",
+                name = "round-btn",
+                tooltip_text = "Close document",
+                image_position = Gtk.PositionType.RIGHT,
+                onclick = lambda w: self.ui_close(child),
             ),
-            False, False, 0
         )
 
         if prepend:
@@ -238,13 +231,15 @@ class OpenView(DocPage):
         stack.add_titled(chooser, "files", "Files")
         stack.add_titled(manager, "projects", "Projects")
 
-        toolbar = HBox()
-        toolbar.pack_start(StackSwitcher(stack), False, False, 1)
-        toolbar.pack_start(StockButton("gtk-new", onclick = self.onNew), False, False, 1)
+        toolbar = HBox(
+            (StackSwitcher(stack), False, 1),
+            (StockButton("gtk-new", onclick = self.onNew), False, 1),
+        )
 
-        box = VBox()
-        box.pack_start(toolbar, False, False, 1)
-        box.pack_start(stack, True, True, 1)
+        box = VBox(
+            (toolbar, False, 1),
+            (stack, True, 1),
+        )
         self.add(box)
         self.show_all()
 
@@ -266,20 +261,6 @@ class OpenView(DocPage):
 # Document view
 #
 ###############################################################################
-
-class EntryBuffer(Gtk.EntryBuffer):
-
-    __gsignals__ = {
-        "changed" : (GObject.SIGNAL_RUN_LAST, None, ()),
-    }
-
-    def __init__(self, key = None):
-        super(EntryBuffer, self).__init__()
-
-        self.key = key
-        self.connect("deleted-text",  lambda e, pos, n: e.emit("changed"))
-        self.connect("inserted-text", lambda e, pos, t, n: e.emit("changed"))
-
 
 class DocView(DocPage):
 
@@ -551,7 +532,7 @@ class DocView(DocPage):
             titleedit,  titleswitch  = titleeditor()
             exportview, exportswitch = exportsettings()
 
-            toolbar = Boxed(HBox(),
+            toolbar = HBox(
                 IconButton("open-menu-symbolic", "Open menu"),
                 titleswitch,
                 selectnotes,
@@ -564,23 +545,19 @@ class DocView(DocPage):
                 self.folderbtn,
             )
 
-            dialogs = Boxed(VBox(),
+            return VBox(
                 toolbar,
                 titleedit,
                 exportview,
             )
 
-            return dialogs
-
         def bottombar():
-
-            box = Boxed(HBox(),
+            return HBox(
                 Button("Revert", onclick = lambda w: self.ui_revert()),
                 (Label(""), True, 2),
                 (self.buffers["./body/part"].stats.words, False, 2),
                 (self.buffers["./body/part"].stats.chars, False, 4)
             )
-            return box
 
         def view():
             text = self.draftview
@@ -592,27 +569,26 @@ class DocView(DocPage):
             text.set_shadow_type(Gtk.ShadowType.IN)
             return text
 
-        box = Boxed(VBox(),
+        return VBox(
             topbar(),
             (view(), True),
             bottombar(),
         )
-        return box
 
     def create_index(self):
 
         def topbar(switcher):
-            box = HBox()
-            box.pack_start(switcher, False, False, 1)
-            return box
+            return HBox(
+                (switcher, False, 1),
+            )
 
         def scenelist():
-            box = VBox()
-            #box.pack_start(toolbar(), False, False, 0)
-            box.pack_start(self.scenelist, True, True, 0)
             self.scenelist.set_border_width(1)
             self.scenelist.set_shadow_type(Gtk.ShadowType.IN)
-            return box
+            return self.scenelist
+            #return VBox(
+            #    (self.scenelist, True ),
+            #)
 
         def notes():
             text = self.notesview
@@ -626,18 +602,17 @@ class DocView(DocPage):
             return text
 
         def bottombar():
-            box = HBox()
-            box.pack_start(Button("..."), False, False, 0)
-            return box
+            return HBox(
+                Button("..."),
+            )
 
         stack, switcher = DuoStack("Notes", scenelist(), notes())
 
-        box = Boxed(VBox(),
+        return VBox(
             topbar(switcher),
             (stack, True),
             bottombar(),
         )
-        return box
 
 ###############################################################################
 #
