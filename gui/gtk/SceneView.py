@@ -153,19 +153,21 @@ class SceneView(GtkSource.View):
             return True
 
         self._parse_keys({
-            "<Ctrl>z": undo,
-            "<Ctrl><Shift>z": redo,
+            "<Ctrl>Z": undo,
+            "<Ctrl><Shift>Z": redo,
             
-            "<Alt>a": self.fold_all,
-            "<Alt>s": self.unfold_all,
-            "<Alt>f": self.toggle_fold,
-            "<Alt>x": self.select_and_fold,
+            "<Alt>A": {
+                "<Alt>A": self.fold_all,
+                "<Alt>S": self.unfold_all,
+            },
+            "<Alt>F": self.toggle_fold,
+            "<Alt>X": self.select_and_fold,
             
             #"<Alt>a": {
             #    "<Alt>f": self.fold_all,
             #    "<Alt>u": self.unfold_all,
             #},
-            "<Alt>l": self.lorem,
+            "<Alt>L": self.lorem,
             #"<Alt>c": self.toggle_comment,
             #"<Alt>x": self.toggle_fold,
             

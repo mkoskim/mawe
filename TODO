@@ -2,10 +2,6 @@ FEATURES needed to start using the editor in daily work:
 
 - Remember opened files
 
-- Project manager: It is first enough to have mawe files in moe project
-  manager. But for workspaces and tabbed editing, we need built-in project
-  manager.
-
 - Project search path
 
 - File export: RTF, tex (for texifier)
@@ -15,6 +11,8 @@ FEATURES needed to start using the editor in daily work:
 -------------------------------------------------------------------------------
 
 Other features:
+
+- File open: Recursive file search like in nautilus
 
 - File open: Add recent files
   
@@ -149,4 +147,8 @@ DONE:
   restarts. Not Done: Make it default to home directory - os.path does not
   regocnize "~", so it defaults to cwd().
   
+- DONE: Project manager: It is first enough to have mawe files in moe project
+  manager. But for workspaces and tabbed editing, we need built-in project
+  manager.
+
 

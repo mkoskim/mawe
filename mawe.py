@@ -25,28 +25,20 @@ parser = argparse.ArgumentParser(
     description = "MAWE Advanced Writer's Editor"
 )
 
-parser.add_argument(
-    "file", help="File or folder", 
-    type=str, nargs="*"
-)
+parser.add_argument("file", help="File or folder", type=str, nargs="*")
+parser.add_argument("--new", help="Open new document", action="store_true")
 
 args = parser.parse_args()
 
-#------------------------------------------------------------------------------
-# NOTE: At startup, first load files (command line or config), then start
-# scanning directories at background.
 #------------------------------------------------------------------------------
 
 import project
 
 workset = project.Manager.mount(*args.file)
 
-#print(str(doc))
-#doc.saveas("local/test.xml")
-
 #------------------------------------------------------------------------------
 
 import gui
 
-gui.run(workset)
+gui.run(workset, new = args.new)
 

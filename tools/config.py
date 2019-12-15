@@ -21,7 +21,7 @@ defaults = {
     }
 }
 
-filename = "local/mawe.json"
+filename = os.path.join(os.path.dirname(__file__), "../local/mawe.json")
 
 #------------------------------------------------------------------------------
 

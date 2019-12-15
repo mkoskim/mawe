@@ -77,9 +77,10 @@ class Document:
         return ET.SubElement(parent, path[-1])
 
     def replace(self, key, elem):
+        path = key.split("/")
+        parent = self.root.find("/".join(path[:-1]))
         child  = self.root.find(key)
-        parent = self.root.find(key + "/..")
-        parent.remove(child)
+        if child: parent.remove(child)
         return parent.append(elem)
 
     def __str__(self):

@@ -11,12 +11,13 @@ from tools import *
 from gui.gtk.factory import *
 import project
 import os
+from project.Document import ET
 
 #------------------------------------------------------------------------------
 
-def run(workset = None):
+def run(workset = None, new = False):
 
-    MainWindow(workset).show_all()
+    MainWindow(workset, new = new).show_all()
 
     import signal
     signal.signal(signal.SIGINT, signal.SIG_DFL)
@@ -122,6 +123,11 @@ class DocNotebook(Gtk.Notebook):
         child = self.get_current_child()
         if type(child) is DocView:
             child.ui_save()
+
+    def ui_revert(self):
+        child = self.get_current_child()
+        if type(child) is DocView:
+            child.ui_revert()
 
     def ui_close(self, child = None):
         if child is None: child = self.get_current_child();
@@ -233,6 +239,7 @@ class OpenView(DocPage):
 
         toolbar = HBox(
             (StackSwitcher(stack), False, 1),
+            Button("Recent"),
             (StockButton("gtk-new", onclick = self.onNew), False, 1),
         )
 
@@ -342,9 +349,9 @@ class DocView(DocPage):
         for key, buf in self.buffers.items():
             if type(buf) is SceneBuffer:
 
-                def modified1(self, buf): buf.get_modified() and self.set_dirty()
+                def modified1(self, buf): self.set_dirty()
 
-                buf.connect("modified-changed", lambda buf: modified1(self, buf))
+                buf.connect("changed", lambda buf: modified1(self, buf))
 
             elif type(buf) is EntryBuffer:
 
@@ -436,6 +443,13 @@ class DocView(DocPage):
         #print("Saving as:", filename)
 
         self.buffers_store()
+        
+        buf = self.buffers["./body/part"]
+
+        words = ET.Element("words")
+        words.text = str(buf.wordcount(*buf.get_bounds())[0])
+        self.doc.replace("./body/head/words", words)
+
         self.doc.save(filename)
 
         #self.draftbuf.revert(draft)
@@ -630,7 +644,7 @@ def add_shortcuts(widget, table):
 
 class MainWindow(Gtk.Window):
 
-    def __init__(self, workset):
+    def __init__(self, workset, new = False):
         super(MainWindow, self).__init__()
 
         self.style   = Gtk.CssProvider()
@@ -653,6 +667,8 @@ class MainWindow(Gtk.Window):
             ("<Ctrl>O", lambda *a: self.docs.ui_open()),
             ("<Ctrl>S", lambda *a: self.docs.ui_save()),
             ("<Ctrl>W", lambda *a: self.docs.ui_close()),
+            
+            ("<Alt>R",  lambda *a: self.docs.ui_revert()),
 
             ("F1", lambda *a: self.docs.ui_help()),
         ])
@@ -674,7 +690,9 @@ class MainWindow(Gtk.Window):
         elif len(project.Manager.projects):
             self.docs.ui_open()
         else:
-            self.docs.ui_new()
+            new = True
+            
+        if new: self.docs.ui_new()
 
     def onDelete(self, widget):
 

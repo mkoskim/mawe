@@ -37,6 +37,7 @@ class SceneBuffer(GtkSource.Buffer):
         # Span tags
         self.create_tag("bold",   weight = Pango.Weight.BOLD)
         self.create_tag("italic", style  = Pango.Style.ITALIC)
+        self.create_tag("pre",    background = "#DDD")
 
         # Block tags
         self.create_tag("indent", indent = 30)
@@ -101,7 +102,7 @@ class SceneBuffer(GtkSource.Buffer):
         self.tag_reapplied = [
             self.tag_scenehdr, self.tag_scenefolded,
             "comment", "synopsis", "missing",
-            "bold", "italic",
+            "bold", "italic", "pre",
         ]
 
     #--------------------------------------------------------------------------
@@ -264,6 +265,7 @@ class SceneBuffer(GtkSource.Buffer):
 
     re_bold   = re.compile(r"(\*[^\*\s]\*)|(\*[^\*\s][^\*]*\*)")
     re_italic = re.compile(r"(\_[^\_\s]\_)|(\_[^\_\s][^\_]*\_)")
+    re_pre    = re.compile(r"\[[^\]]*\]")
 
     block_styles = {
         "<<": "synopsis",
@@ -293,6 +295,7 @@ class SceneBuffer(GtkSource.Buffer):
 
         set_tags("bold",   SceneBuffer.re_bold)
         set_tags("italic", SceneBuffer.re_italic)
+        set_tags("pre",    SceneBuffer.re_pre)
 
     #--------------------------------------------------------------------------
     # Iterators for scene marks
