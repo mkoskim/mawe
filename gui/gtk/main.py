@@ -290,6 +290,7 @@ class OpenView(DocPage):
         switcher = StackSwitcher(stack)
         stack.add_titled(manager, "projects", "Projects")
         stack.add_titled(chooser, "files", "Files")
+        self.stack = stack
 
         toolbar = HBox(
             (switcher, False, 1),
@@ -302,14 +303,12 @@ class OpenView(DocPage):
             (stack, True, 1),
         )
         self.add(box)
-        self.show_all()
 
         if len(project.Manager.projects):
             stack.set_visible_child_name("projects")
         else:
             stack.set_visible_child_name("files")
 
-        self.stack = stack
 
     def onNew(self, widget):
         self.notebook.ui_new()

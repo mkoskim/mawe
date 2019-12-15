@@ -48,17 +48,12 @@ class ProjectList(Gtk.TreeView):
         column = Gtk.TreeViewColumn("Deadline", renderer, text = 3)
         self.append_column(column)
 
-        renderer = Gtk.CellRendererText()
-        column = Gtk.TreeViewColumn("Year", renderer, text = 4)
-        self.append_column(column)
-
         column = Gtk.TreeViewColumn("Words")
         self.append_column(column)
 
         renderer = Gtk.CellRendererText()
         renderer.set_alignment(1.0, 0.5)
         column.pack_start(renderer, False)
-        #column.add_attribute(renderer, 'text', 4)
         column.set_cell_data_func(renderer, dfZeroAsMinus, 5)
 
         renderer = Gtk.CellRendererText()
@@ -72,6 +67,10 @@ class ProjectList(Gtk.TreeView):
         renderer.set_property("foreground", "red")
         column.pack_start(renderer, False)
         column.set_cell_data_func(renderer, dfNonZeros, 7)
+
+        renderer = Gtk.CellRendererText()
+        column = Gtk.TreeViewColumn("Year", renderer, text = 4)
+        self.append_column(column)
 
         renderer = Gtk.CellRendererText()
         column = Gtk.TreeViewColumn("Editor", renderer, text = 8)
@@ -116,8 +115,8 @@ class ProjectView(Gtk.Frame):
         
     def refresh(self):
         searchdir = config["ProjectDir"]
-        Manager.mount(searchdir)
-
+        Manager._scan(searchdir)
+        
         self.store.clear()
         for path, doc in Manager.projects.items():
             self.store.append([
@@ -127,5 +126,4 @@ class ProjectView(Gtk.Frame):
                 doc.words[0], doc.words[1], doc.words[2],
                 doc.editor, os.path.relpath(path, searchdir),
             ])
-
 

@@ -35,8 +35,7 @@ def mount(*files):
     for filename in files:
         if os.path.isdir(filename):
             config["ProjectDir"] = filename
-            projects = {}
-            _scan(filename)
+            #_scan(filename)
         elif os.path.isfile(filename):
             requested.append(os.path.abspath(filename))
         elif not filename:
@@ -52,6 +51,8 @@ def _scan(drive):
     drive = os.path.abspath(drive)
     print("Scanning:", drive)
     
+    global projects
+    projects = {}
     scanned = []
     links   = []
     

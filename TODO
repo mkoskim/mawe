@@ -8,14 +8,14 @@ FEATURES needed to start using the editor in daily work:
 
 Other features:
 
-- Refresh does not update word count in project manager???
+- PM: Add context menu to open folder and with text editor.
+
+- FIX: Scroll to mark after unfold does not work.
 
 - Sticky pages? So that you could create your own checklists and such.
 
 - Author and nickname could be behind radiobuttons, so that you can quickly
   switch between them.
-
-- FIX: Scroll to mark after unfold does not work.
 
 - File open: Recursive file search like in nautilus
 
@@ -25,7 +25,7 @@ Other features:
   make a new file, you first press New and then save it to correct
   folder with wanted name.
 
-- When starting Mawe first time (no config yet), make it open help doc
+- When starting Mawe first time (no config yet), make it open user's guide.
 
 - Let user choose what tab to open on startup (where I left, open file,
   new, project manager)
@@ -61,6 +61,8 @@ Other features:
 - A synopsis editor would be cool, I think. I already sketched it with
   moe, but it has been underused.
 
+- Packed format: .mawe.gz - use gzip module to pack and unpack.
+
 -------------------------------------------------------------------------------
 
 QUIRKS, FIX:
@@ -90,11 +92,6 @@ QUIRKS, FIX:
 -------------------------------------------------------------------------------
 
 TODO:
-
-- When we have loaded a moe file, it would be good if mawe would suggest
-  to save it to same direction with .mawe extension. At least it could start
-  from that directory. Lets make it so, that "Save" works as "Save as" if
-  the file does not exist yet.
 
 - Move listview's selected row when moving around the text
 
@@ -141,4 +138,12 @@ DONE:
 
 - DONE: Save list of open tabs for restoring: remember check errors
 
+- DONE: FIX: We now scan directory twice at start up
+
+- DONE: FIX: Refresh does not update word count in project manager???
+
+- DONE: When we have loaded a moe file, it would be good if mawe would suggest
+  to save it to same direction with .mawe extension. At least it could start
+  from that directory. Lets make it so, that "Save" works as "Save as" if
+  the file does not exist yet.
 
