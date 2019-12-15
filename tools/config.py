@@ -18,6 +18,9 @@ defaults = {
     },
     "OpenView": {
         "Directory": os.getcwd(),
+    },
+    "DocNotebook": {
+        "Files": []
     }
 }
 
@@ -46,8 +49,10 @@ def config_save():
 def _migrate(config):
     global defaults
 
-    if "OpenView" not in config:
-        config["OpenView"] = defaults["OpenView"]
+    def get_default(key): config[key] = defaults[key]
+
+    if "OpenView" not in config:    get_default("OpenView")
+    if "DocNotebook" not in config: get_default("DocNotebook")
     return config
 
 #------------------------------------------------------------------------------

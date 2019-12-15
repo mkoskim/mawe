@@ -117,7 +117,7 @@ class Moe(Base):
                 return ET.SubElement(mawe.find("./notes/part"), "scene")
 
         def get_visible(element, visible):
-            if not visible is False: return element.get("included") == "True"
+            if visible: return element.get("included") == "True"
             return False
         
         def lines2tags(scene, tag, *elements):
@@ -129,7 +129,7 @@ class Moe(Base):
                 for line in text.split("\n"):
                     ET.SubElement(scene, tag).text = line
 
-        def parsescene(element, visible = None):
+        def parsescene(element, visible = True):
             visible = get_visible(element, visible)
             scene   = create_scene(element, visible)
             scene.set("name", "%s" % element.find("./name").text)
@@ -145,7 +145,7 @@ class Moe(Base):
             )
             lines2tags(scene, "p", *element.findall("content"))
 
-        def parsegroup(element, visible = None):
+        def parsegroup(element, visible = True):
             visible = get_visible(element, visible)
             scene   = create_scene(element, visible)
             
@@ -162,8 +162,8 @@ class Moe(Base):
             )
 
             for child in list(element.find("childs")):
-                if   child.tag == "SceneItem": parsescene(child)
-                elif child.tag == "GroupItem": parsegroup(child)
+                if   child.tag == "SceneItem": parsescene(child, visible)
+                elif child.tag == "GroupItem": parsegroup(child, visible)
                 else: log("%s<group>: Unknown child '%s'" % (self.fullname, child.tag))
         
         def parsetitle(element):

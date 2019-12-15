@@ -1,8 +1,8 @@
 FEATURES needed to start using the editor in daily work:
 
-- Remember opened files
-
 - Project search path
+
+- Integrated project manager
 
 - File export: RTF, tex (for texifier)
 
@@ -11,6 +11,8 @@ FEATURES needed to start using the editor in daily work:
 -------------------------------------------------------------------------------
 
 Other features:
+
+- Sticky pages? So that you could create your own checklists and such.
 
 - Author and nickname could be behind radiobuttons, so that you can quickly
   switch between them.
@@ -158,5 +160,7 @@ DONE:
 - DONE: Project manager: It is first enough to have mawe files in moe project
   manager. But for workspaces and tabbed editing, we need built-in project
   manager.
+
+- DONE: Remember opened files
 
 

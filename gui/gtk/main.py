@@ -16,7 +16,7 @@ from project.Document import ET
 #------------------------------------------------------------------------------
 
 def run(workset = None, new = False):
-
+    global mainwindow
     MainWindow(workset, new = new).show_all()
 
     import signal
@@ -56,12 +56,37 @@ class DocNotebook(Gtk.Notebook):
         self.set_action_widget(end, Gtk.PackType.END)
         self.connect_after("switch-page", self.onSwitchPage)
 
+    #--------------------------------------------------------------------------
+    
+    def listfiles(self):
+        files = []
+        for pagenum in range(self.get_n_pages()):
+            child = self.get_nth_page(pagenum)
+            if not type(child) is DocView: continue
+            if child.doc.origin: files.append(child.doc.origin)
+        return files
+
+    def findpage(self, filename):
+        if filename is None: return None
+        for pagenum in range(self.get_n_pages()):
+            child = self.get_nth_page(pagenum)
+            if not type(child) is DocView: continue
+            if child.doc.origin == filename: return pagenum
+        return None
+        
+    def findchild(self, filename):
+        pagenum = self.findpage(filename)
+        if not pagenum is None: return self.get_nth_page(pagenum)
+        return None
+    
     def get_current_child(self):
         page = self.get_current_page()
         child = self.get_nth_page(page)
         if child and not child.get_visible(): return None
         return child
 
+    #--------------------------------------------------------------------------
+    
     def add_page(self, child, prepend = False):
         label = HBox(
             (child.tablabel, True, 4),
@@ -88,15 +113,27 @@ class DocNotebook(Gtk.Notebook):
         return page
 
     def add(self, doc):
-        self.add_page(DocView(self, doc))
+        if type(doc) is str:
+            filename = doc
+        else:
+            filename = doc.origin
+            
+        child = self.findchild(filename)
+        if child:
+            self.reorder_child(child, -1)
+            self.set_current_page(-1)
+        else:
+            if type(doc) is str:
+                doc = project.Project.open(filename).load()            
+            self.add_page(DocView(self, doc))
 
-    def can_close(self):
-        #print("Pages:", self.get_n_pages())
-        for i in range(self.get_n_pages()):
-            child = self.get_nth_page(i)
-            if not child.can_close(): return False
-        return True
-
+    def open_defaults(self, extras):
+        for filename in (config["DocNotebook"]["Files"] + extras):
+            self.add(filename)
+        print(self.listfiles())
+        
+    #--------------------------------------------------------------------------
+    
     def save_all(self):
         pass
 
@@ -104,7 +141,19 @@ class DocNotebook(Gtk.Notebook):
         pass
 
     def exit(self):
-        pass
+        filelist = []
+
+        for pagenum in range(self.get_n_pages()):
+            child = self.get_nth_page(pagenum)
+            if not child.can_close(): return False
+
+        config["DocNotebook"]["Files"] = self.listfiles()
+        
+        # Call onUnmap to get pane position updated
+        child = self.get_current_child()
+        if type(child) is DocView: child.onUnmap(child)
+        config["DocView"]["Pane"] = DocView.position
+        return True
 
     def ui_help(self):
         doc = project.Project.open(os.path.join(guidir, "ui/guide.mawe")).load()
@@ -685,8 +734,9 @@ class MainWindow(Gtk.Window):
 
         DocView.position = config["DocView"]["Pane"]
 
+        self.docs.open_defaults(workset)
         if workset:
-            for p in workset: self.docs.add(p.load())
+            pass
         elif len(project.Manager.projects):
             self.docs.ui_open()
         else:
@@ -694,9 +744,11 @@ class MainWindow(Gtk.Window):
             
         if new: self.docs.ui_new()
 
+    #--------------------------------------------------------------------------
+    
     def onDelete(self, widget):
 
-        if not self.docs.can_close(): return True
+        if not self.docs.exit(): return True
 
         try:
             settings = config["Window"]
@@ -706,11 +758,6 @@ class MainWindow(Gtk.Window):
 
             pos = self.get_position()
             settings["Position"] = { "X": pos.root_x, "Y": pos.root_y }
-
-            # Call onUnmap to get pane position updated
-            child = self.docs.get_current_child()
-            if type(child) is DocView: child.onUnmap(child)
-            config["DocView"]["Pane"] = DocView.position
 
             config_save()
         except Exception:
