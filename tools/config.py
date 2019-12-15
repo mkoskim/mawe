@@ -21,6 +21,9 @@ defaults = {
     }
 }
 
+# This does not work for system wide installations, but for user-only
+# installations it is just fine.
+
 filename = os.path.join(os.path.dirname(__file__), "../local/mawe.json")
 
 #------------------------------------------------------------------------------

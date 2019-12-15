@@ -70,7 +70,7 @@ class SceneList(Gtk.TreeView):
         at = self.buffer.get_iter_at_mark(mark)
         self.buffer.place_cursor(at)
         if self.view:
-            self.view.scroll_to_mark(mark, 0.40, True, 0.5, 0.5)
+            self.view.scroll_to_mark(mark)
             self.view.grab_focus()
 
 ###############################################################################        
@@ -89,9 +89,14 @@ class ScrolledSceneView(Gtk.ScrolledWindow):
 
     def get_buffer(self): return self.view.get_buffer()
     def set_buffer(self, buffer): return self.view.set_buffer(buffer)
-    def scroll_to_mark(self, mark, within, use_align, xalign, yalign):
+
+    def scroll_to_mark(self, mark = None, within = 0.2, use_align = True, xalign = 0.5, yalign = 0.5):
+        if mark is None: mark = self.view.get_buffer().get_insert()
         self.view.scroll_to_mark(mark, within, use_align, xalign, yalign)
-        
+
+    def grab_focus(self):
+        self.view.grab_focus()
+
 #------------------------------------------------------------------------------
 
 class SceneView(GtkSource.View):
@@ -264,6 +269,12 @@ class SceneView(GtkSource.View):
         
     #--------------------------------------------------------------------------
     
+    def scroll_to_mark(self, mark = None, within = 0.2, use_align = True, xalign = 0.5, yalign = 0.5):
+        if mark is None: mark = self.buffer.get_insert()
+        super(SceneView, self).scroll_to_mark(mark, within, use_align, xalign, yalign)
+
+    #--------------------------------------------------------------------------
+    
     def toggle_fold(self):
         scene = self.buffer.scene_start_iter()
 
@@ -294,13 +305,15 @@ class SceneView(GtkSource.View):
         self.buffer.begin_user_action()
         self.foreach_scene(self.buffer.fold_on)
         self.buffer.end_user_action()
-        self.scroll_mark_onscreen(self.buffer.get_insert())
+        self.scroll_to_mark()
+        #self.scroll_mark_onscreen(self.buffer.get_insert())
 
     def unfold_all(self):
         self.buffer.begin_user_action()
         self.foreach_scene(self.buffer.fold_off)
         self.buffer.end_user_action()
-        self.scroll_mark_onscreen(self.buffer.get_insert())
+        self.scroll_to_mark()
+        #self.scroll_mark_onscreen(self.buffer.get_insert())
 
     def unfold_current(self):
         scene = self.buffer.scene_start_iter()

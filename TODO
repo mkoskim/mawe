@@ -12,6 +12,14 @@ FEATURES needed to start using the editor in daily work:
 
 Other features:
 
+- Author and nickname could be behind radiobuttons, so that you can quickly
+  switch between them.
+
+- Scroll to mark after unfold does not work.
+
+- Also comments and missing word counts to project manager, to tell some
+  idea of the status of the text.
+
 - File open: Recursive file search like in nautilus
 
 - File open: Add recent files
