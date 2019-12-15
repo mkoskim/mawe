@@ -1,9 +1,5 @@
 FEATURES needed to start using the editor in daily work:
 
-- Project search path
-
-- Integrated project manager
-
 - File export: RTF, tex (for texifier)
 
 - Settings editor
@@ -12,15 +8,14 @@ FEATURES needed to start using the editor in daily work:
 
 Other features:
 
+- Refresh does not update word count in project manager???
+
 - Sticky pages? So that you could create your own checklists and such.
 
 - Author and nickname could be behind radiobuttons, so that you can quickly
   switch between them.
 
-- Scroll to mark after unfold does not work.
-
-- Also comments and missing word counts to project manager, to tell some
-  idea of the status of the text.
+- FIX: Scroll to mark after unfold does not work.
 
 - File open: Recursive file search like in nautilus
 
@@ -29,8 +24,6 @@ Other features:
 - File open: Allow users to make directories and create new files: now, if you
   make a new file, you first press New and then save it to correct
   folder with wanted name.
-
-- Save: Get name suggestion from title
 
 - When starting Mawe first time (no config yet), make it open help doc
 
@@ -52,8 +45,6 @@ Other features:
   writing competitions where the text has been sent. <notes> part
   could be perfect for this!!!
 
-- Save list of open tabs for restoring: remember check errors
-
 - Add error handling when loading documents
 
 - When choosing with grab, show the selections in the listbox
@@ -69,30 +60,6 @@ Other features:
 
 - A synopsis editor would be cool, I think. I already sketched it with
   moe, but it has been underused.
-
--------------------------------------------------------------------------------
-
-Problematic issue: Single doc vs split view:
-
-- In split view, you need lots of space for both docs.
-
-- But when having just index at left, it can't fill the space.
-
-- Could there be some sort of feature, "left" and "right" gutter for the
-  doc:
-  
-  - When in single doc mode, both gutters are visible: index at left
-  
-  - When in split view, gutters are invisible and the pane is in different
-    position.
-    
-  - Basically: We are not that interested in pane position: we are much
-    more interested in doc view width!!!
-
-  - Split view is absolutely mandatory feature.
-
-  - Just find out some ideas for right gutter when split view is not
-    used, and index is visible.
 
 -------------------------------------------------------------------------------
 
@@ -162,5 +129,16 @@ DONE:
   manager.
 
 - DONE: Remember opened files
+
+- DONE: Project search path
+
+- DONE: Integrated project manager
+
+- DONE: Also comments and missing word counts to project manager, to tell some
+  idea of the status of the text.
+
+- DONE: Save: Get name suggestion from title
+
+- DONE: Save list of open tabs for restoring: remember check errors
 
 

@@ -9,11 +9,23 @@ Story: Mawe: User's Guide
 /-->
 <head>
 <title>Mawe: User's Guide</title>
-<author />
+<title />
 <subtitle />
+<author />
+<translated />
+<status />
+<deadline />
+<covertext />
+<version />
+<year />
 <!--/
 ===============================================================================
 /-->
+<words>
+<text>455</text>
+<comments>4</comments>
+<missing>7</missing>
+</words>
 </head>
 <part>
 <scene name="Before We Go">
@@ -23,7 +35,7 @@ Story: Mawe: User's Guide
 <p>The main feature of Mawe compared to regular text editors is the ability to divide text to blocks called scenes. A scene refers to a block of text that is considered undividable - if you cut an arbitrary piece of text from a scene and move it somewhere else, it is not understandable anymore. Simply said, scene holds text that you want to keep together.</p>
 <p>You create a scene break by typing [##] - double hash - at the beginning of the line. Try it once here:</p>
 <br />
-<p>&lt;-- type [##], remove it, type it again, and look what happens.</p>
+<p>&lt;-- Type [##] at the beginning of the line, remove it, type it again, and look what happens.</p>
 <br />
 <p>Once you create a scene, you notice that it appears to the index at the left. Double-clicking the entries will take you to the start of that scene.</p>
 <p>Why scenes, why not chapters? Chapter is a visual break for readers. Depending on the writer, chapters can be longer or shorter. For some writers and some stories, chapters in fact are equal to scenes. But in many cases, chapters hold several scenes inside of them, and the writer have organized them in that manner for a reason.</p>
@@ -55,9 +67,11 @@ Story: Mawe: User's Guide
 <missing>Am I missing something here? Point, maybe?</missing>
 </scene>
 <scene name="Shortcut Reference">
-<p>List of shortcuts:</p>
+<p>Generic:</p>
 <p>[Ctrl-S] - Save document</p>
 <p>[Ctrl-W] - Close document</p>
+<br />
+<p>Folding:</p>
 <p>[Alt-F] - Fold/unfold current scene</p>
 <p>[Alt-X] - Select &amp; unfold current scene</p>
 <p>[Alt-A][Alt-A] - Fold all (current scene excluded)</p>

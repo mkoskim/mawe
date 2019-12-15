@@ -8,6 +8,7 @@ import os, re
 
 from project.Project import Project
 from tools.error import *
+from tools.config import *
 
 #------------------------------------------------------------------------------
 #
@@ -32,12 +33,16 @@ def mount(*files):
     requested = []
 
     for filename in files:
-	    if os.path.isdir(filename):
-		    _scan(filename)
-	    elif os.path.isfile(filename):
-		    requested.append(os.path.abspath(filename))
-	    else:
-		    ERROR("%s: Not a file/folder." % filename)
+        if os.path.isdir(filename):
+            config["ProjectDir"] = filename
+            projects = {}
+            _scan(filename)
+        elif os.path.isfile(filename):
+            requested.append(os.path.abspath(filename))
+        elif not filename:
+            pass
+        else:
+            ERROR("%s: Not a file/folder." % filename)
 
     return requested
 
@@ -65,8 +70,7 @@ def _scan(drive):
 	                        project = Project.open(path, validonly = True)
 	                        if project: projects[project.fullname] = project
 	                except Exception as e:
-	                    log(e.__class__.__name__ + ":", str(e))
-	                    pass
+	                    log_exception(e)
                 elif os.path.isdir(path):
 	                if file not in [".moerc", "epub", "version", "versions"]:
 		                subdirs.append(path)

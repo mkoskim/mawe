@@ -79,8 +79,9 @@ class Document:
     def replace(self, key, elem):
         path = key.split("/")
         parent = self.root.find("/".join(path[:-1]))
-        child  = self.root.find(key)
-        if child: parent.remove(child)
+        childs  = self.root.findall(key)
+        if childs:
+            for child in childs: parent.remove(child)
         return parent.append(elem)
 
     def __str__(self):

@@ -221,20 +221,19 @@ class SceneBuffer(GtkSource.Buffer):
         first_line = start.get_line()
         last_line  = end.get_line()
 
-        #----------------------------------------------------------------------
-
         def nextindent(line):
             line_start = self.make_iter_to_line(line)
             if self.is_empty_line(line_start): return False
             if self.line_starts_with("##", line_start): return False
-            return True
-
+            if self.line_starts_with("<<", line_start): return False
+            return True        
+        
         if first_line > 0:
             indentmode = nextindent(first_line - 1)
         else:
             indentmode = False
 
-        for line in range(first_line, last_line + 1):
+        for line in range(first_line, last_line + 2):
             line_start = self.make_iter_to_line(line)
             line_end   = self.get_line_end(line_start)
 
@@ -244,23 +243,17 @@ class SceneBuffer(GtkSource.Buffer):
                 indentmode = False
             elif line_start.equal(line_end):
                 indentmode = False
+            elif self.line_starts_with("<<", line_start):
+                self.update_spans(line_start, line_end)
+                indentmode = False
             else:
                 if line != 0 and indentmode:
                     self.apply_tag_by_name("indent", line_start, line_end)
                 self.update_spans(line_start, line_end)
                 indentmode = True
-
-        line_start = self.make_iter_to_line(last_line + 1)
-        line_end   = self.get_line_end(line_start)
-
-        self.remove_tags(line_start, line_end, "indent")
-
-        if   line_start.equal(self.get_end_iter()): pass
-        elif line_start.equal(line_end): pass
-        elif self.line_starts_with("##"): pass
-        elif indentmode:
-            self.apply_tag_by_name("indent", line_start, line_end)
-
+            
+            if line_start.is_end(): break
+            
     #--------------------------------------------------------------------------
 
     re_bold   = re.compile(r"(\*[^\*\s]\*)|(\*[^\*\s][^\*]*\*)")

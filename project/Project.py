@@ -37,7 +37,7 @@ class Project:
             raise FormatError("%s: Unknown story format '%s'" % (fullname, format))
                 
         elif filename == "Makefile":
-            content = tools.readfile(fullname)
+            content = readfile(fullname)
             mainfile = LaTeX.reMainFile.search(content)
             if not mainfile:
                 mainfile = LaTeX.reDocName.search(content)
@@ -73,7 +73,22 @@ class Mawe(Base):
 
     def __init__(self, filename, root = None):
         super(Mawe, self).__init__(filename, "mawe")
-        self.name = root.find("./body/head/title").text
+        self.title    = root.find("./body/head/title").text
+        self.subtitle = root.find("./body/head/subtitle").text
+        self.author   = root.find("./body/head/author").text
+        self.status   = root.find("./body/head/status").text
+        self.deadline = root.find("./body/head/deadline").text
+        self.year     = root.find("./body/head/year").text
+        self.editor   = "mawe"
+
+        try:
+            self.words    = (
+                int(root.find("./body/head/words/text").text),
+                int(root.find("./body/head/words/comments").text),
+                int(root.find("./body/head/words/missing").text),
+            )
+        except:
+            self.words = (0, 0, 0)
 
     def load(self):
         if self.fullname: return Document(self.fullname)
@@ -93,7 +108,14 @@ class Moe(Base):
     def __init__(self, filename, root):
         super(Moe, self).__init__(filename, "moe")
 
-        self.title = root.find("./TitleItem/title").text
+        self.title    = root.find("./TitleItem/title").text
+        self.subtitle = root.find("./TitleItem/subtitle").text
+        self.author   = root.find("./TitleItem/author").text
+        self.status   = root.find("./TitleItem/status").text
+        self.deadline = root.find("./TitleItem/deadline").text
+        self.year     = root.find("./TitleItem/year").text
+        self.words    = (int(root.find("./TitleItem").get("words")), 0, 0)
+        self.editor   = "moe"
         
     reDblEnter  = re.compile(r"\n+")
     reSeparator = re.compile(r"\n\s*\-\s*\-\s*\-[\s\-]*\n")
@@ -206,10 +228,10 @@ class Text(Base):
 
     def __init__(self, filename, format = "text"):
         super(Text, self).__init__(filename, format)
-        self.name = os.path.basename(self.fullname)
+        self.title = os.path.basename(self.fullname)
 
     def load(self):
-        lines = tools.readfile(self.fullname)
+        lines = readfile(self.fullname)
         lines = lines.split("\n")
 
         mawe  = Document.empty(os.path.basename(self.fullname))
@@ -258,7 +280,7 @@ class LaTeX(Text):
         super(LaTeX, self).__init__(filename, "latex")
 
         #log(self.fullname)
-        content = tools.readfile(self.fullname)
+        content = readfile(self.fullname)
 
         content = LaTeX.reTEXcomment.sub("", content)
         docinfo = LaTeX.reTEXExtractHeader.search(content)
@@ -266,6 +288,15 @@ class LaTeX(Text):
         if not docinfo:
             docinfo = LaTeX.reTEXExtractResearchHeader.search(content)
             if not docinfo: return
+
+        self.title    = docinfo.group("title")
+        self.subtitle = docinfo.group("subtitle")
+        self.author   = docinfo.group("author")
+        self.status   = docinfo.group("status")
+        self.deadline = "-"
+        self.year     = docinfo.group("year")
+        self.words    = (0, 0, 0)
+        self.editor   = "LaTeX"
 
         # wc = extractStats(dirname)
 

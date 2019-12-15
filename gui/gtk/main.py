@@ -2,7 +2,7 @@ from gui.gtk import (
     Gtk, Gdk, Gio, GObject,
     ScrolledSceneView, SceneView,
     ScrolledSceneList, SceneList,
-    SceneBuffer,
+    SceneBuffer, ProjectView,
     dialog,
     guidir,
 )
@@ -129,8 +129,11 @@ class DocNotebook(Gtk.Notebook):
 
     def open_defaults(self, extras):
         for filename in (config["DocNotebook"]["Files"] + extras):
-            self.add(filename)
-        print(self.listfiles())
+            try:
+                self.add(filename)
+            except Exception as e:
+                log_exception(e)
+        return self.listfiles()
         
     #--------------------------------------------------------------------------
     
@@ -172,6 +175,10 @@ class DocNotebook(Gtk.Notebook):
         child = self.get_current_child()
         if type(child) is DocView:
             child.ui_save()
+
+    def ui_refresh(self):
+        child = self.get_current_child()
+        child.ui_refresh()
 
     def ui_revert(self):
         child = self.get_current_child()
@@ -253,6 +260,8 @@ class DocPage(Gtk.Frame):
 
     def can_close(self): return True
 
+    def ui_refresh(self): pass
+
 ###############################################################################
 #
 # Document open view
@@ -268,26 +277,22 @@ class OpenView(DocPage):
 
         chooser = Gtk.FileChooserWidget()
         chooser.set_create_folders(True)
-
         chooser.connect("file-activated", self.onChooser)
         chooser.connect("map", self.dir_restore)
         chooser.connect("unmap", self.dir_store)
 
         #chooser.set_extra_widget(Button("New", onclick = lambda w: self.openNew()))
 
-        text = Gtk.TextView()
-        for path in project.Manager.projects:
-            text.get_buffer().insert_at_cursor(path + "\n")
-        scrolled = Gtk.ScrolledWindow()
-        scrolled.add(text)
-        manager = scrolled
+        manager = ProjectView()
+        manager.connect("file-activated", self.onProjectSelect)
 
-        stack = Gtk.Stack()
-        stack.add_titled(chooser, "files", "Files")
+        stack    = Gtk.Stack()
+        switcher = StackSwitcher(stack)
         stack.add_titled(manager, "projects", "Projects")
+        stack.add_titled(chooser, "files", "Files")
 
         toolbar = HBox(
-            (StackSwitcher(stack), False, 1),
+            (switcher, False, 1),
             Button("Recent"),
             (StockButton("gtk-new", onclick = self.onNew), False, 1),
         )
@@ -299,18 +304,32 @@ class OpenView(DocPage):
         self.add(box)
         self.show_all()
 
+        if len(project.Manager.projects):
+            stack.set_visible_child_name("projects")
+        else:
+            stack.set_visible_child_name("files")
+
+        self.stack = stack
+
     def onNew(self, widget):
         self.notebook.ui_new()
 
+    def onProjectSelect(self, widget, filename):
+        self.notebook.ui_new(filename)
+
     def onChooser(self, chooser):
         filename = chooser.get_filename()
-        self.notebook.ui_new(filename)
+        self.onProjectSelect(chooser, filename)
 
     def dir_store(self, chooser):
         self.config["Directory"] = chooser.get_current_folder()
 
     def dir_restore(self, chooser):
         chooser.set_current_folder(self.config["Directory"])
+
+    def ui_refresh(self):
+        if self.stack.get_visible_child_name() == "projects":
+            self.stack.get_visible_child().refresh()
 
 ###############################################################################
 #
@@ -341,6 +360,8 @@ class DocView(DocPage):
             "./body/head/title":    EntryBuffer("./body/head/title"),
             "./body/head/subtitle": EntryBuffer(),
             "./body/head/author":   EntryBuffer(),
+            "./body/head/status":   EntryBuffer(),
+            "./body/head/deadline": EntryBuffer(),
         }
 
         self.buffers_revert()
@@ -475,7 +496,10 @@ class DocView(DocPage):
 
     def ui_save(self):
         if self.doc.filename is None:
-            name = dialog.SaveAs(self, self.doc.origin)
+            suggested = self.doc.origin
+            if suggested is None:
+                suggested = self.buffers["./body/head/title"].get_text()
+            name = dialog.SaveAs(self, suggested)
             if name is None: return False
             self._save(name)
         else:
@@ -495,9 +519,12 @@ class DocView(DocPage):
         
         buf = self.buffers["./body/part"]
 
-        words = ET.Element("words")
-        words.text = str(buf.wordcount(*buf.get_bounds())[0])
-        self.doc.replace("./body/head/words", words)
+        words, chars, comments, missing = buf.wordcount(*buf.get_bounds(), True)
+        wordcount = ET.Element("words")
+        ET.SubElement(wordcount, "text").text = str(words)
+        ET.SubElement(wordcount, "comments").text = str(comments)
+        ET.SubElement(wordcount, "missing").text = str(missing)
+        self.doc.replace("./body/head/words", wordcount)
 
         self.doc.save(filename)
 
@@ -533,6 +560,9 @@ class DocView(DocPage):
                 (Label("Subtitle"), Edit("./body/head/subtitle")),
                 [(HSeparator(), 2, 1)],
                 (Label("Author"), Edit("./body/head/author")),
+                [(HSeparator(), 2, 1)],
+                (Label("Status"), Edit("./body/head/status")),
+                (Label("Deadline"), Edit("./body/head/deadline")),
                 column_spacing = 10,
                 row_spacing = 2,
                 expand_column = 1,
@@ -720,6 +750,7 @@ class MainWindow(Gtk.Window):
             ("<Alt>R",  lambda *a: self.docs.ui_revert()),
 
             ("F1", lambda *a: self.docs.ui_help()),
+            ("F5", lambda *a: self.docs.ui_refresh()),
         ])
 
         settings = config["Window"]
@@ -734,7 +765,7 @@ class MainWindow(Gtk.Window):
 
         DocView.position = config["DocView"]["Pane"]
 
-        self.docs.open_defaults(workset)
+        workset = self.docs.open_defaults(workset)
         if workset:
             pass
         elif len(project.Manager.projects):

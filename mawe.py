@@ -33,7 +33,9 @@ args = parser.parse_args()
 #------------------------------------------------------------------------------
 
 import project
+from tools.config import *
 
+project.Manager.mount(config["ProjectDir"])
 workset = project.Manager.mount(*args.file)
 
 #------------------------------------------------------------------------------

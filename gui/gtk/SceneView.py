@@ -172,7 +172,6 @@ class SceneView(GtkSource.View):
             #    "<Alt>f": self.fold_all,
             #    "<Alt>u": self.unfold_all,
             #},
-            "<Alt>L": self.lorem,
             #"<Alt>c": self.toggle_comment,
             #"<Alt>x": self.toggle_fold,
             
@@ -399,28 +398,4 @@ class SceneView(GtkSource.View):
         self.remove_block("#")
         self.toggle_block("<<")
         self.buffer.end_user_action()
-
-    #--------------------------------------------------------------------------
-    
-    def lorem(self):
-        self.buffer.begin_user_action()
-        self.buffer.delete_selection(True, self.get_editable())
-        cursor = self.buffer.get_insert()
-        at     = self.buffer.get_iter_at_mark(cursor)
-        self.buffer.insert(
-            at,
-            "*Lorem* ipsum dolor _sit_ amet, consectetur adipiscing " +
-            "elit, sed do eiusmod tempor incididunt ut labore et " +
-            "dolore magna aliqua. Ut enim ad minim veniam, quis " +
-            "nostrud exercitation ullamco laboris nisi ut aliquip " +
-            "ex ea commodo consequat. Duis aute irure dolor in " + 
-            "reprehenderit in voluptate velit esse cillum dolore eu " +
-            "fugiat nulla pariatur. Excepteur sint occaecat cupidatat " +
-            "non proident, sunt in culpa qui officia deserunt mollit " +
-            "anim id est laborum.\n",
-            -1
-        );
-        self.buffer.end_user_action()
-        self.scroll_mark_onscreen(self.buffer.get_insert())
-        return True
 

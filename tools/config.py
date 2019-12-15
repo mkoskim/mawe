@@ -21,7 +21,8 @@ defaults = {
     },
     "DocNotebook": {
         "Files": []
-    }
+    },
+    "ProjectDir": "",
 }
 
 # This does not work for system wide installations, but for user-only
@@ -53,6 +54,7 @@ def _migrate(config):
 
     if "OpenView" not in config:    get_default("OpenView")
     if "DocNotebook" not in config: get_default("DocNotebook")
+    if "ProjectDir" not in config:  get_default("ProjectDir")
     return config
 
 #------------------------------------------------------------------------------
