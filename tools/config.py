@@ -22,7 +22,7 @@ defaults = {
     "DocNotebook": {
         "Files": []
     },
-    "ProjectDir": "",
+    "ProjectDir": None,
 }
 
 # This does not work for system wide installations, but for user-only

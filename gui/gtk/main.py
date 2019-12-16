@@ -289,13 +289,12 @@ class OpenView(DocPage):
         manager.connect("file-activated", self.onProjectSelect)
 
         stack    = Gtk.Stack()
-        switcher = StackSwitcher(stack)
-        stack.add_titled(manager, "projects", "Projects")
         stack.add_titled(chooser, "files", "Files")
+        stack.add_titled(manager, "projects", "Projects")
         self.stack = stack
 
         toolbar = HBox(
-            (switcher, False, 6),
+            (StackSwitcher(stack), False, 6),
             (Button("Recent", relief = Gtk.ReliefStyle.NORMAL), False, 6),
             (StockButton("gtk-new", relief = Gtk.ReliefStyle.NORMAL, onclick = self.onNew), False, 6),
             #(VSeparator(), False, 2),
@@ -309,12 +308,12 @@ class OpenView(DocPage):
             (stack, True, 0),
         )
         self.add(box)
+        self.show_all()
 
         if len(project.Manager.projects):
             stack.set_visible_child_name("projects")
         else:
             stack.set_visible_child_name("files")
-
 
     def onNew(self, widget):
         self.notebook.ui_new()
@@ -773,12 +772,10 @@ class MainWindow(Gtk.Window):
         workset = self.docs.open_defaults(workset)
         if workset:
             pass
-        elif len(project.Manager.projects):
-            self.docs.ui_open()
+        elif new:
+            self.docs.ui_new()
         else:
-            new = True
-            
-        if new: self.docs.ui_new()
+            self.docs.ui_open()
 
     #--------------------------------------------------------------------------
     

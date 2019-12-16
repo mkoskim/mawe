@@ -33,13 +33,13 @@ def mount(*files):
     requested = []
 
     for filename in files:
-        if os.path.isdir(filename):
-            config["ProjectDir"] = filename
-            #_scan(filename)
+        if filename is None:
+            pass
         elif os.path.isfile(filename):
             requested.append(os.path.abspath(filename))
-        elif not filename:
-            pass
+        elif os.path.isdir(filename):
+            config["ProjectDir"] = filename
+            #_scan(filename)
         else:
             ERROR("%s: Not a file/folder." % filename)
 

@@ -114,6 +114,9 @@ class ProjectView(Gtk.Frame):
         
     def refresh(self):
         searchdir = config["ProjectDir"]
+
+        if not searchdir: return
+
         Manager._scan(searchdir)
         
         self.store.clear()
