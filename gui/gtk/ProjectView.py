@@ -100,7 +100,6 @@ class ProjectView(Gtk.Frame):
         scrolled.add(projectlist)
 
         box = VBox(
-            #Gtk.Entry(text = config["ProjectDir"]),
             (scrolled, True),
         )
         self.add(box)

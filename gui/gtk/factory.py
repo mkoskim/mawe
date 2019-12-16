@@ -55,7 +55,10 @@ class Button(Gtk.Button):
         super(Button, self).__init__(label, **kwargs)
 
         if onclick: self.connect("clicked", onclick)
-        self.set_relief(Gtk.ReliefStyle.NONE)
+        if "relief" in kwargs:
+            self.set_relief(kwargs["relief"])
+        else:
+            self.set_relief(Gtk.ReliefStyle.NONE)
 
     def disable(self):
         self.set_sensitive(False)

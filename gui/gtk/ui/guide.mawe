@@ -22,7 +22,7 @@ Story: Mawe: User's Guide
 ===============================================================================
 /-->
 <words>
-<text>455</text>
+<text>604</text>
 <comments>4</comments>
 <missing>7</missing>
 </words>
@@ -30,6 +30,15 @@ Story: Mawe: User's Guide
 <part>
 <scene name="Before We Go">
 <p>While you are reading, feel free to try out things. Take a look to the bottom of this page. There you can see [Revert] button, which reverts the changes you made to the last saved version. Try it here, write something or delete something, and press [Revert] to get your modifications undone.</p>
+</scene>
+<scene name="Opening and Closing Files">
+<p>Button to open files to the editor is located at the top-left corner of the window. It can be activated also with [Ctrl-O] and [Alt-O] hotkeys. Depending on how you work, you can use either Project Manager or filesystem view. When given a folder, project manager will scan that folder for .mawe files, extract information from them, and show them on a list.</p>
+<p>In the same view, there is also New button to create new documents.</p>
+<p>Document can be closed by pressing small "x" located after name or pressing [Ctrl-W].</p>
+<p>Right click on the tab header will bring you up a list of opened files. This can be useful if you have lots of open files.</p>
+</scene>
+<scene name="Document Information">
+<p>To access document title and other information, click [Title] button located at the top of the document view.</p>
 </scene>
 <scene name="Scenes">
 <p>The main feature of Mawe compared to regular text editors is the ability to divide text to blocks called scenes. A scene refers to a block of text that is considered undividable - if you cut an arbitrary piece of text from a scene and move it somewhere else, it is not understandable anymore. Simply said, scene holds text that you want to keep together.</p>
@@ -70,6 +79,8 @@ Story: Mawe: User's Guide
 <p>Generic:</p>
 <p>[Ctrl-S] - Save document</p>
 <p>[Ctrl-W] - Close document</p>
+<p>[Ctrl-O] - Open document</p>
+<p>[Alt-H] - Open this User's Guide</p>
 <br />
 <p>Folding:</p>
 <p>[Alt-F] - Fold/unfold current scene</p>

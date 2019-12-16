@@ -50,7 +50,9 @@ class DocNotebook(Gtk.Notebook):
             visible = True,
         )
 
-        end = HBox(visible = True)
+        end = HBox(
+            visible = True,
+        )
 
         self.set_action_widget(start, Gtk.PackType.START)
         self.set_action_widget(end, Gtk.PackType.END)
@@ -293,14 +295,18 @@ class OpenView(DocPage):
         self.stack = stack
 
         toolbar = HBox(
-            (switcher, False, 1),
-            Button("Recent"),
-            (StockButton("gtk-new", onclick = self.onNew), False, 1),
+            (switcher, False, 6),
+            (Button("Recent", relief = Gtk.ReliefStyle.NORMAL), False, 6),
+            (StockButton("gtk-new", relief = Gtk.ReliefStyle.NORMAL, onclick = self.onNew), False, 6),
+            #(VSeparator(), False, 2),
+            #(Label("Search:"), False, 6),
+            #Gtk.Entry(text = config["ProjectDir"]),
         )
 
         box = VBox(
-            (toolbar, False, 1),
-            (stack, True, 1),
+            (toolbar, False, 2),
+            (HSeparator(), False, 2),
+            (stack, True, 0),
         )
         self.add(box)
 
