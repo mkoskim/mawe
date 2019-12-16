@@ -1,5 +1,16 @@
 TODO:
 
+- PM: Asynchronous directory scan: in case it takes a lots of time.
+
+- PM: Add context menu to open folder and with text editor.
+
+- Export: Texifier to version control
+
+- Export: File export: RTF, tex (for texifier)
+
+- Revert: Make it load tree from file if doc has origin. This is for cases
+  where file has changed in the disk.
+
 - Move listview's selected row when moving around the text
 
 - Text <-> List swapping using Alt-left/right (instead of Alt-1/2 used at the
@@ -7,16 +18,10 @@ TODO:
 
 - Selecting & moving scenes in listview
 
-- Texifier to version control
-
 - We could preserve e.g. "## **" to 'chapter' header. In fact, we need to
   make chapters. Just to prevent me using scenes as decorating items.
 
-- File export: RTF, tex (for texifier)
-
 - Settings editor
-
-- PM: Add context menu to open folder and with text editor.
 
 - FIX: Scroll to mark after unfold does not work.
 
@@ -112,5 +117,4 @@ POSTPONED:
 -------------------------------------------------------------------------------
 
 DONE:
-
 
