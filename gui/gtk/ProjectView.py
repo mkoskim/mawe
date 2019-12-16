@@ -7,9 +7,10 @@ from gui.gtk import (
 from tools import *
 from gui.gtk.factory import *
 from project import *
-import os
 from project.Document import ET
 from tools.config import *
+
+import os, time
 
 #------------------------------------------------------------------------------
 
@@ -85,13 +86,16 @@ class ProjectList(Gtk.TreeView):
 
 class ProjectView(Gtk.Frame):
 
+    __gsignals__ = {
+        "file-activated" : (GObject.SIGNAL_RUN_LAST, None, (str,)),
+    }
+
     def __init__(self, **kwargs):
         super(ProjectView, self).__init__(**kwargs)
 
         self.set_shadow_type(Gtk.ShadowType.NONE)
 
         self.store = Gtk.ListStore(str, str, str, str, str, int, int, int, str, str)
-        self.refresh()
 
         projectlist = ProjectList(self.store) 
         projectlist.connect("row-activated", self.onRowActivated)
@@ -104,21 +108,19 @@ class ProjectView(Gtk.Frame):
         )
         self.add(box)
 
-    __gsignals__ = {
-        "file-activated" : (GObject.SIGNAL_RUN_LAST, None, (str,)),
-    }
+        self.worker = None
+        self.refresh()
 
     def onRowActivated(self, tree, path, col, *args):
         filename = tree.get_model()[path][0]
         self.emit("file-activated", filename)
         
     def refresh(self):
+        if not config["ProjectDir"]: return
+
+        Manager._scan(config["ProjectDir"])
+
         searchdir = config["ProjectDir"]
-
-        if not searchdir: return
-
-        Manager._scan(searchdir)
-        
         self.store.clear()
         for path, doc in Manager.projects.items():
             self.store.append([
@@ -127,5 +129,4 @@ class ProjectView(Gtk.Frame):
                 doc.status, doc.deadline, doc.year,
                 doc.words[0], doc.words[1], doc.words[2],
                 doc.editor, os.path.relpath(path, searchdir),
-            ])
-
+            ])        

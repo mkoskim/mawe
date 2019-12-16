@@ -310,7 +310,7 @@ class OpenView(DocPage):
         self.add(box)
         self.show_all()
 
-        if len(project.Manager.projects):
+        if not config["ProjectDir"] is None:
             stack.set_visible_child_name("projects")
         else:
             stack.set_visible_child_name("files")
