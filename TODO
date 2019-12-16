@@ -1,12 +1,20 @@
-FEATURES needed to start using the editor in daily work:
+TODO:
+
+- Move listview's selected row when moving around the text
+
+- Text <-> List swapping using Alt-left/right (instead of Alt-1/2 used at the
+  moment)
+
+- Selecting & moving scenes in listview
+
+- Texifier to version control
+
+- We could preserve e.g. "## **" to 'chapter' header. In fact, we need to
+  make chapters. Just to prevent me using scenes as decorating items.
 
 - File export: RTF, tex (for texifier)
 
 - Settings editor
-
--------------------------------------------------------------------------------
-
-Other features:
 
 - PM: Add context menu to open folder and with text editor.
 
@@ -91,25 +99,13 @@ QUIRKS, FIX:
 
 -------------------------------------------------------------------------------
 
-TODO:
+POSTPONED:
 
-- Move listview's selected row when moving around the text
+- We can now support just one-part files
 
-- Text <-> List swapping using Alt-left/right (instead of Alt-1/2 used at the
-  moment)
+- We don't need versioning yet.
 
-- Selecting & moving scenes in listview
-
-- Texifier to version control
-
-- We could preserve e.g. "## **" to 'chapter' header. In fact, we need to
-  make chapters. Just to prevent me using scenes as decorating items.
-
-- Postpone: We can now support just one-part files
-
-- Postpone: We don't need versioning yet.
-
-- Postpone: We can live without being able to mix buffers from several
+- We can live without being able to mix buffers from several
   documents together in one view. That is, it is enough if we can choose
   between doc's draft and notes buffers.
 
@@ -117,33 +113,4 @@ TODO:
 
 DONE:
 
-- DONE: Remember the directory where you were on open file directory between
-  restarts. Not Done: Make it default to home directory - os.path does not
-  regocnize "~", so it defaults to cwd().
-  
-- DONE: Project manager: It is first enough to have mawe files in moe project
-  manager. But for workspaces and tabbed editing, we need built-in project
-  manager.
-
-- DONE: Remember opened files
-
-- DONE: Project search path
-
-- DONE: Integrated project manager
-
-- DONE: Also comments and missing word counts to project manager, to tell some
-  idea of the status of the text.
-
-- DONE: Save: Get name suggestion from title
-
-- DONE: Save list of open tabs for restoring: remember check errors
-
-- DONE: FIX: We now scan directory twice at start up
-
-- DONE: FIX: Refresh does not update word count in project manager???
-
-- DONE: When we have loaded a moe file, it would be good if mawe would suggest
-  to save it to same direction with .mawe extension. At least it could start
-  from that directory. Lets make it so, that "Save" works as "Save as" if
-  the file does not exist yet.
 

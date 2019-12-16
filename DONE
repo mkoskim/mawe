@@ -1,5 +1,39 @@
 -------------------------------------------------------------------------------
 
+DONE:
+
+- DONE: Remember the directory where you were on open file directory between
+  restarts. Not Done: Make it default to home directory - os.path does not
+  regocnize "~", so it defaults to cwd().
+  
+- DONE: Project manager: It is first enough to have mawe files in moe project
+  manager. But for workspaces and tabbed editing, we need built-in project
+  manager.
+
+- DONE: Remember opened files
+
+- DONE: Project search path
+
+- DONE: Integrated project manager
+
+- DONE: Also comments and missing word counts to project manager, to tell some
+  idea of the status of the text.
+
+- DONE: Save: Get name suggestion from title
+
+- DONE: Save list of open tabs for restoring: remember check errors
+
+- DONE: FIX: We now scan directory twice at start up
+
+- DONE: FIX: Refresh does not update word count in project manager???
+
+- DONE: When we have loaded a moe file, it would be good if mawe would suggest
+  to save it to same direction with .mawe extension. At least it could start
+  from that directory. Lets make it so, that "Save" works as "Save as" if
+  the file does not exist yet.
+
+-------------------------------------------------------------------------------
+
 - DONE: Interesting... It is much more difficult to import text, latex and RTF
   files directly to mawe as it was with moe - ah, I was wrong. It was not
   hard at all. Just looked that at first glance.
