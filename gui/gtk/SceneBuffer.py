@@ -324,6 +324,16 @@ class SceneBuffer(GtkSource.Buffer):
         if end is None: return self.get_end_iter()
         return end
 
+    def get_scene_mark(self, at = None):
+        if at is None: at = self.get_cursor_iter()
+        scene_start = self.scene_start_iter(at)
+        if not scene_start is None:
+            marks = self.get_marks("scene", scene_start, scene_start)
+            assert len(marks) == 1
+            return marks[0]
+        else:
+            return None
+
     #--------------------------------------------------------------------------
     # Update scene marks
     #--------------------------------------------------------------------------

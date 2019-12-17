@@ -38,6 +38,8 @@ class SceneList(Gtk.TreeView):
             else:
                 cell.set_property("text", "")
 
+        #- Words --------------------------------------------------------------
+
         column = Gtk.TreeViewColumn("Words")
         self.append_column(column)
 
@@ -58,13 +60,17 @@ class SceneList(Gtk.TreeView):
         column.pack_start(renderer, False)
         column.set_cell_data_func(renderer, dfNonZeros, 4)
 
+        #- Name ---------------------------------------------------------------
+
         renderer = Gtk.CellRendererText()
         column = Gtk.TreeViewColumn("Name", renderer, text = 1)
         column.set_property("expand", True)
         self.append_column(column)
 
+        #----------------------------------------------------------------------
+        
         self.connect("row-activated", self.onRowActivated)
-
+        self.buffer.connect_after("mark-set", self.afterMarkSet)
 
     def onRowActivated(self, tree, path, col, *args):
         store = self.get_model()
@@ -75,6 +81,15 @@ class SceneList(Gtk.TreeView):
         if self.view:
             self.view.scroll_to_mark(mark)
             self.view.grab_focus()
+
+    def afterMarkSet(self, buf, place, mark):
+        if mark != buf.get_insert(): return
+
+        mark = buf.get_scene_mark(place)
+        if mark:
+            listiter = buf.markiter[mark]
+            path = self.get_model().get_path(listiter)
+            self.set_cursor(path)
 
 ###############################################################################        
 
@@ -96,7 +111,7 @@ class ScrolledSceneView(Gtk.ScrolledWindow):
     def get_buffer(self): return self.view.get_buffer()
     def set_buffer(self, buffer): return self.view.set_buffer(buffer)
 
-    def scroll_to_mark(self, mark = None, within = 0.2, use_align = True, xalign = 0.5, yalign = 0.5):
+    def scroll_to_mark(self, mark = None, within = 0.2, use_align = True, xalign = 0.5, yalign = 0.4):
         if mark is None: mark = self.view.get_buffer().get_insert()
         self.view.scroll_to_mark(mark, within, use_align, xalign, yalign)
 
@@ -160,11 +175,11 @@ class SceneView(GtkSource.View):
 
     def set_hotkeys(self):    
 
-        def undo():
+        def undo(mod, key):
             self.buffer.undo()
             return True
 
-        def redo():
+        def redo(mod, key):
             self.buffer.redo()
             return True
 
@@ -188,13 +203,13 @@ class SceneView(GtkSource.View):
             
             # Some fixed behaviour
             
-            "<Ctrl>Up": self.fix_ctrl_up,
-            "<Ctrl>Down": self.fix_ctrl_down,
-            "<Ctrl><Shift>Up": self.fix_ctrl_shift_up,
-            "<Ctrl><Shift>Down": self.fix_ctrl_shift_down,
+            "<Ctrl>Up": self.paragraph_up,
+            "<Ctrl>Down": self.paragraph_down,
+            "<Ctrl><Shift>Up": self.paragraph_up,
+            "<Ctrl><Shift>Down": self.paragraph_down,
             
-            "<Alt>Up":   self.move_line_up,
-            "<Alt>Down": self.move_line_down,
+            "<Alt>Up":   self.scene_up,
+            "<Alt>Down": self.scene_down,
             "<Alt>Left": self.focus_left,
             "<Alt>Right": self.focus_right,
 
@@ -203,14 +218,6 @@ class SceneView(GtkSource.View):
         })
 
     #--------------------------------------------------------------------------
-    
-    def focus_left(self):
-        self.emit("focus-left")
-        return True
-
-    def focus_right(self):
-        self.emit("focus-right")
-        return True
     
     def _parse_keys(self, table):
 
@@ -243,46 +250,72 @@ class SceneView(GtkSource.View):
                 #self.parent.emit("key-press-event", event.copy())
                 return True
             else:
-                return self.combokeys[key]()
+                return self.combokeys[key](mod, key)
         else:
             combo = self.combokey
             self.combokey = None
             if key in combo:
-                return combo[key]()
+                return combo[key](mod, key)
 
     #--------------------------------------------------------------------------
     
-    def fix_ctrl_shift_up(self):   return self.fix_ctrl_up(True)
-    def fix_ctrl_up(self, select = False):
+    def focus_left(self, mod, key):
+        self.emit("focus-left")
+        return True
+
+    def focus_right(self, mod, key):
+        self.emit("focus-right")
+        return True
+    
+    def paragraph_up(self, mod, key):
         cursor = self.buffer.get_cursor_iter()
         if cursor.is_start(): return True
         if not cursor.starts_line():
-            cursor = self.buffer.get_line_start_iter(cursor)
+            cursor = self.buffer.get_line_start(cursor)
         else:
             cursor.backward_line()
             
-        if select:
+        if mod & Gdk.ModifierType.SHIFT_MASK:
             self.buffer.move_mark(self.buffer.get_insert(), cursor)
         else:
             self.buffer.place_cursor(cursor)
         self.scroll_mark_onscreen(self.buffer.get_insert())
         return True
         
-    def fix_ctrl_shift_down(self): return self.fix_ctrl_down(True)
-    def fix_ctrl_down(self, select = False):
+    def paragraph_down(self, mod, key):
         cursor = self.buffer.get_cursor_iter()
         if cursor.is_end(): return True
         if not cursor.starts_line():
-            cursor = self.buffer.get_line_end_iter(cursor)
+            cursor = self.buffer.get_line_end(cursor)
             cursor.forward_char()
         else:
             cursor.forward_line()
             
-        if select:
+        if mod & Gdk.ModifierType.SHIFT_MASK:
             self.buffer.move_mark(self.buffer.get_insert(), cursor)
         else:
             self.buffer.place_cursor(cursor)
         self.scroll_mark_onscreen(self.buffer.get_insert())
+        return True
+        
+    def scene_up(self, mod, key):
+        at = self.buffer.get_cursor_iter()
+        scene_start = self.buffer.scene_start_iter(at)
+        if at.equal(scene_start):
+            scene_start = self.buffer.scene_prev_iter(at)
+            if scene_start is None: scene_start = self.buffer.get_start_iter()
+        self.buffer.place_cursor(scene_start)
+        self.scroll_mark_onscreen(self.buffer.get_insert())
+        
+        return True
+
+    def scene_down(self, mod, key):
+        at = self.buffer.get_cursor_iter()
+        scene_start = self.buffer.scene_next_iter(at)
+        if scene_start is None: scene_start = self.buffer.get_end_iter()
+        self.buffer.place_cursor(scene_start)
+        self.scroll_mark_onscreen(self.buffer.get_insert())
+
         return True
         
     #--------------------------------------------------------------------------
@@ -293,7 +326,7 @@ class SceneView(GtkSource.View):
 
     #--------------------------------------------------------------------------
     
-    def toggle_fold(self):
+    def toggle_fold(self, mod, key):
         scene = self.buffer.scene_start_iter()
 
         if not scene: return
@@ -318,7 +351,7 @@ class SceneView(GtkSource.View):
             start = self.buffer.get_iter_at_mark(scene)
             func(start)
 
-    def fold_all(self):
+    def fold_all(self, mod, key):
         self.buffer.place_cursor(self.buffer.scene_start_iter())
         self.buffer.begin_user_action()
         self.foreach_scene(self.buffer.fold_on)
@@ -326,14 +359,14 @@ class SceneView(GtkSource.View):
         self.scroll_to_mark()
         #self.scroll_mark_onscreen(self.buffer.get_insert())
 
-    def unfold_all(self):
+    def unfold_all(self, mod, key):
         self.buffer.begin_user_action()
         self.foreach_scene(self.buffer.fold_off)
         self.buffer.end_user_action()
         self.scroll_to_mark()
         #self.scroll_mark_onscreen(self.buffer.get_insert())
 
-    def unfold_current(self):
+    def unfold_current(self, mod, key):
         scene = self.buffer.scene_start_iter()
 
         if not scene: return
@@ -349,9 +382,7 @@ class SceneView(GtkSource.View):
         self.scroll_mark_onscreen(self.buffer.get_insert())
         return True
 
-    
-
-    def select_and_fold(self):
+    def select_and_fold(self, mod, key):
         if self.buffer.get_has_selection():
             _, scene = self.buffer.get_selection_bounds()
             if(scene.is_end()): return
@@ -368,22 +399,6 @@ class SceneView(GtkSource.View):
         self.buffer.end_user_action()
         self.scroll_mark_onscreen(self.buffer.get_insert())
     
-    def move_line_up(self):
-        return True
-        #prev = self.scene_prev_iter(self.get_cursor_iter())
-        #if not prev: prev = self.buffer.get_start_iter()
-        #self.buffer.place_cursor(prev)
-        #self.scroll_mark_onscreen(self.buffer.get_insert())
-        #return True
-
-    def move_line_down(self):
-        return True
-        #next = self.scene_next_iter(self.get_cursor_iter())
-        #if not next: next = self.buffer.get_end_iter()
-        #self.buffer.place_cursor(next)
-        #self.scroll_mark_onscreen(self.buffer.get_insert())
-        #return True
-        
     #--------------------------------------------------------------------------
 
     def remove_block(self, starts_with):
@@ -404,14 +419,14 @@ class SceneView(GtkSource.View):
         else:
             self.buffer.insert(start, starts_with)
 
-    def toggle_comment(self):
+    def toggle_comment(self, mod, key):
         self.buffer.begin_user_action()
         self.remove_block("<<")
         self.remove_block("#")
         self.toggle_block("//")
         self.buffer.end_user_action()
 
-    def toggle_synopsis(self, accel, widget, keyval, modifiers):
+    def toggle_synopsis(self, mod, key):
         self.buffer.begin_user_action()
         self.remove_block("//")
         self.remove_block("#")

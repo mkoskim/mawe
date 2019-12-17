@@ -22,7 +22,7 @@ Story: Mawe: User's Guide
 ===============================================================================
 /-->
 <words>
-<text>604</text>
+<text>812</text>
 <comments>4</comments>
 <missing>7</missing>
 </words>
@@ -36,6 +36,9 @@ Story: Mawe: User's Guide
 <p>In the same view, there is also New button to create new documents.</p>
 <p>Document can be closed by pressing small "x" located after name or pressing [Ctrl-W].</p>
 <p>Right click on the tab header will bring you up a list of opened files. This can be useful if you have lots of open files.</p>
+<p>Shortcuts to move between documents:</p>
+<p>[Ctrl-Alt-Page Up] - Previous document.</p>
+<p>[Ctrl-Alt-Page Down] - Next document.</p>
 </scene>
 <scene name="Document Information">
 <p>To access document title and other information, click [Title] button located at the top of the document view.</p>
@@ -50,12 +53,12 @@ Story: Mawe: User's Guide
 <p>Why scenes, why not chapters? Chapter is a visual break for readers. Depending on the writer, chapters can be longer or shorter. For some writers and some stories, chapters in fact are equal to scenes. But in many cases, chapters hold several scenes inside of them, and the writer have organized them in that manner for a reason.</p>
 </scene>
 <scene name="Folding">
-<p>Press [Alt-F] two times here. See what happened? If not, press [Alt-F] once more, look around and press [Alt-F] again.</p>
+<p>Once you have scenes in your text, you can _fold_ them. Press [Alt-F] two times here. See what happened? If not, press [Alt-F] once more, look around and press [Alt-F] again.</p>
+<p>Folding is a term used in code editors to hide and unhide parts in the source code. We use the same term here. Once you have divided your text to scenes, it is possible to fold and unfold them.</p>
 <br />
-<p>Once you have scenes in your text, you can _fold_ them. Folding is a term used in code editors to hide and unhide parts in the source code. We use the same term here. Once you have divided your text to scenes, it is possible to fold and unfold them.</p>
-<p>Now, it is possible to fold all scenes at once, and reveal them all at once. If you press [Alt-A] [Alt-A], all scenes will be folded and the text looks more like a table of content. Pressing [Alt-A] [Alt-S] will make every scene visible again. Try them few times.</p>
+<p>It is possible to fold all scenes at once, and reveal them all at once. If you press [Alt-A] [Alt-A], all scenes will be folded and the text looks more like a table of content. Pressing [Alt-A] [Alt-S] will make every scene visible again. Try them few times.</p>
 <br />
-<p>Now, the next thing to try is to fold all, then moving cursor to some other location and press [Enter] or [Space]. Fold everything, move around and try.</p>
+<p>The next thing to try is to fold all, then moving cursor to some other location and press [Enter] or [Space]. Fold everything, move around and try.</p>
 <br />
 <p>Summary:</p>
 <p>[Alt-F] folds and unfolds one single scene</p>
@@ -63,30 +66,42 @@ Story: Mawe: User's Guide
 <p>[Alt-A] [Alt-S] Unfolds all scenes</p>
 </scene>
 <scene name="Marking Up">
-<p>Comments:</p>
+<p>Mawe is not meant for typesetting. There are different text editors focused on that subject, setting up pages, fonts, styles and such. But still, Mawe has some typesetting features possibly useful for writers. Surrounding a word or sentence with asterisks will make the text *bold*. Surrounding the word or sentence with underscores will make the text _italic_.</p>
+<br />
+<p>In addition to those, there are few special paragraph markers. Starting paragraph with two slashes ("//") will make the paragraph as a comment:</p>
 <br />
 <comment>This is a comments</comment>
 <br />
-<p>Synopsis:</p>
-<br />
-<synopsis>This is a synopsis</synopsis>
+<p>Comments are excluded from exported drafts. They are meant for writers to put down some comments for their text. They are meant just for placing small comments to remind you something. Larger sketches, plans and designs can be written to notes part.</p>
 <br />
 <p>Missing:</p>
 <br />
 <missing>Am I missing something here? Point, maybe?</missing>
+<br />
+<p>As you see, index will count words in comments and missing paragraphs separately, thus giving you some indication where your text needs attention. They are mainly meant for that purpose, to mark where you have missing pieces or some questions that you need to address at some point.</p>
+<br />
+<p>Synopsis:</p>
+<br />
+<synopsis>This is a synopsis</synopsis>
 </scene>
 <scene name="Shortcut Reference">
 <p>Generic:</p>
-<p>[Ctrl-S] - Save document</p>
-<p>[Ctrl-W] - Close document</p>
-<p>[Ctrl-O] - Open document</p>
-<p>[Alt-H] - Open this User's Guide</p>
+<p>[Ctrl - S] - Save document</p>
+<p>[Ctrl - W] - Close document</p>
+<p>[Ctrl - O] - Open document</p>
+<p>[Alt - H] - Open this User's Guide</p>
 <br />
 <p>Folding:</p>
-<p>[Alt-F] - Fold/unfold current scene</p>
-<p>[Alt-X] - Select &amp; unfold current scene</p>
-<p>[Alt-A][Alt-A] - Fold all (current scene excluded)</p>
-<p>[Alt-A][Alt-S] - Unfold all</p>
+<p>[Alt - F] - Fold/unfold current scene</p>
+<p>[Alt - X] - Select &amp; unfold current scene</p>
+<p>[Alt - A][Alt - A] - Fold all (current scene excluded)</p>
+<p>[Alt - A][Alt - S] - Unfold all</p>
+<br />
+<p>Navigating:</p>
+<p>[Alt - Left] - Move left side</p>
+<p>[Alt - Right] - Move right side</p>
+<p>[Shift - Alt - Page Up] - Move previous document</p>
+<p>[Shift - Alt - Page Down] - Move next document</p>
 </scene>
 </part>
 </body>
