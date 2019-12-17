@@ -371,10 +371,7 @@ class DocView(DocPage):
         self.buffers_revert()
         self.buffers_connect()
 
-        # Try to get rid of these
-        self.draftview = ScrolledSceneView(self.buffers["./body/part"], "Times 12")
-        self.notesview = ScrolledSceneView(self.buffers["./notes/part"], "Times 12")
-        self.scenelist = ScrolledSceneList(self.buffers["./body/part"], self.draftview)
+        self.create_stacks()
 
         self.pane = Gtk.Paned()
         self.pane.add2(self.create_view())
@@ -388,6 +385,39 @@ class DocView(DocPage):
 
         #self.draftview.grab_focus()
 
+    def create_stacks(self):
+
+        def view(buf, name = "draftview"):
+            text = ScrolledSceneView(buf, "Times 12")
+            text.view.set_name(name)
+            text.set_min_content_width(400)
+            #text.set_max_content_width(800)
+            text.set_min_content_height(400)
+            text.set_border_width(1)
+            text.set_shadow_type(Gtk.ShadowType.IN)
+            return text
+        
+        def index(buf, view): 
+            scenelist = ScrolledSceneList(buf, view)
+            scenelist.set_border_width(1)
+            scenelist.set_shadow_type(Gtk.ShadowType.IN)
+            return scenelist
+        
+        draftedit  = view(self.buffers["./body/part"])
+        draftindex = index(self.buffers["./body/part"], draftedit)
+        notesedit  = view(self.buffers["./notes/part"])
+        notesindex = index(self.buffers["./notes/part"], notesedit)
+
+        self.editstack = Gtk.Stack()
+        self.editstack.add_named(draftedit, "draft")
+        self.editstack.add_named(notesedit, "notes")
+        
+        self.indexstack = Gtk.Stack()
+        self.indexstack.add_named(draftindex, "draft")
+        self.indexstack.add_named(notesindex, "notes")
+
+        self.notesview = view(self.buffers["./notes/part"])
+        
     #--------------------------------------------------------------------------
     # Buffers to XML tree. TODO: This does not work with multi-part bodies.
     #--------------------------------------------------------------------------
@@ -597,14 +627,12 @@ class DocView(DocPage):
             selectnotes = ToggleButton("Notes")
 
             def switchBuffer(self, widget):
-                pass
-                # TODO: Fix
-                #if not widget.get_active():
-                #    self.draftview.set_buffer(self.draftbuf)
-                #    self.scenelist.set_buffer(self.draftbuf)
-                #else:
-                #    self.draftview.set_buffer(self.notesbuf)
-                #    self.scenelist.set_buffer(self.notesbuf)
+                if not widget.get_active():
+                    self.editstack.set_visible_child_name("draft")
+                    self.indexstack.set_visible_child_name("draft")
+                else:
+                    self.editstack.set_visible_child_name("notes")
+                    self.indexstack.set_visible_child_name("notes")
 
             selectnotes = ToggleButton("Notes", onclick = lambda w: switchBuffer(self, w))
 
@@ -656,19 +684,9 @@ class DocView(DocPage):
                 (self.buffers["./body/part"].stats.chars, False, 4)
             )
 
-        def view():
-            text = self.draftview
-            text.view.set_name("draftview")
-            text.set_min_content_width(400)
-            #text.set_max_content_width(800)
-            text.set_min_content_height(400)
-            text.set_border_width(1)
-            text.set_shadow_type(Gtk.ShadowType.IN)
-            return text
-
         return VBox(
             topbar(),
-            (view(), True),
+            (self.editstack, True),
             bottombar(),
         )
 
@@ -679,31 +697,12 @@ class DocView(DocPage):
                 (switcher, False, 1),
             )
 
-        def scenelist():
-            self.scenelist.set_border_width(1)
-            self.scenelist.set_shadow_type(Gtk.ShadowType.IN)
-            return self.scenelist
-            #return VBox(
-            #    (self.scenelist, True ),
-            #)
-
-        def notes():
-            text = self.notesview
-
-            #text.set_min_content_width(400)
-            #text.set_max_content_width(800)
-            #text.set_min_content_height(400)
-
-            text.set_border_width(1)
-            text.set_shadow_type(Gtk.ShadowType.IN)
-            return text
-
         def bottombar():
             return HBox(
                 Button("..."),
             )
 
-        stack, switcher = DuoStack("Notes", scenelist(), notes())
+        stack, switcher = DuoStack("Notes", self.indexstack, self.notesview)
 
         return VBox(
             topbar(switcher),

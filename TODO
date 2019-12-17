@@ -1,3 +1,10 @@
+WORKLIST
+
+- Moving folded scenes around: Alt-up, Alt-down. We can allow cutting entire
+  folded scenes, but not parts of them.
+
+-------------------------------------------------------------------------------
+
 TODO:
 
 - PM: Asynchronous directory scan: in case it takes a lots of time.
@@ -22,6 +29,9 @@ TODO:
   make chapters. Just to prevent me using scenes as decorating items.
 
 - Settings editor
+
+- Style editor: font, colors, ... - would be great to tailor the view for
+  the computer (monitor size and so on)
 
 - FIX: Scroll to mark after unfold does not work.
 
@@ -71,10 +81,8 @@ TODO:
 - Improvements to Open/New View: many current software have it nicely
   decorated.
 
-- A synopsis editor would be cool, I think. I already sketched it with
-  moe, but it has been underused.
-
-- Packed format: .mawe.gz - use gzip module to pack and unpack.
+- A synopsis editor (and index cards) would be cool, I think. I already
+  sketched it with moe, but it has been underused.
 
 -------------------------------------------------------------------------------
 
@@ -114,7 +122,12 @@ POSTPONED:
   documents together in one view. That is, it is enough if we can choose
   between doc's draft and notes buffers.
 
+- Packed format: .mawe.gz - use gzip module to pack and unpack.
+
 -------------------------------------------------------------------------------
 
 DONE:
+
+- DONE: Notes available to right side with index (to help working with them)
+
 
