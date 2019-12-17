@@ -3,7 +3,7 @@ WORKLIST
 - Moving folded scenes around: Alt-up, Alt-down. We can allow cutting entire
   folded scenes, but not parts of them.
 
-- FIX: Focus left / right
+- FIX: Pressing ESC when asked if to save modified file results "Discard"
 
 -------------------------------------------------------------------------------
 
@@ -131,5 +131,7 @@ POSTPONED:
 DONE:
 
 - DONE: Notes available to right side with index (to help working with them)
+
+- DONE: FIX: Focus left / right
 
 

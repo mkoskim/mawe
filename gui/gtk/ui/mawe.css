@@ -1,4 +1,7 @@
-#draftview { background: #FFF; }
+#draftview { background: #F4F4F4; }
+#draftview:focus {
+    background: #FFF;
+}
 #draftview:selected { background: #9AB87C; }
 
 #round-btn       { border: 0px solid transparent; border-radius: 50%; padding: 0px; }

@@ -44,7 +44,7 @@ class DocNotebook(Gtk.Notebook):
         self.openbtn.set_property("tooltip_text", "Open document")
 
         start = HBox(
-            IconButton("open-menu-symbolic", "Open menu"),
+            #IconButton("open-menu-symbolic", "Open menu"),
             (self.openbtn, False, 1),
             StockButton("gtk-help", onclick = lambda w: self.ui_help()),
             visible = True,
@@ -294,7 +294,7 @@ class OpenView(DocPage):
 
         toolbar = HBox(
             (StackSwitcher(stack), False, 6),
-            (Button("Recent", relief = Gtk.ReliefStyle.NORMAL), False, 6),
+            #(Button("Recent", relief = Gtk.ReliefStyle.NORMAL), False, 6),
             (StockButton("gtk-new", relief = Gtk.ReliefStyle.NORMAL, onclick = self.onNew), False, 6),
             #(VSeparator(), False, 2),
             #(Label("Search:"), False, 6),
@@ -360,7 +360,7 @@ class DocView(DocPage):
             "./body/part": SceneBuffer(),
             "./notes/part": SceneBuffer(),
 
-            "./body/head/title":    EntryBuffer("./body/head/title"),
+            "./body/head/title":    EntryBuffer(),
             "./body/head/subtitle": EntryBuffer(),
             "./body/head/author":   EntryBuffer(),
             "./body/head/status":   EntryBuffer(),
@@ -373,8 +373,8 @@ class DocView(DocPage):
         self.create_stacks()
 
         self.pane = Gtk.Paned()
-        self.pane.add2(self.create_view())
-        self.pane.add1(self.create_index())
+        self.pane.add1(self.create_left())
+        self.pane.add2(self.create_right())
 
         self.add(self.pane)
 
@@ -382,46 +382,22 @@ class DocView(DocPage):
         self.connect("unmap", self.onUnmap)
         self.connect("key-press-event", self.onKeyPress)
 
-        #self.draftview.grab_focus()
+        self.right_focus[0].grab_focus()
 
     #--------------------------------------------------------------------------
-    # Create stacks for draft & notes (both edit and index)
-    #--------------------------------------------------------------------------
-    
-    def create_stacks(self):
 
-        def view(buf, name = "draftview"):
-            text = ScrolledSceneView(buf, "Times 12")
-            text.view.set_name(name)
-            text.set_min_content_width(400)
-            #text.set_max_content_width(800)
-            text.set_min_content_height(400)
-            text.set_border_width(1)
-            text.set_shadow_type(Gtk.ShadowType.IN)
-            return text
-        
-        def index(buf, view): 
-            scenelist = ScrolledSceneList(buf, view)
-            scenelist.set_border_width(1)
-            scenelist.set_shadow_type(Gtk.ShadowType.IN)
-            return scenelist
-        
-        draftedit  = view(self.buffers["./body/part"])
-        draftindex = index(self.buffers["./body/part"], draftedit)
-        notesedit  = view(self.buffers["./notes/part"])
-        notesindex = index(self.buffers["./notes/part"], notesedit)
+    def choose_focus(self, focusable):
+        for child in focusable:
+            if child.get_mapped():
+                child.grab_focus()
+                break
+        return True
 
-        self.editstack = Gtk.Stack()
-        self.editstack.add_named(draftedit, "draft")
-        self.editstack.add_named(notesedit, "notes")
+    def onFocusLeft(self):
+        return self.choose_focus(self.left_focus)
         
-        self.indexstack = Gtk.Stack()
-        self.indexstack.add_named(draftindex, "draft")
-        self.indexstack.add_named(notesindex, "notes")
-
-        self.notesview = view(self.buffers["./notes/part"])
-        
-    #--------------------------------------------------------------------------
+    def onFocusRight(self):
+        return self.choose_focus(self.right_focus)
 
     def onKeyPress(self, widget, event):
         mods = event.state & Gtk.accelerator_get_default_mod_mask()
@@ -429,12 +405,10 @@ class DocView(DocPage):
             event.keyval,
             mods,
         )
-        if key == "<Alt>1": # TODO: <Alt>Left
-            self.scenelist.grab_focus()
-            return True
-        elif key == "<Alt>2": # TODO: <Alt>Right
-            self.draftview.grab_focus()
-            return True
+        if key == "<Alt>Left": # TODO: <Alt>Left
+            return self.onFocusLeft()
+        elif key == "<Alt>Right": # TODO: <Alt>Right
+            return self.onFocusRight()
 
     #--------------------------------------------------------------------------
     # Buffers to XML tree. TODO: This does not work with multi-part bodies.
@@ -470,19 +444,14 @@ class DocView(DocPage):
     def buffers_connect(self):
         for key, buf in self.buffers.items():
             if type(buf) is SceneBuffer:
-
-                def modified1(self, buf): self.set_dirty()
-
-                buf.connect("changed", lambda buf: modified1(self, buf))
-
+                buf.connect("changed", lambda buf: self.set_dirty())
             elif type(buf) is EntryBuffer:
 
-                def modified2(self, buf):
+                def modified(self, buf):
                     self.set_dirty()
-                    if buf.key == "./body/head/title": self.set_name(buf.get_text())
-
-                buf.connect("changed", lambda e: modified2(self, e))
-
+                    self.set_name()
+                    
+                buf.connect("changed", lambda buf: modified(self, buf))
             else: ERROR("Unknown buffer type: %s", type(buf))
 
     #--------------------------------------------------------------------------
@@ -499,12 +468,10 @@ class DocView(DocPage):
         config["DocView"]["Pane"] = self.pane.get_position()
         #print("Update pos:", DocView.position)
 
-        # Untouched empty files can be removed without questions
-        # if not self.get_dirty() and self.doc.origin is None:
-        #    self.notebook._remove_child(self)
-
     #--------------------------------------------------------------------------
-
+    # Dirty control
+    #--------------------------------------------------------------------------
+    
     def set_name(self, text = None):
         if text is None: text = self.buffers["./body/head/title"].get_text()
         super(DocView, self).set_name((self.get_dirty() and "*" or "") + text)
@@ -582,8 +549,76 @@ class DocView(DocPage):
         self.buffers_revert()
 
     #--------------------------------------------------------------------------
+    # Create stacks for draft & notes (both edit and index)
+    #--------------------------------------------------------------------------
+    
+    def create_stacks(self):
 
-    def create_view(self):
+        self.left_focus  = []
+        self.right_focus = []
+
+        def view(buf, side):
+            text = ScrolledSceneView(buf, "Times 12")
+            text.view.set_name("draftview")
+            text.set_min_content_width(400)
+            #text.set_max_content_width(800)
+            text.set_min_content_height(400)
+            #text.set_border_width(1)
+            #text.set_shadow_type(Gtk.ShadowType.IN)
+
+            text.view.connect("focus-left",  lambda w: self.onFocusLeft())
+            text.view.connect("focus-right", lambda w: self.onFocusRight())
+
+            side.append(text.view)
+            return text
+        
+        def index(buf, side, view): 
+            scenelist = ScrolledSceneList(buf, view)
+            #scenelist.set_border_width(1)
+            #scenelist.set_shadow_type(Gtk.ShadowType.IN)
+            side.append(scenelist.tree)
+            return scenelist
+        
+        draftedit  = view(self.buffers["./body/part"], self.right_focus)
+        draftindex = index(self.buffers["./body/part"], self.left_focus, draftedit)
+        notesedit  = view(self.buffers["./notes/part"], self.right_focus, )
+        notesindex = index(self.buffers["./notes/part"], self.left_focus, notesedit)
+
+        self.editstack = Gtk.Stack()
+        self.editstack.add_named(draftedit, "draft")
+        self.editstack.add_named(notesedit, "notes")
+        
+        self.indexstack = Gtk.Stack()
+        self.indexstack.add_named(draftindex, "draft")
+        self.indexstack.add_named(notesindex, "notes")
+
+        self.notesview = view(self.buffers["./notes/part"], self.left_focus)
+        
+    #--------------------------------------------------------------------------
+
+    def create_left(self):
+
+        def topbar(switcher):
+            return HBox(
+                (switcher, False, 1),
+            )
+
+        def bottombar():
+            return HBox(
+                Button("..."),
+            )
+
+        stack, switcher = DuoStack("Notes", self.indexstack, self.notesview)
+
+        return VBox(
+            topbar(switcher),
+            (stack, True),
+            bottombar(),
+        )
+
+    #--------------------------------------------------------------------------
+
+    def create_right(self):
 
         #----------------------------------------------------------------------
         
@@ -689,26 +724,6 @@ class DocView(DocPage):
         return VBox(
             topbar(),
             (self.editstack, True),
-            bottombar(),
-        )
-
-    def create_index(self):
-
-        def topbar(switcher):
-            return HBox(
-                (switcher, False, 1),
-            )
-
-        def bottombar():
-            return HBox(
-                Button("..."),
-            )
-
-        stack, switcher = DuoStack("Notes", self.indexstack, self.notesview)
-
-        return VBox(
-            topbar(switcher),
-            (stack, True),
             bottombar(),
         )
 

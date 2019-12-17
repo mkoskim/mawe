@@ -1,4 +1,4 @@
-from gui.gtk import Gtk, Gdk, Pango, GtkSource
+from gui.gtk import Gtk, Gdk, Pango, GtkSource, GObject
 from gui.gtk.SceneBuffer import SceneBuffer
 import os
 
@@ -10,6 +10,9 @@ class ScrolledSceneList(Gtk.ScrolledWindow):
         super(ScrolledSceneList, self).__init__()
 
         self.tree = SceneList(buffer, view)
+        #scrolled = Gtk.ScrolledWindow()
+        #scrolled.add(self.tree)
+        #self.add(scrolled)
         self.add(self.tree)
 
     def get_buffer(self): return self.tree.buffer
@@ -81,6 +84,9 @@ class ScrolledSceneView(Gtk.ScrolledWindow):
         super(ScrolledSceneView, self).__init__()
 
         self.view = SceneView(buffer, font)
+        #scrolled = Gtk.ScrolledWindow()
+        #scrolled.add(self.view)
+        #self.add(scrolled)
         self.add(self.view)
 
         #self.set_size_request(500, 500)
@@ -147,6 +153,11 @@ class SceneView(GtkSource.View):
 
     #--------------------------------------------------------------------------
 
+    __gsignals__ = {
+        "focus-left"  : (GObject.SIGNAL_RUN_LAST, None, ()),
+        "focus-right" : (GObject.SIGNAL_RUN_LAST, None, ()),
+    }
+
     def set_hotkeys(self):    
 
         def undo():
@@ -184,14 +195,22 @@ class SceneView(GtkSource.View):
             
             "<Alt>Up":   self.move_line_up,
             "<Alt>Down": self.move_line_down,
-            "<Alt>Left": None,
-            "<Alt>Right": None,
+            "<Alt>Left": self.focus_left,
+            "<Alt>Right": self.focus_right,
 
             "Return": self.unfold_current,
             "space":  self.unfold_current,
         })
 
     #--------------------------------------------------------------------------
+    
+    def focus_left(self):
+        self.emit("focus-left")
+        return True
+
+    def focus_right(self):
+        self.emit("focus-right")
+        return True
     
     def _parse_keys(self, table):
 
