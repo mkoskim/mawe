@@ -600,7 +600,7 @@ class DocView(DocPage):
 
         def topbar(switcher):
             return HBox(
-                (switcher, False, 1),
+                (switcher, 1),
             )
 
         def bottombar():
@@ -612,8 +612,9 @@ class DocView(DocPage):
 
         return VBox(
             topbar(switcher),
-            (stack, True),
+            (Framed(stack), True),
             bottombar(),
+            spacing = 2,
         )
 
     #--------------------------------------------------------------------------
@@ -698,13 +699,14 @@ class DocView(DocPage):
                 IconButton("open-menu-symbolic", "Open menu"),
                 titleswitch,
                 selectnotes,
-                (VSeparator(), False, 2),
+                VSeparator(),
 
                 (Label(""), True),
 
-                (VSeparator(), False, 2),
+                VSeparator(),
                 exportswitch,
                 self.folderbtn,
+                spacing = 1,
             )
 
             return VBox(
@@ -716,15 +718,16 @@ class DocView(DocPage):
         def bottombar():
             return HBox(
                 Button("Revert", onclick = lambda w: self.ui_revert()),
-                (Label(""), True, 2),
-                (self.buffers["./body/part"].stats.words, False, 2),
-                (self.buffers["./body/part"].stats.chars, False, 4)
+                (Label(""), True),
+                (self.buffers["./body/part"].stats.words, 2),
+                (self.buffers["./body/part"].stats.chars, 4)
             )
 
         return VBox(
             topbar(),
-            (self.editstack, True),
+            (Framed(self.editstack), True),
             bottombar(),
+            spacing = 2,
         )
 
 ###############################################################################

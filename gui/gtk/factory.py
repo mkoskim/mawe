@@ -8,6 +8,15 @@ from gui.gtk import (Gtk, Gdk, Gio, GObject)
 
 #------------------------------------------------------------------------------
 
+def _extract_arg(kwargs, name, default = None):
+    if name in kwargs:
+        result = kwargs[name]
+        del kwargs[name]
+        return result
+    return default
+
+#------------------------------------------------------------------------------
+
 class EntryBuffer(Gtk.EntryBuffer):
 
     __gsignals__ = {
@@ -27,12 +36,7 @@ class EntryBuffer(Gtk.EntryBuffer):
 class Button(Gtk.Button):
 
     @staticmethod
-    def getarg(kwargs, name):
-        if name in kwargs:
-            result = kwargs[name]
-            del kwargs[name]
-            return result
-        return None
+    def getarg(kwargs, name): return _extract_arg(kwargs, name)
 
     @staticmethod
     def icon2image(name):
@@ -114,22 +118,31 @@ class RadioButton(Gtk.RadioButton):
 
 #------------------------------------------------------------------------------
 
-def _Boxed(box, *widgets):
-    for widget in widgets:
-        packtype, expand, pad = Gtk.PackType.START, False, 0
+def _Boxed(box, *widgets, **kwargs):
+
+    def pack(widget, spacing = 0):
+        packtype, expand, pad = Gtk.PackType.START, False, spacing
         
         if type(widget) == tuple:
-            if len(widget) == 2:
-                widget, expand, pad, packtype = *widget, 0, Gtk.PackType.START
-            elif len(widget) == 3:
-                widget, expand, pad, packtype = *widget, Gtk.PackType.START
-            else:
-                widget, expand, pad, packtype = widget
-                    
+            widget, args = widget[0], widget[1:]
+
+            for arg in args:
+                if   type(arg) == Gtk.PackType: packtype = arg
+                elif type(arg) == int:  pad = arg
+                elif type(arg) == bool: expand = arg
+                else: pass
+
         if packtype == Gtk.PackType.START:
             box.pack_start(widget, expand, expand, pad)
         else:
-          box.pack_end(widget, expand, expand, pad)
+            box.pack_end(widget, expand, expand, pad)
+
+    spacing = _extract_arg(kwargs, "spacing", 0)
+
+    if len(widgets):
+        for widget in widgets[:-1]: pack(widget, spacing)
+        pack(widgets[-1])
+    
     return box
 
 def HBox(*widgets, **kwargs): return _Boxed(Gtk.HBox(**kwargs), *widgets)
@@ -179,6 +192,15 @@ def DuoStack(label, page1, page2, **kwargs):
     switcher.connect("toggled", lambda w: switchStack(w, stack))
 
     return stack, switcher
+
+#------------------------------------------------------------------------------
+
+def Framed(widget):
+    frame = Gtk.Frame()
+    frame.add(widget)
+    #frame.set_border_width(1)
+    #frame.set_shadow_type(Gtk.ShadowType.IN)
+    return frame
 
 #------------------------------------------------------------------------------
 
