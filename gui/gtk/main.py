@@ -293,18 +293,21 @@ class OpenView(DocPage):
         self.stack = stack
 
         toolbar = HBox(
-            (StackSwitcher(stack), False, 6),
+            StackSwitcher(stack),
             #(Button("Recent", relief = Gtk.ReliefStyle.NORMAL), False, 6),
-            (StockButton("gtk-new", relief = Gtk.ReliefStyle.NORMAL, onclick = self.onNew), False, 6),
+            StockButton("gtk-new", relief = Gtk.ReliefStyle.NORMAL, onclick = self.onNew),
             #(VSeparator(), False, 2),
             #(Label("Search:"), False, 6),
             #Gtk.Entry(text = config["ProjectDir"]),
+            
+            spacing = 6,
         )
 
         box = VBox(
-            (toolbar, False, 2),
-            (HSeparator(), False, 2),
-            (stack, True, 0),
+            toolbar,
+            (stack, True),
+            
+            spacing = 3,
         )
         self.add(box)
         self.show_all()
@@ -696,7 +699,7 @@ class DocView(DocPage):
             exportview, exportswitch = exportsettings()
 
             toolbar = HBox(
-                IconButton("open-menu-symbolic", "Open menu"),
+                #IconButton("open-menu-symbolic", "Open menu"),
                 titleswitch,
                 selectnotes,
                 VSeparator(),

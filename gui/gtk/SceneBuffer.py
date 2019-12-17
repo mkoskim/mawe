@@ -224,8 +224,7 @@ class SceneBuffer(GtkSource.Buffer):
         def nextindent(line):
             line_start = self.make_iter_to_line(line)
             if self.is_empty_line(line_start): return False
-            if self.line_starts_with("##", line_start): return False
-            if self.line_starts_with("<<", line_start): return False
+            if self.get_text_forward(line_start, 2) in ["##", "<<", "!!"]: return False
             return True        
         
         if first_line > 0:
@@ -239,11 +238,11 @@ class SceneBuffer(GtkSource.Buffer):
 
             self.remove_tags(line_start, line_end, "indent")
 
-            if self.line_starts_with("##", line_start):
+            if line_start.equal(line_end):
                 indentmode = False
-            elif line_start.equal(line_end):
+            elif self.line_starts_with("##", line_start):
                 indentmode = False
-            elif self.line_starts_with("<<", line_start):
+            elif self.get_text_forward(line_start, 2) in ["<<", "!!"]:
                 self.update_spans(line_start, line_end)
                 indentmode = False
             else:

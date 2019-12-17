@@ -5,9 +5,53 @@ WORKLIST
 
 - FIX: Pressing ESC when asked if to save modified file results "Discard"
 
+- Shortcut for switching between draft / notes (right) and notes / index (left)
+
+- Move listview's selected row when moving around the text
+
+- Selecting & moving scenes in listview
+
+- When choosing with grab, show the selections in the listbox
+
+- Search and replace: it is very useful feature I have missed in moe a lot
+
+- Quick switch between:
+
+      (1) Index + draft
+      (2) Index + notes
+      (3) Notes + draft
+
+- Would be great to have option to leave syopses unfolded
+
+-------------------------------------------------------------------------------
+
+QUIRKS, FIX:
+
+- Cut & paste scene headers has quirks: Consider these:
+
+  * Cancel cut and paste, if selection contains protected areas
+    (folded scenes)
+    
+  * Except if selection bounds are at scene bounds, that is, you
+    have selected entire scenes.
+    
+- Make:
+
+  * Ctrl-up, Ctrl-down: move paragraph up / down
+  
+  * Alt-up, Alt-down: move scene up / down - if you have selections
+    (preferably whole scenes), move scenes with cursor.
+
+- I need to figure out suitable mechanics for managing hidden text tags.
+  Whenever the scene header with "folded" mark is detached from hidden
+  text, the hide tag should be removed.
+
 -------------------------------------------------------------------------------
 
 TODO:
+
+- Cursor marks? For example, Alt-1 to place a mark, and Shit-Alt-1 to go
+  back.
 
 - PM: Asynchronous directory scan: in case it takes a lots of time.
 
@@ -19,13 +63,6 @@ TODO:
 
 - Revert: Make it load tree from file if doc has origin. This is for cases
   where file has changed in the disk.
-
-- Move listview's selected row when moving around the text
-
-- Text <-> List swapping using Alt-left/right (instead of Alt-1/2 used at the
-  moment)
-
-- Selecting & moving scenes in listview
 
 - We could preserve e.g. "## **" to 'chapter' header. In fact, we need to
   make chapters. Just to prevent me using scenes as decorating items.
@@ -63,18 +100,11 @@ TODO:
 - Drag'n'drop mawe and moe files to editor. In case you work with file
   manager or similar.
 
-- Cursor marks? For example, Alt-1 to place a mark, and Shit-Alt-1 to go
-  back.
-
 - History entry to file: This can be used to track history, e.g.
   writing competitions where the text has been sent. <notes> part
   could be perfect for this!!!
 
 - Add error handling when loading documents
-
-- When choosing with grab, show the selections in the listbox
-
-- Search and replace: it is very useful feature I have missed in moe a lot
 
 - Separate configs to local and global ones. For example, you may want
   to store workset configurations to a shared drive, but keep window settings
@@ -85,32 +115,6 @@ TODO:
 
 - A synopsis editor (and index cards) would be cool, I think. I already
   sketched it with moe, but it has been underused.
-
--------------------------------------------------------------------------------
-
-QUIRKS, FIX:
-
-- We can not just switch buffer to textview - Undo/redo will not work in
-  that case. Instead, when switching buffers, we need to create new views.
-
-- Cut & paste scene headers has quirks: Consider these:
-
-  * Cancel cut and paste, if selection contains protected areas
-    (folded scenes)
-    
-  * Except if selection bounds are at scene bounds, that is, you
-    have selected entire scenes.
-    
-- Make:
-
-  * Ctrl-up, Ctrl-down: move paragraph up / down
-  
-  * Alt-up, Alt-down: move scene up / down - if you have selections
-    (preferably whole scenes), move scenes with cursor.
-
-- I need to figure out suitable mechanics for managing hidden text tags.
-  Whenever the scene header with "folded" mark is detached from hidden
-  text, the hide tag should be removed.
 
 -------------------------------------------------------------------------------
 
@@ -130,8 +134,14 @@ POSTPONED:
 
 DONE:
 
+- DONE: We can not just switch buffer to textview - Undo/redo will not work in
+  that case. Instead, when switching buffers, we need to create new views.
+
 - DONE: Notes available to right side with index (to help working with them)
 
 - DONE: FIX: Focus left / right
+
+- DONE: Text <-> List swapping using Alt-left/right (instead of Alt-1/2 used at the
+  moment)
 
 
