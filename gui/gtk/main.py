@@ -157,7 +157,6 @@ class DocNotebook(Gtk.Notebook):
         # Call onUnmap to get pane position updated
         child = self.get_current_child()
         if type(child) is DocView: child.onUnmap(child)
-        config["DocView"]["Pane"] = DocView.position
         return True
 
     def ui_help(self):
@@ -385,6 +384,10 @@ class DocView(DocPage):
 
         #self.draftview.grab_focus()
 
+    #--------------------------------------------------------------------------
+    # Create stacks for draft & notes (both edit and index)
+    #--------------------------------------------------------------------------
+    
     def create_stacks(self):
 
         def view(buf, name = "draftview"):
@@ -418,6 +421,21 @@ class DocView(DocPage):
 
         self.notesview = view(self.buffers["./notes/part"])
         
+    #--------------------------------------------------------------------------
+
+    def onKeyPress(self, widget, event):
+        mods = event.state & Gtk.accelerator_get_default_mod_mask()
+        key = Gtk.accelerator_name(
+            event.keyval,
+            mods,
+        )
+        if key == "<Alt>1": # TODO: <Alt>Left
+            self.scenelist.grab_focus()
+            return True
+        elif key == "<Alt>2": # TODO: <Alt>Right
+            self.draftview.grab_focus()
+            return True
+
     #--------------------------------------------------------------------------
     # Buffers to XML tree. TODO: This does not work with multi-part bodies.
     #--------------------------------------------------------------------------
@@ -468,33 +486,17 @@ class DocView(DocPage):
             else: ERROR("Unknown buffer type: %s", type(buf))
 
     #--------------------------------------------------------------------------
-
-    def onKeyPress(self, widget, event):
-        mods = event.state & Gtk.accelerator_get_default_mod_mask()
-        key = Gtk.accelerator_name(
-            event.keyval,
-            mods,
-        )
-        if key == "<Alt>1": # TODO: <Alt>Left
-            self.scenelist.grab_focus()
-            return True
-        elif key == "<Alt>2": # TODO: <Alt>Right
-            self.draftview.grab_focus()
-            return True
-
-    #--------------------------------------------------------------------------
     # Paned control
     #--------------------------------------------------------------------------
 
-    position = -1
-
     def onMap(self, widget):
-        if DocView.position < 0: return
-        self.pane.set_position(DocView.position)
+        pos = int(config["DocView"]["Pane"])
+        if pos < 0: return
+        self.pane.set_position(pos)
         #print("Set pos:", DocView.position)
 
     def onUnmap(self, widget):
-        DocView.position = self.pane.get_position()
+        config["DocView"]["Pane"] = self.pane.get_position()
         #print("Update pos:", DocView.position)
 
         # Untouched empty files can be removed without questions
@@ -765,8 +767,6 @@ class MainWindow(Gtk.Window):
             settings["Size"]["X"],
             settings["Size"]["Y"]
         )
-
-        DocView.position = config["DocView"]["Pane"]
 
         workset = self.docs.open_defaults(workset)
         if workset:
