@@ -22,7 +22,7 @@ Story: Mawe: User's Guide
 ===============================================================================
 /-->
 <words>
-<text>932</text>
+<text>1139</text>
 <comments>4</comments>
 <missing>7</missing>
 </words>
@@ -42,15 +42,15 @@ Story: Mawe: User's Guide
 </scene>
 <scene name="Document View">
 <p>Document view is divided to two regions, left and right. By default, you see index (Table of Content) at the left side, and story content at right side. You can switch between left and right regions with [Alt - Left] and [Alt - Right] shortcuts. Try it few times.</p>
+<p>Index view is meant to give you an overview of the story, as well as word counts for separate scenes. It will show differently tagged paragraphs in different colors - regular text as black, comments as green, and text marked missing as red.</p>
+<p>In index view, you can use cursor keys to move around scenes, and [Space] or [Enter] to go to selected scene. Try that few times.</p>
 <br />
-<p>Stories are divided to story itself - called draft - and notes you can make for your story. You can choose what is shown in left and right tabs with:</p>
+<p>In addition to the draft text, stories also contain a block called "notes". You can choose what is shown in left and right tabs with:</p>
 <p>[Alt - 1] switches between index and notes at the left side.</p>
 <p>[Alt - 2] switches between draft and notes at right side.</p>
+<p>Try it once. Press [Alt - 2] to switch to document notes side. Pressing [Alt - 1] will switch the left side between index and draft. Notes section is meant for all sorts of freeform sketches, design, plans and such things, and they will not be included to the exported draft.</p>
 <br />
-<p>Try it once. Press [Alt - 2] to switch to document notes side. Pressing [Alt - 1] will switch the left side between index and draft.</p>
-</scene>
-<scene name="Document Information">
-<p>To access document title and other information, click [Title] button located at the top of the document view.</p>
+<p>To access document title and other information, click [Title] button located at the top of the document view. [Export] button will open a dialog to export your story to few formats. [Folder] button at the top-right corner will open the directory where the story is located to a file manager.</p>
 </scene>
 <scene name="Scenes">
 <p>The main feature of Mawe compared to regular text editors is the ability to divide text to blocks called scenes. A scene refers to a block of text that is considered undividable - if you cut an arbitrary piece of text from a scene and move it somewhere else, it is not understandable anymore. Simply said, scene holds text that you want to keep together.</p>
@@ -77,21 +77,25 @@ Story: Mawe: User's Guide
 <scene name="Marking Up">
 <p>Mawe is not meant for typesetting. There are different text editors focused on that subject, setting up pages, fonts, styles and such. But still, Mawe has some typesetting features possibly useful for writers. Surrounding a word or sentence with asterisks will make the text *bold*. Surrounding the word or sentence with underscores will make the text _italic_.</p>
 <br />
-<p>In addition to those, there are few special paragraph markers. Starting paragraph with two slashes ("//") will make the paragraph as a comment:</p>
+<p>In addition to those, there are few special paragraph markers. Starting paragraph with two slashes ("//") will make the paragraph as a *comment*:</p>
 <br />
 <comment>This is a comments</comment>
 <br />
-<p>Comments are excluded from exported drafts. They are meant for writers to put down some comments for their text. They are meant just for placing small comments to remind you something. Larger sketches, plans and designs can be written to notes part.</p>
+<p>Comments are excluded from exported drafts. They are meant for writers to put down some smaller comments in the text. Larger sketches, plans and designs can be written to notes part.</p>
 <br />
-<p>Missing:</p>
+<p>You can put you marks about *missing* pieces in your text by starting the paragraph with two exclamation marks ("!!"):</p>
 <br />
 <missing>Am I missing something here? Point, maybe?</missing>
 <br />
+<p>Missing sections are also excluded from exported draft.</p>
+<br />
 <p>As you see, index will count words in comments and missing paragraphs separately, thus giving you some indication where your text needs attention. They are mainly meant for that purpose, to mark where you have missing pieces or some questions that you need to address at some point.</p>
 <br />
-<p>Synopsis:</p>
+<p>The last special paragraph marker is *synopsis*, which you can make by starting the line with two lesser-than symbols ("&lt;&lt;"):</p>
 <br />
 <synopsis>This is a synopsis</synopsis>
+<br />
+<p>At the moment, they play quite small part in the editor, but they may be later used for editing and viewing your story at higher level, for example as Index Cards.</p>
 </scene>
 <scene name="Shortcut Reference">
 <p>Generic:</p>
@@ -109,6 +113,8 @@ Story: Mawe: User's Guide
 <p>Navigating:</p>
 <p>[Alt - Left] - Move left side</p>
 <p>[Alt - Right] - Move right side</p>
+<p>[Alt - 1] - Toggle left side between index and notes section</p>
+<p>[Alt - 2] - Toggle right side between draft and notes section</p>
 <p>[Shift - Alt - Page Up] - Move previous document</p>
 <p>[Shift - Alt - Page Down] - Move next document</p>
 </scene>
