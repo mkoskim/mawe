@@ -3,8 +3,6 @@ WORKLIST
 - Moving folded scenes around: Shift-Alt-up, Shift-Alt-down. We can allow
   cutting entire folded scenes, but not parts of them.
 
-- FIX: Pressing ESC when asked if to save modified file results "Discard"
-
 - Shortcut for switching between draft / notes (right) and notes / index (left)
 
 - Selecting & moving scenes in listview
@@ -20,8 +18,6 @@ WORKLIST
       (3) Notes + draft
 
 - Would be great to have option to leave syopses unfolded
-
-- Fix: Listbox does not always follow scenes on the textbox
 
 -------------------------------------------------------------------------------
 
@@ -149,4 +145,9 @@ DONE:
 - DONE: Move listview's selected row when moving around the text
 
 - DONE: Hotkeys to move between files - existing ones Ctrl-Alt + Pgup/Pgdn
+
+- DONE: Fix: Listbox does not always follow scenes on the textbox
+
+- DONE: FIX: Pressing ESC when asked if to save modified file results "Discard"
+
 

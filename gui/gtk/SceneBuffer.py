@@ -1,4 +1,4 @@
-from gui.gtk import Gtk, Gdk, Pango, GtkSource
+from gui.gtk import Gtk, Gdk, Pango, GtkSource, GObject
 import os, re
 from collections import namedtuple
 from project.Document import ET, FormatError, Document
@@ -29,6 +29,13 @@ class SceneBuffer(GtkSource.Buffer):
 
         self.connect_after("delete-range", self.afterDeleteRange)
         self.connect_after("insert-text",  self.afterInsertText)
+        self.connect_after("mark-set",     self.afterMarkSet)
+
+    #--------------------------------------------------------------------------
+    
+    __gsignals__ = {
+        "current-scene"  : (GObject.SIGNAL_RUN_LAST, None, (object, )),
+    }
 
     #--------------------------------------------------------------------------
     
@@ -209,6 +216,7 @@ class SceneBuffer(GtkSource.Buffer):
         self.update_indent(start, end)
         self.update_marks(start, end)
         self.update_stats()
+        self.update_current_scene()
     
     #--------------------------------------------------------------------------
     # Update indent and basic tags
@@ -445,6 +453,19 @@ class SceneBuffer(GtkSource.Buffer):
             self.marklist.set_value(index, 2, words)
             self.marklist.set_value(index, 3, comments)
             self.marklist.set_value(index, 4, missing)
+
+    #--------------------------------------------------------------------------
+    # Inform current scene
+    #--------------------------------------------------------------------------
+
+    def update_current_scene(self):
+        at   = self.get_cursor_iter()
+        mark = self.get_scene_mark(at)
+        self.emit("current-scene", mark)
+
+    def afterMarkSet(self, buf, place, mark):
+        if mark != self.get_insert(): return
+        self.update_current_scene()
 
     #--------------------------------------------------------------------------
     # Folding:

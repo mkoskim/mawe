@@ -86,14 +86,14 @@ Story: Mawe: User's Guide
 </scene>
 <scene name="Shortcut Reference">
 <p>Generic:</p>
+<p>[Ctrl - O] - Open document</p>
 <p>[Ctrl - S] - Save document</p>
 <p>[Ctrl - W] - Close document</p>
-<p>[Ctrl - O] - Open document</p>
 <p>[Alt - H] - Open this User's Guide</p>
 <br />
 <p>Folding:</p>
 <p>[Alt - F] - Fold/unfold current scene</p>
-<p>[Alt - X] - Select &amp; unfold current scene</p>
+<p>[Alt - X] - Select &amp; fold current scene</p>
 <p>[Alt - A][Alt - A] - Fold all (current scene excluded)</p>
 <p>[Alt - A][Alt - S] - Unfold all</p>
 <br />

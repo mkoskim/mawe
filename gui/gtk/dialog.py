@@ -44,7 +44,7 @@ def SaveOrDiscard(self, question):
     )
     dialog.add_buttons(
         Gtk.STOCK_SAVE, Gtk.ResponseType.YES,
-        "_Discard", Gtk.ResponseType.NO,
+        "Close without Saving", Gtk.ResponseType.NO,
         Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL
     )
     answer = dialog.run()

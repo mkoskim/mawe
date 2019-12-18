@@ -70,8 +70,39 @@ class SceneList(Gtk.TreeView):
         #----------------------------------------------------------------------
         
         self.connect("row-activated", self.onRowActivated)
-        self.buffer.connect_after("mark-set", self.afterMarkSet)
+        self.buffer.connect("current-scene", self.onCurrentScene)
 
+        #----------------------------------------------------------------------
+        
+        self.targets = [
+            ("GTK_TREE_MODEL_ROWS", Gtk.TargetFlags.SAME_WIDGET, 0)
+        ]
+        
+        self.enable_model_drag_source(
+            Gdk.ModifierType.BUTTON1_MASK,
+            self.targets,
+            Gdk.DragAction.MOVE
+        )
+        self.enable_model_drag_dest(self.targets, Gdk.DragAction.MOVE)
+
+        #self.connect("drag-data-get", self.dragDataGet)
+        #self.connect("drag-data-received", self.dragDataReceived)
+        self.connect("drag-drop", self.dragDrop)
+
+        self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
+
+        #self.drag_source_set_icon_stock(Gtk.STOCK_DND)
+        
+    #--------------------------------------------------------------------------
+    
+    def dragDrop(self, treeview, context, x, y, etime):
+        dropzone = treeview.get_dest_row_at_pos(x,y)
+        print("Drop at", dropzone)
+        Gtk.drag_finish(context, False, False, etime)
+        return True
+
+    #--------------------------------------------------------------------------
+    
     def onRowActivated(self, tree, path, col, *args):
         store = self.get_model()
         index = store.get_iter(path)
@@ -82,10 +113,7 @@ class SceneList(Gtk.TreeView):
             self.view.scroll_to_mark(mark)
             self.view.grab_focus()
 
-    def afterMarkSet(self, buf, place, mark):
-        if mark != buf.get_insert(): return
-
-        mark = buf.get_scene_mark(place)
+    def onCurrentScene(self, buf, mark):
         if mark:
             listiter = buf.markiter[mark]
             path = self.get_model().get_path(listiter)
