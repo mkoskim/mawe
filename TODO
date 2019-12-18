@@ -3,27 +3,34 @@ WORKLIST
 - Moving folded scenes around: Shift-Alt-up, Shift-Alt-down. We can allow
   cutting entire folded scenes, but not parts of them.
 
-- Shortcut for switching between draft / notes (right) and notes / index (left)
-
 - Selecting & moving scenes in listview
 
 - When choosing with grab, show the selections in the listbox
 
 - Search and replace: it is very useful feature I have missed in moe a lot
 
-- Quick switch between:
-
-      (1) Index + draft
-      (2) Index + notes
-      (3) Notes + draft
-
 - Would be great to have option to leave syopses unfolded
+
+- Proposal: Determine suitable screen modes:
+    
+    Basic:
+    (1) Draft index + draft view (edit draft)
+    (2) Notes index + notes view (edit notes)
+    (3) Notes view  + draft view (edit both side by side)
+
+    These are almost like fold all + moving around:
+
+    (4) XXX         + draft view/index (switch between index & edit)
+    (5) notes view/index + XXX         (switch between index & edit)
 
 -------------------------------------------------------------------------------
 
 QUIRKS, FIX:
 
-- Cut & paste scene headers has quirks: Consider these:
+- It is bit irritating that folding and unfolding cause buffer to become
+  dirty, but it can't be helped now. Otherwise we are messing with undo/redo.
+
+- Cut & paste folded scene headers has quirks: Consider these:
 
   * Cancel cut and paste, if selection contains protected areas
     (folded scenes)
@@ -33,18 +40,21 @@ QUIRKS, FIX:
     
 - Make:
 
-  * Ctrl-up, Ctrl-down: move paragraph up / down
+  * DONE: Ctrl-up, Ctrl-down: move paragraph up / down
   
-  * Alt-up, Alt-down: move scene up / down - if you have selections
-    (preferably whole scenes), move scenes with cursor.
+  * DONE: Alt-up, Alt-down: move scene up / down
+  
+  * if you have selections (preferably whole scenes), make Alt-Up/Down
+    move scenes with cursor.
 
-- I need to figure out suitable mechanics for managing hidden text tags.
-  Whenever the scene header with "folded" mark is detached from hidden
-  text, the hide tag should be removed.
+- There are still quirks in folded content. It is possible to add new lines
+  which will become hidden. Also, sometimes comment tags will get persistent.
 
 -------------------------------------------------------------------------------
 
 TODO:
+
+- Moe file import is still not complete.
 
 - ESC in Open view to cancel opening.
 
@@ -150,4 +160,5 @@ DONE:
 
 - DONE: FIX: Pressing ESC when asked if to save modified file results "Discard"
 
+- DONE: Shortcut for switching between draft / notes (right) and notes / index (left)
 

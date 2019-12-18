@@ -22,7 +22,7 @@ Story: Mawe: User's Guide
 ===============================================================================
 /-->
 <words>
-<text>812</text>
+<text>932</text>
 <comments>4</comments>
 <missing>7</missing>
 </words>
@@ -33,12 +33,21 @@ Story: Mawe: User's Guide
 </scene>
 <scene name="Opening and Closing Files">
 <p>Button to open files to the editor is located at the top-left corner of the window. It can be activated also with [Ctrl-O] and [Alt-O] hotkeys. Depending on how you work, you can use either Project Manager or filesystem view. When given a folder, project manager will scan that folder for .mawe files, extract information from them, and show them on a list.</p>
-<p>In the same view, there is also New button to create new documents.</p>
+<p>In the same view, there is also [New] button to create new documents.</p>
 <p>Document can be closed by pressing small "x" located after name or pressing [Ctrl-W].</p>
 <p>Right click on the tab header will bring you up a list of opened files. This can be useful if you have lots of open files.</p>
 <p>Shortcuts to move between documents:</p>
 <p>[Ctrl-Alt-Page Up] - Previous document.</p>
 <p>[Ctrl-Alt-Page Down] - Next document.</p>
+</scene>
+<scene name="Document View">
+<p>Document view is divided to two regions, left and right. By default, you see index (Table of Content) at the left side, and story content at right side. You can switch between left and right regions with [Alt - Left] and [Alt - Right] shortcuts. Try it few times.</p>
+<br />
+<p>Stories are divided to story itself - called draft - and notes you can make for your story. You can choose what is shown in left and right tabs with:</p>
+<p>[Alt - 1] switches between index and notes at the left side.</p>
+<p>[Alt - 2] switches between draft and notes at right side.</p>
+<br />
+<p>Try it once. Press [Alt - 2] to switch to document notes side. Pressing [Alt - 1] will switch the left side between index and draft.</p>
 </scene>
 <scene name="Document Information">
 <p>To access document title and other information, click [Title] button located at the top of the document view.</p>
@@ -114,7 +123,13 @@ Notes
 ===============================================================================
 /-->
 <part>
-<scene name="" />
+<scene name="Notes">
+<p>This is document notes part. Anything written here will not be exported to draft. This is freeform area to make your plans, sketches, notes and such for your story.</p>
+<br />
+<p>By default, you see notes index at the left side. You can move between right and left regions with [Alt - Left] and [Alt - Right] shortcuts.</p>
+<br />
+<p>You can switch the left side to show notes by pressing [Alt - 1]. Once you have notes at left side, you can switch the right region back to draft view by pressing [Alt - 2].</p>
+</scene>
 </part>
 </notes>
 </story>

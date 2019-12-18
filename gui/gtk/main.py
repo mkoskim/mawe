@@ -404,14 +404,18 @@ class DocView(DocPage):
 
     def onKeyPress(self, widget, event):
         mods = event.state & Gtk.accelerator_get_default_mod_mask()
-        key = Gtk.accelerator_name(
-            event.keyval,
-            mods,
-        )
-        if key == "<Alt>Left": # TODO: <Alt>Left
+        key = Gtk.accelerator_name(event.keyval, mods)
+        
+        if key == "<Alt>Left":
             return self.onFocusLeft()
-        elif key == "<Alt>Right": # TODO: <Alt>Right
+        elif key == "<Alt>Right":
             return self.onFocusRight()
+        elif key == "<Alt>1":
+            self.left_notes.clicked()
+            return True
+        elif key == "<Alt>2":
+            self.right_notes.clicked()
+            return True
 
     #--------------------------------------------------------------------------
     # Buffers to XML tree. TODO: This does not work with multi-part bodies.
@@ -608,10 +612,12 @@ class DocView(DocPage):
 
         def bottombar():
             return HBox(
-                Button("..."),
+                Button("xxx"),
             )
 
-        stack, switcher = DuoStack("Notes", self.indexstack, self.notesview)
+        stack, switcher = DuoStack("1 - Notes", self.indexstack, self.notesview)
+
+        self.left_notes = switcher
 
         return VBox(
             topbar(switcher),
@@ -631,12 +637,12 @@ class DocView(DocPage):
             def Edit(key): return Gtk.Entry(buffer = self.buffers[key])
             
             grid = Grid(
-                (Label("Title"), Edit("./body/head/title")),
+                (Label("Title"),    Edit("./body/head/title")),
                 (Label("Subtitle"), Edit("./body/head/subtitle")),
                 [(HSeparator(), 2, 1)],
-                (Label("Author"), Edit("./body/head/author")),
+                (Label("Author"),   Edit("./body/head/author")),
                 [(HSeparator(), 2, 1)],
-                (Label("Status"), Edit("./body/head/status")),
+                (Label("Status"),   Edit("./body/head/status")),
                 (Label("Deadline"), Edit("./body/head/deadline")),
                 column_spacing = 10,
                 row_spacing = 2,
@@ -654,8 +660,9 @@ class DocView(DocPage):
         
         def exportsettings():
             # Add backcover text here. Remember to store it, too.
+            # Add selection of author and nickname
+            # Add story type (short / long) and other formatting options
             titleedit = Gtk.Frame()
-            #titleedit.set_label("Edit title")
             titleedit.set_shadow_type(Gtk.ShadowType.IN)
             titleedit.set_border_width(1)
             titleedit.add(Label("Export"))
@@ -665,8 +672,6 @@ class DocView(DocPage):
         
         def topbar():
 
-            selectnotes = ToggleButton("Notes")
-
             def switchBuffer(self, widget):
                 if not widget.get_active():
                     self.editstack.set_visible_child_name("draft")
@@ -675,7 +680,7 @@ class DocView(DocPage):
                     self.editstack.set_visible_child_name("notes")
                     self.indexstack.set_visible_child_name("notes")
 
-            selectnotes = ToggleButton("Notes", onclick = lambda w: switchBuffer(self, w))
+            self.right_notes = ToggleButton("2 - Notes", onclick = lambda w: switchBuffer(self, w))
 
             self.folderbtn = Button(
                 "Folder",
@@ -700,14 +705,15 @@ class DocView(DocPage):
 
             toolbar = HBox(
                 #IconButton("open-menu-symbolic", "Open menu"),
+                self.right_notes,
+                VSeparator(),
                 titleswitch,
-                selectnotes,
+                exportswitch,
                 VSeparator(),
 
                 (Label(""), True),
 
                 VSeparator(),
-                exportswitch,
                 self.folderbtn,
                 spacing = 1,
             )

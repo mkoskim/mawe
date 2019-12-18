@@ -73,6 +73,10 @@ class SceneList(Gtk.TreeView):
         self.buffer.connect("current-scene", self.onCurrentScene)
 
         #----------------------------------------------------------------------
+        # Drag'n'drop
+        #----------------------------------------------------------------------
+        
+        return
         
         self.targets = [
             ("GTK_TREE_MODEL_ROWS", Gtk.TargetFlags.SAME_WIDGET, 0)
