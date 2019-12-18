@@ -195,8 +195,8 @@ def DuoStack(label, page1, page2, **kwargs):
 
 #------------------------------------------------------------------------------
 
-def Framed(widget):
-    frame = Gtk.Frame()
+def Framed(widget, **kwargs):
+    frame = Gtk.Frame(**kwargs)
     frame.add(widget)
     #frame.set_border_width(1)
     #frame.set_shadow_type(Gtk.ShadowType.IN)

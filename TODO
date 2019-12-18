@@ -1,27 +1,13 @@
 WORKLIST
 
+- Search and replace: it is very useful feature I have missed in moe a lot
+
 - Moving folded scenes around: Shift-Alt-up, Shift-Alt-down. We can allow
   cutting entire folded scenes, but not parts of them.
 
 - Selecting & moving scenes in listview
 
 - When choosing with grab, show the selections in the listbox
-
-- Search and replace: it is very useful feature I have missed in moe a lot
-
-- Would be great to have option to leave syopses unfolded
-
-- Proposal: Determine suitable screen modes:
-    
-    Basic:
-    (1) Draft index + draft view (edit draft)
-    (2) Notes index + notes view (edit notes)
-    (3) Notes view  + draft view (edit both side by side)
-
-    These are almost like fold all + moving around:
-
-    (4) XXX         + draft view/index (switch between index & edit)
-    (5) notes view/index + XXX         (switch between index & edit)
 
 -------------------------------------------------------------------------------
 
@@ -53,6 +39,22 @@ QUIRKS, FIX:
 -------------------------------------------------------------------------------
 
 TODO:
+
+- Would be great to have option to leave syopses unfolded
+
+- Proposal: Determine suitable screen modes:
+    
+    Basic:
+    (1) Draft index + draft view (edit draft)
+    (2) Notes index + notes view (edit notes)
+    (3) Notes view  + draft view (edit both side by side)
+
+    These are almost like fold all + moving around:
+
+    (4) XXX         + draft view/index (switch between index & edit)
+    (5) notes view/index + XXX         (switch between index & edit)
+
+- Attempt to open a file that is already opened should just switch the tab.
 
 - Moe file import is still not complete.
 
@@ -142,23 +144,4 @@ POSTPONED:
 
 DONE:
 
-- DONE: We can not just switch buffer to textview - Undo/redo will not work in
-  that case. Instead, when switching buffers, we need to create new views.
-
-- DONE: Notes available to right side with index (to help working with them)
-
-- DONE: FIX: Focus left / right
-
-- DONE: Text <-> List swapping using Alt-left/right (instead of Alt-1/2 used at the
-  moment)
-
-- DONE: Move listview's selected row when moving around the text
-
-- DONE: Hotkeys to move between files - existing ones Ctrl-Alt + Pgup/Pgdn
-
-- DONE: Fix: Listbox does not always follow scenes on the textbox
-
-- DONE: FIX: Pressing ESC when asked if to save modified file results "Discard"
-
-- DONE: Shortcut for switching between draft / notes (right) and notes / index (left)
 

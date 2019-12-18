@@ -410,12 +410,6 @@ class DocView(DocPage):
             return self.onFocusLeft()
         elif key == "<Alt>Right":
             return self.onFocusRight()
-        elif key == "<Alt>1":
-            self.left_notes.clicked()
-            return True
-        elif key == "<Alt>2":
-            self.right_notes.clicked()
-            return True
 
     #--------------------------------------------------------------------------
     # Buffers to XML tree. TODO: This does not work with multi-part bodies.
@@ -615,8 +609,9 @@ class DocView(DocPage):
                 Button("xxx"),
             )
 
-        stack, switcher = DuoStack("1 - Notes", self.indexstack, self.notesview)
+        stack, switcher = DuoStack("_1 - Notes", self.indexstack, self.notesview)
 
+        switcher.set_use_underline(True)
         self.left_notes = switcher
 
         return VBox(
@@ -651,8 +646,9 @@ class DocView(DocPage):
             frame = Gtk.Frame(name = "embeddeddialog")
             frame.add(grid)
             return frame, HideControl(
-                "Title",
+                "_Title",
                 frame,
+                use_underline = True,
                 tooltip_text = "Edit story header info"
             )
 
@@ -666,7 +662,7 @@ class DocView(DocPage):
             titleedit.set_shadow_type(Gtk.ShadowType.IN)
             titleedit.set_border_width(1)
             titleedit.add(Label("Export"))
-            return titleedit, HideControl("Export", titleedit)
+            return titleedit, HideControl("_Export", titleedit, use_underline = True)
 
         #----------------------------------------------------------------------
         
@@ -680,7 +676,11 @@ class DocView(DocPage):
                     self.editstack.set_visible_child_name("notes")
                     self.indexstack.set_visible_child_name("notes")
 
-            self.right_notes = ToggleButton("2 - Notes", onclick = lambda w: switchBuffer(self, w))
+            self.right_notes = ToggleButton(
+                "_2 - Notes",
+                use_underline = True,
+                onclick = lambda w: switchBuffer(self, w)
+            )
 
             self.folderbtn = Button(
                 "Folder",
@@ -726,7 +726,7 @@ class DocView(DocPage):
 
         def bottombar():
             return HBox(
-                Button("Revert", onclick = lambda w: self.ui_revert()),
+                Button("_Revert", use_underline = True, onclick = lambda w: self.ui_revert()),
                 (Label(""), True),
                 (self.buffers["./body/part"].stats.words, 2),
                 (self.buffers["./body/part"].stats.chars, 4)

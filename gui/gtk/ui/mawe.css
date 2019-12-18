@@ -1,13 +1,16 @@
+/* ------------------------------------------------------------------------- */
+/* Textview */
+/* ------------------------------------------------------------------------- */
+
 #draftview { background: #F4F4F4; }
 #draftview:focus {
     background: #FFF;
 }
 #draftview:selected { background: #9AB87C; }
 
-#round-btn       { border: 0px solid transparent; border-radius: 50%; padding: 0px; }
-#round-btn:hover { border: 0px solid #AAA; background: #CCC; }
-
-#tablabel { padding-left: 10px; padding-right: 10px; }
+/* ------------------------------------------------------------------------- */
+/* Generic elements */
+/* ------------------------------------------------------------------------- */
 
 /*
 .button { border: 1px solid #888; }
@@ -23,19 +26,29 @@ GtkEntry {
 button {
     padding-top:    4px;
     padding-bottom: 4px;
-    padding-left:   10px;
-    padding-right:  10px;
+    padding-left:   6px;
+    padding-right:  6px;
 }
 
-#DocNotebook.frame {
-    border: 0px solid;
-}
+/* ------------------------------------------------------------------------- */
+/* Main notebook */
+/* ------------------------------------------------------------------------- */
 
-/*
-#DocNotebook .header.top, tab {
-    border-bottom: 1px solid rgba(0,0,0,0.10);
-}
-*/
+#DocNotebook.frame      { border: 0px solid; }
+#DocNotebook.header.top { border-bottom: 1px solid @border; }
+#DocNotebook tab        { border-bottom: 1px solid @border; }
+#DocNotebook tab:active { border-bottom: 0px; }
+
+/* Round buttons for tab close */
+#round-btn       { border: 1px solid transparent; border-radius: 50%; padding: 0px; }
+#round-btn:hover { border: 1px solid @border; background: #CCC; }
+
+/* Labels in tabs */
+#tablabel { padding-left: 10px; padding-right: 10px; }
+
+/* ------------------------------------------------------------------------- */
+/* Document page */
+/* ------------------------------------------------------------------------- */
 
 .DocPage {
     padding: 0px;

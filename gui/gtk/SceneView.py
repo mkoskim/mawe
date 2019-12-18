@@ -219,10 +219,10 @@ class SceneView(GtkSource.View):
             "<Ctrl>Z": undo,
             "<Ctrl><Shift>Z": redo,
             
-            "<Alt>A": {
+            #"<Alt>A": {
                 "<Alt>A": self.fold_all,
                 "<Alt>S": self.unfold_all,
-            },
+            #},
             "<Alt>F": self.toggle_fold,
             "<Alt>X": self.select_and_fold,
             

@@ -2,6 +2,30 @@
 
 DONE:
 
+- DONE: We can not just switch buffer to textview - Undo/redo will not work in
+  that case. Instead, when switching buffers, we need to create new views.
+
+- DONE: Notes available to right side with index (to help working with them)
+
+- DONE: FIX: Focus left / right
+
+- DONE: Text <-> List swapping using Alt-left/right (instead of Alt-1/2 used at the
+  moment)
+
+- DONE: Move listview's selected row when moving around the text
+
+- DONE: Hotkeys to move between files - existing ones Ctrl-Alt + Pgup/Pgdn
+
+- DONE: Fix: Listbox does not always follow scenes on the textbox
+
+- DONE: FIX: Pressing ESC when asked if to save modified file results "Discard"
+
+- DONE: Shortcut for switching between draft / notes (right) and notes / index (left)
+
+-------------------------------------------------------------------------------
+
+DONE:
+
 - DONE: Remember the directory where you were on open file directory between
   restarts. Not Done: Make it default to home directory - os.path does not
   regocnize "~", so it defaults to cwd().
