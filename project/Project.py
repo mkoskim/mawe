@@ -193,16 +193,16 @@ class Moe(Base):
             notehead = mawe.find("./notes/head")
             for child in list(element):
                 if   child.tag == "title":      head.find("title").text = child.text
-                elif child.tag == "subtitle":   ET.SubElement(head, "subtitle").text = child.text
-                elif child.tag == "author":     ET.SubElement(head, "author").text = child.text
+                elif child.tag == "subtitle":   head.find("subtitle").text = child.text
+                elif child.tag == "author":     head.find("author").text = child.text
+                elif child.tag == "deadline":   head.find("deadline").text = child.text
+                elif child.tag == "status":     head.find("status").text = child.text
+                elif child.tag == "year":       head.find("year").text = child.text
                 elif child.tag == "translated": ET.SubElement(head, "translated").text = child.text
-                elif child.tag == "deadline":   ET.SubElement(head, "deadline").text = child.text
+                elif child.tag == "published":  ET.SubElement(head, "published").text = child.text
+                elif child.tag == "publisher":  ET.SubElement(head, "publisher").text = child.text
                 elif child.tag == "synopsis":   ET.SubElement(head, "covertext").text = child.text
-                elif child.tag == "status":     ET.SubElement(head, "status").text = child.text
-                elif child.tag == "year":       ET.SubElement(head, "year").text = child.text
-                elif child.tag == "version":    ET.SubElement(head, "version").text = child.text
-                elif child.tag == "published":  ET.SubElement(notehead, "published").text = child.text
-                elif child.tag == "publisher":  ET.SubElement(notehead, "publisher").text = child.text
+                elif child.tag == "version":    pass
                 elif child.tag == "website":    pass
                 elif child.tag == "coverpage":  pass
                 else: log("%s<title>: Unknown child '%s'" % (self.fullname, child.tag))
