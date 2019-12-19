@@ -40,6 +40,18 @@ QUIRKS, FIX:
 
 TODO:
 
+- Revert dialog looks really strange and confusing.
+
+- When converting from moe, the new file is not dirty and it is not asked
+  for saving. Should be fixed in longer run.
+
+- Code needs cleaning, refactoring and other such janitorial activities
+  all over the place, to make room for new features. But let's schedule
+  that work bit later.
+
+- It could be good to add hotkeys to tooltips. And yes, menus have their
+  purpose showing the hotkeys.
+
 - Would be great to have option to leave syopses unfolded
 
 - Proposal: Determine suitable screen modes:

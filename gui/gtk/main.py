@@ -396,10 +396,10 @@ class DocView(DocPage):
                 break
         return True
 
-    def onFocusLeft(self):
+    def onFocusLeft(self, widget, *args):
         return self.choose_focus(self.left_focus)
         
-    def onFocusRight(self):
+    def onFocusRight(self, widget, *args):
         return self.choose_focus(self.right_focus)
 
     def onKeyPress(self, widget, event):
@@ -407,9 +407,9 @@ class DocView(DocPage):
         key = Gtk.accelerator_name(event.keyval, mods)
         
         if key == "<Alt>Left":
-            return self.onFocusLeft()
+            return self.onFocusLeft(widget)
         elif key == "<Alt>Right":
-            return self.onFocusRight()
+            return self.onFocusRight(widget)
 
     #--------------------------------------------------------------------------
     # Buffers to XML tree. TODO: This does not work with multi-part bodies.
@@ -567,8 +567,8 @@ class DocView(DocPage):
             #text.set_border_width(1)
             #text.set_shadow_type(Gtk.ShadowType.IN)
 
-            text.view.connect("focus-left",  lambda w: self.onFocusLeft())
-            text.view.connect("focus-right", lambda w: self.onFocusRight())
+            text.view.connect("focus-left",  self.onFocusLeft)
+            text.view.connect("focus-right", self.onFocusRight)
 
             side.append(text.view)
             return text
@@ -609,7 +609,7 @@ class DocView(DocPage):
                 Button("xxx"),
             )
 
-        stack, switcher = DuoStack("_1 - Notes", self.indexstack, self.notesview)
+        stack, switcher = DuoStack("_1 - Notes", self.indexstack, self.notesview, can_focus = False)
 
         switcher.set_use_underline(True)
         self.left_notes = switcher
@@ -679,7 +679,8 @@ class DocView(DocPage):
             self.right_notes = ToggleButton(
                 "_2 - Notes",
                 use_underline = True,
-                onclick = lambda w: switchBuffer(self, w)
+                onclick = lambda w: switchBuffer(self, w),
+                can_focus = False,
             )
 
             self.folderbtn = Button(

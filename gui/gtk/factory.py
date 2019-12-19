@@ -15,6 +15,10 @@ def _extract_arg(kwargs, name, default = None):
         return result
     return default
 
+def _set_relief(widget, kwargs):
+    relief = _extract_arg(kwargs, "relief", Gtk.ReliefStyle.NONE)
+    widget.set_relief(relief)
+
 #------------------------------------------------------------------------------
 
 class EntryBuffer(Gtk.EntryBuffer):
@@ -59,11 +63,8 @@ class Button(Gtk.Button):
         super(Button, self).__init__(label, **kwargs)
 
         if onclick: self.connect("clicked", onclick)
-        if "relief" in kwargs:
-            self.set_relief(kwargs["relief"])
-        else:
-            self.set_relief(Gtk.ReliefStyle.NONE)
-
+        _set_relief(self, kwargs)
+        
     def disable(self):
         self.set_sensitive(False)
         
@@ -87,7 +88,7 @@ def MenuButton(label, **kwargs):
         btn.set_image(Button.icon2image("pan-down-symbolic"))
         btn.set_image_position(Gtk.PositionType.RIGHT)
 
-    btn.set_relief(Gtk.ReliefStyle.NONE)
+    _set_relief(self, kwargs)
     btn.set_always_show_image(True)
     return btn
 
@@ -101,7 +102,7 @@ class ToggleButton(Gtk.ToggleButton):
         super(ToggleButton, self).__init__(label = label, **kwargs)
 
         if onclick: self.connect("toggled", onclick)
-        self.set_relief(Gtk.ReliefStyle.NONE)
+        _set_relief(self, kwargs)
 
     def disable(self):
         self.set_sensitive(False)
@@ -114,7 +115,7 @@ class RadioButton(Gtk.RadioButton):
     def __init__(self, label, group = None, **kwargs):
         if "visible" not in kwargs: kwargs["visible"] = True
         super(RadioButton, self).__init__(label = label, group = group, **kwargs)
-        self.set_relief(Gtk.ReliefStyle.NONE)
+        _set_relief(self, kwargs)
 
 #------------------------------------------------------------------------------
 
@@ -242,6 +243,5 @@ def StackSwitcher(stack, **kwargs):
     if "visible" not in kwargs: kwargs["visible"] = True
     switch = Gtk.StackSwitcher(**kwargs)
     switch.set_stack(stack)
-    #self.set_relief(Gtk.ReliefStyle.NONE)
     return switch
 

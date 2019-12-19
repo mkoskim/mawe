@@ -22,7 +22,7 @@ Story: Mawe: User's Guide
 ===============================================================================
 /-->
 <words>
-<text>1139</text>
+<text>1853</text>
 <comments>4</comments>
 <missing>7</missing>
 </words>
@@ -30,6 +30,14 @@ Story: Mawe: User's Guide
 <part>
 <scene name="Before We Go">
 <p>While you are reading, feel free to try out things. Take a look to the bottom of this page. There you can see [Revert] button, which reverts the changes you made to the last saved version. Try it here, write something or delete something, and press [Revert] to get your modifications undone.</p>
+<br />
+<p>Few words about design. Mawe is an editor for writers. As such, it has two main goals: first, to get control for larger text masses, and second, to keep so called meta text (plans, sketches, comments, design) with the actual result.</p>
+<p>Mawe is not meant for typesetting, work with fonts, styles, margins and such things. You write your manuscript, send draft to your publisher, and he takes care with all of the typesetting details with his own software. Mawe is only meant for the first part, manuscript, there is other software for the latter parts.</p>
+</scene>
+<scene name="Importing and Exporting: Mawe and Moe">
+<p>Mawe - My Advanced Writer's Editor - is a successor for Moe - My Own Editor. As such, in general, Mawe reads Moe files close as native. The difference is that Moe doesn't exactly divide text to draft and meta - instead Moe follows the principle of modern writer's editors giving you a complete freedom about the hierarchial structure of the document. Mawe does not do that. When importing Moe files to Mawe, you will see sort of "flattening" - hierarchial Moe files come to a "flattened" versions. It basically means that Mawe files will be backward compatible to Moe iff I make an importer.</p>
+<br />
+<p>Importing projects from other sources - yWriter, scrivener, manuscript - is most probably easiest by just exporting the story as draft, selecting all and cut'n'pasting the text to Mawe. By its design principle, Moe would be able to import almost anything, but Mawe can't. In the design, Mawe is divided to two pieces, "meta" and "draft", and for importing stories it will be easiest to copy-paste the corresponding sections from your current editor, and use some manual work to get work done.</p>
 </scene>
 <scene name="Opening and Closing Files">
 <p>Button to open files to the editor is located at the top-left corner of the window. It can be activated also with [Ctrl-O] and [Alt-O] hotkeys. Depending on how you work, you can use either Project Manager or filesystem view. When given a folder, project manager will scan that folder for .mawe files, extract information from them, and show them on a list.</p>
@@ -37,8 +45,8 @@ Story: Mawe: User's Guide
 <p>Document can be closed by pressing small "x" located after name or pressing [Ctrl-W].</p>
 <p>Right click on the tab header will bring you up a list of opened files. This can be useful if you have lots of open files.</p>
 <p>Shortcuts to move between documents:</p>
-<p>[Ctrl-Alt-Page Up] - Previous document.</p>
-<p>[Ctrl-Alt-Page Down] - Next document.</p>
+<p>[Ctrl - Alt - Page Up] - Previous document.</p>
+<p>[Ctrl - Alt - Page Down] - Next document.</p>
 </scene>
 <scene name="Document View">
 <p>Document view is divided to two regions, left and right. By default, you see index (Table of Content) at the left side, and story content at right side. You can switch between left and right regions with [Alt - Left] and [Alt - Right] shortcuts. Try it few times.</p>
@@ -48,54 +56,66 @@ Story: Mawe: User's Guide
 <p>In addition to the draft text, stories also contain a block called "notes". You can choose what is shown in left and right tabs with:</p>
 <p>[Alt - 1] switches between index and notes at the left side.</p>
 <p>[Alt - 2] switches between draft and notes at right side.</p>
-<p>Try it once. Press [Alt - 2] to switch to document notes side. Pressing [Alt - 1] will switch the left side between index and draft. Notes section is meant for all sorts of freeform sketches, design, plans and such things, and they will not be included to the exported draft.</p>
+<p>Try it once. Press [Alt - 2] to switch this side to document notes. Pressing [Alt - 1] will switch the left side between index and draft. Notes section is meant for all sorts of freeform sketches, design, plans and such things, and they will not be included to the exported draft.</p>
 <br />
 <p>To access document title and other information, click [Title] button located at the top of the document view. [Export] button will open a dialog to export your story to few formats. [Folder] button at the top-right corner will open the directory where the story is located to a file manager.</p>
 </scene>
 <scene name="Scenes">
-<p>The main feature of Mawe compared to regular text editors is the ability to divide text to blocks called scenes. A scene refers to a block of text that is considered undividable - if you cut an arbitrary piece of text from a scene and move it somewhere else, it is not understandable anymore. Simply said, scene holds text that you want to keep together.</p>
+<p>The main feature of Mawe compared to regular text editors is the ability to divide text to blocks called scenes. A scene refers to a block of text that you think is undividable - if you cut an arbitrary piece of text from a scene and move it somewhere else without any modification, it is not understandable anymore. Simply said, scene holds text that you want to keep together.</p>
+<p>Before we go on, check your left side. Switch the left side back to index by pressing [Alt - 1] if it is still showing notes after last lesson.</p>
 <p>You create a scene break by typing [##] - double hash - at the beginning of the line. Try it once here:</p>
 <br />
 <p>&lt;-- Type [##] at the beginning of the line, remove it, type it again, and look what happens.</p>
 <br />
 <p>Once you create a scene, you notice that it appears to the index at the left. Double-clicking the entries will take you to the start of that scene.</p>
-<p>Why scenes, why not chapters? Chapter is a visual break for readers. Depending on the writer, chapters can be longer or shorter. For some writers and some stories, chapters in fact are equal to scenes. But in many cases, chapters hold several scenes inside of them, and the writer have organized them in that manner for a reason.</p>
+<p>Why scenes, why not chapters? Chapter is a visual break for readers. Depending on the writer, scenes and chapters can be longer or shorter. For some writers, chapters in fact are equal to scenes. But in many cases, chapters hold several scenes inside of them, and the writer have organized them in that manner for a reason - what scenes are chosen to what chapters, and in what order.</p>
 </scene>
 <scene name="Folding">
-<p>Once you have scenes in your text, you can _fold_ them. Press [Alt-F] two times here. See what happened? If not, press [Alt-F] once more, look around and press [Alt-F] again.</p>
+<p>Once you have scenes in your text, you can _fold_ them. Press [Alt-F] two times here.</p>
+<p>See what happened?</p>
+<p>If not, press [Alt-F] once more, look around and press [Alt-F] again.</p>
+<br />
 <p>Folding is a term used in code editors to hide and unhide parts in the source code. We use the same term here. Once you have divided your text to scenes, it is possible to fold and unfold them.</p>
+<p>The purpose of folding is to hide parts you are not interested in that time. In code editors, you fold code elements you are not working at that specific time, and the same holds true with Mawe - fold off the parts of the text you are not editing at that specific time to concentrate on parts you are working on.</p>
 <br />
-<p>It is possible to fold all scenes at once, and reveal them all at once. If you press [Alt-A] [Alt-A], all scenes will be folded and the text looks more like a table of content. Pressing [Alt-A] [Alt-S] will make every scene visible again. Try them few times.</p>
-<br />
+<p>It is possible to fold all scenes at once, and reveal them all at once. Before doing it, if you press [Alt-A], all scenes will be folded. After that, the entire text looks more or less like a table of content. Pressing [Alt-S] will make every scene visible again.</p>
+<p>Now try [Alt-A] and [Alt-S] few times.</p>
 <p>The next thing to try is to fold all, then moving cursor to some other location and press [Enter] or [Space]. Fold everything, move around and try.</p>
 <br />
 <p>Summary:</p>
 <p>[Alt-F] folds and unfolds one single scene</p>
-<p>[Alt-A] [Alt-A] Folds all scenes</p>
-<p>[Alt-A] [Alt-S] Unfolds all scenes</p>
+<p>[Alt-A] Folds all scenes</p>
+<p>[Alt-S] Unfolds all scenes</p>
 </scene>
 <scene name="Marking Up">
-<p>Mawe is not meant for typesetting. There are different text editors focused on that subject, setting up pages, fonts, styles and such. But still, Mawe has some typesetting features possibly useful for writers. Surrounding a word or sentence with asterisks will make the text *bold*. Surrounding the word or sentence with underscores will make the text _italic_.</p>
+<p>Mawe is not meant for typesetting. There are different text editors focused on that subject, setting up pages, fonts, styles and such. But still, Mawe has some typesetting features possibly useful for writers.</p>
+<p>Surrounding a word or sentence with asterisks will make the text *bold*.</p>
+<p>Surrounding the word or sentence with underscores will make the text _italic_.</p>
 <br />
 <p>In addition to those, there are few special paragraph markers. Starting paragraph with two slashes ("//") will make the paragraph as a *comment*:</p>
 <br />
 <comment>This is a comments</comment>
 <br />
-<p>Comments are excluded from exported drafts. They are meant for writers to put down some smaller comments in the text. Larger sketches, plans and designs can be written to notes part.</p>
+<p>Comments are excluded from exported drafts. They are meant for writers to put down some smaller comments in the text, reminding that even that the text is there already, there is something to remember in either that part, or in previous or later parts. It is not meant for large comment blocks - larger sketches, plans and designs can be written to notes part.</p>
 <br />
 <p>You can put you marks about *missing* pieces in your text by starting the paragraph with two exclamation marks ("!!"):</p>
 <br />
 <missing>Am I missing something here? Point, maybe?</missing>
 <br />
-<p>Missing sections are also excluded from exported draft.</p>
+<p>Missing sections are also excluded from exported draft. It is meant to put you a mark about text that is missing at the moment.</p>
 <br />
-<p>As you see, index will count words in comments and missing paragraphs separately, thus giving you some indication where your text needs attention. They are mainly meant for that purpose, to mark where you have missing pieces or some questions that you need to address at some point.</p>
+<p>As you see, index will count words in comments and missing paragraphs separately, thus giving you some sort of indication where your text needs attention. They are mainly meant for that purpose, to mark where you have missing pieces or some questions that you need to address at some point. Get rid of red marks, and turn green ones to black, and your story is closer to be ready.</p>
+<p>Comments and missing markers may be invisible in such manner that they are not included to exported draft, but they are still meant to be removed, replaced with actual text when your story progress. They are meant to be placeholders for actual text, and track the status of your story. Lots of comments and missing parts mean that your story is not yet finished. Make them become black by writing.</p>
+<p>You can surely use them as you like, but the intention was that missing markers really indicate that there is missing pieces in the story. The comments tell that even that there is text, it need to be revised later.</p>
 <br />
 <p>The last special paragraph marker is *synopsis*, which you can make by starting the line with two lesser-than symbols ("&lt;&lt;"):</p>
 <br />
 <synopsis>This is a synopsis</synopsis>
 <br />
-<p>At the moment, they play quite small part in the editor, but they may be later used for editing and viewing your story at higher level, for example as Index Cards.</p>
+<p>At the moment, they play quite small part in the editor, but they may be later used for editing and viewing your story at higher level, for example as Index Cards. The big idea of writing synopses is to create you writing guides through the story, and let you see the big picture. But more about this once the software supports synopses well enough.</p>
+<p>Unlike comments and missing markers, you generally leave synopses to the final draft also. Later they can give you an overview, if you need to come back to the story - although in that case, it is probably your notes that plays more important part to remember how the story was planned and constructed.</p>
+<br />
+<p>While many other writers' editors tie synopses to scenes, I have decided to tie synopses - and comments - to paragraphs. You can change your scene division by creating and deleting scenes, but you still don't loose your synopses or comments or missing pieces. Instead, they are part of the text you wrote, tied more to the following paragraphs, no matter how you decide to divide your text.</p>
 </scene>
 <scene name="Shortcut Reference">
 <p>Generic:</p>
@@ -106,9 +126,9 @@ Story: Mawe: User's Guide
 <br />
 <p>Folding:</p>
 <p>[Alt - F] - Fold/unfold current scene</p>
+<p>[Alt - A] - Fold all</p>
+<p>[Alt - S] - Unfold all</p>
 <p>[Alt - X] - Select &amp; fold current scene</p>
-<p>[Alt - A][Alt - A] - Fold all (current scene excluded)</p>
-<p>[Alt - A][Alt - S] - Unfold all</p>
 <br />
 <p>Navigating:</p>
 <p>[Alt - Left] - Move left side</p>

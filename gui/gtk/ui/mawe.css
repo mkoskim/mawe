@@ -6,7 +6,8 @@
 #draftview:focus {
     background: #FFF;
 }
-#draftview:selected { background: #9AB87C; }
+/*#draftview:selected { background: #9AB87C; }*/
+#draftview:selected { background: @theme_selected_bg_color; }
 
 /* ------------------------------------------------------------------------- */
 /* Generic elements */
@@ -23,11 +24,17 @@ GtkEntry {
 }
 */
 
-button {
-    padding-top:    4px;
-    padding-bottom: 4px;
-    padding-left:   6px;
-    padding-right:  6px;
+.button {
+    padding-top:    2px;
+    padding-bottom: 2px;
+    padding-left:   10px;
+    padding-right:  10px;
+    /*border-width: 2px;*/
+}
+
+.button:focus {
+    background: @theme_bg_color;
+    /*border: 2px solid @border;*/
 }
 
 /* ------------------------------------------------------------------------- */
@@ -40,8 +47,8 @@ button {
 #DocNotebook tab:active { border-bottom: 0px; }
 
 /* Round buttons for tab close */
-#round-btn       { border: 1px solid transparent; border-radius: 50%; padding: 0px; }
-#round-btn:hover { border: 1px solid @border; background: #CCC; }
+#round-btn       { border: 1px solid transparent; border-radius: 50%; padding: 1pt; }
+#round-btn:hover { border: 1px solid @border; background: @theme_bg_color; }
 
 /* Labels in tabs */
 #tablabel { padding-left: 10px; padding-right: 10px; }
