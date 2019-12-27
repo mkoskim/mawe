@@ -22,7 +22,7 @@ Story: Mawe: User's Guide
 ===============================================================================
 /-->
 <words>
-<text>1853</text>
+<text>1854</text>
 <comments>4</comments>
 <missing>7</missing>
 </words>
@@ -31,8 +31,8 @@ Story: Mawe: User's Guide
 <scene name="Before We Go">
 <p>While you are reading, feel free to try out things. Take a look to the bottom of this page. There you can see [Revert] button, which reverts the changes you made to the last saved version. Try it here, write something or delete something, and press [Revert] to get your modifications undone.</p>
 <br />
-<p>Few words about design. Mawe is an editor for writers. As such, it has two main goals: first, to get control for larger text masses, and second, to keep so called meta text (plans, sketches, comments, design) with the actual result.</p>
-<p>Mawe is not meant for typesetting, work with fonts, styles, margins and such things. You write your manuscript, send draft to your publisher, and he takes care with all of the typesetting details with his own software. Mawe is only meant for the first part, manuscript, there is other software for the latter parts.</p>
+<p>Few words about design. Mawe is an editor for writers. As such, it has two main goals: first, to get control of larger text masses, and second, to keep so called meta text (plans, sketches, comments, design) with the actual result.</p>
+<p>Mawe is not meant for typesetting, work with fonts, styles, margins and such things. You write your manuscript, send draft to your publisher, and they take care with all of the typesetting details with their own software. Mawe is only meant for the first part, writing the manuscript, there are other software for the latter parts.</p>
 </scene>
 <scene name="Importing and Exporting: Mawe and Moe">
 <p>Mawe - My Advanced Writer's Editor - is a successor for Moe - My Own Editor. As such, in general, Mawe reads Moe files close as native. The difference is that Moe doesn't exactly divide text to draft and meta - instead Moe follows the principle of modern writer's editors giving you a complete freedom about the hierarchial structure of the document. Mawe does not do that. When importing Moe files to Mawe, you will see sort of "flattening" - hierarchial Moe files come to a "flattened" versions. It basically means that Mawe files will be backward compatible to Moe iff I make an importer.</p>
@@ -49,7 +49,7 @@ Story: Mawe: User's Guide
 <p>[Ctrl - Alt - Page Down] - Next document.</p>
 </scene>
 <scene name="Document View">
-<p>Document view is divided to two regions, left and right. By default, you see index (Table of Content) at the left side, and story content at right side. You can switch between left and right regions with [Alt - Left] and [Alt - Right] shortcuts. Try it few times.</p>
+<p>Document view is divided to left and right regions. By default, you see index (Table of Content) at the left side, and story content at right side. You can switch between left and right regions with [Alt - Left] and [Alt - Right] shortcuts. Try it few times.</p>
 <p>Index view is meant to give you an overview of the story, as well as word counts for separate scenes. It will show differently tagged paragraphs in different colors - regular text as black, comments as green, and text marked missing as red.</p>
 <p>In index view, you can use cursor keys to move around scenes, and [Space] or [Enter] to go to selected scene. Try that few times.</p>
 <br />
@@ -63,6 +63,7 @@ Story: Mawe: User's Guide
 <scene name="Scenes">
 <p>The main feature of Mawe compared to regular text editors is the ability to divide text to blocks called scenes. A scene refers to a block of text that you think is undividable - if you cut an arbitrary piece of text from a scene and move it somewhere else without any modification, it is not understandable anymore. Simply said, scene holds text that you want to keep together.</p>
 <p>Before we go on, check your left side. Switch the left side back to index by pressing [Alt - 1] if it is still showing notes after last lesson.</p>
+<br />
 <p>You create a scene break by typing [##] - double hash - at the beginning of the line. Try it once here:</p>
 <br />
 <p>&lt;-- Type [##] at the beginning of the line, remove it, type it again, and look what happens.</p>

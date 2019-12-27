@@ -1,5 +1,8 @@
 WORKLIST
 
+- Setting fonts & colors: its important for different computers with
+  different screen sizes.
+
 - Search and replace: it is very useful feature I have missed in moe a lot
 
 - Moving folded scenes around: Shift-Alt-up, Shift-Alt-down. We can allow
@@ -8,6 +11,11 @@ WORKLIST
 - Selecting & moving scenes in listview
 
 - When choosing with grab, show the selections in the listbox
+
+- Start recording words and progress. Save word progression to file, and
+  make some small graphs how things has been progressed. I am mostly
+  interest if comments come to plain text, and how much words do red
+  paragprahs produce.
 
 -------------------------------------------------------------------------------
 
