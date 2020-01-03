@@ -21,6 +21,9 @@ WORKLIST
 
 QUIRKS, FIX:
 
+- When computer goes sleep, coming back resets the window to default
+  size. Irritating. Get rid of that.
+
 - It is bit irritating that folding and unfolding cause buffer to become
   dirty, but it can't be helped now. Otherwise we are messing with undo/redo.
 
