@@ -17,20 +17,70 @@ WORKLIST
 
 - When choosing with grab, show the selections in the listbox
 
+-------------------------------------------------------------------------------
+
+PROJECTS AND PROGRESSING:
+
 - Start recording words and progress. Save word progression to file, and
   make some small graphs how things has been progressed. I am mostly
   interest if comments come to plain text, and how much words do red
   paragprahs produce.
+
+- History entry to file: This can be used to track history, e.g.
+  writing competitions where the text has been sent. <notes> part
+  could be perfect for this!!!
+
+- Last modified timestamp to project view.
+
+- Sort options for project view
+
+- Worksets: Sketch how worksets could work - how to make and use them? The
+  goal: you could have several different sets of stories, somehow related to
+  each other, which you could easily manage. For example, you might have
+  a set of three short stories telling about the same character, and you
+  would like to keep them together including the meta (plans, sketches).
+
+- It wouldn't be bad to have multiple windows. You could have several
+  windows for different "worksets", e.g. one window to organize ideas, and
+  other windows for stories related to each other (e.g. stories telling
+  about the same character, same world, or stories aimed for a same
+  writing competition)
+
+- Linking: Linking URLs and for example docx/rtf background documents to
+  a story.
+  
+- It wouldn't be bad to create "hub" documents or something like that: that
+  is, if you have background material for certain characters or worlds,
+  you could have a document/group collecting them together, so that you
+  can easily access the background material and stories related to same
+  character/world while sketching your stories.
+
+- PM: Asynchronous directory scan: in case it takes a lots of time.
+
+- PM: Add context menu to open folder and with text editor.
+
+- File open: Recursive file search like in nautilus
+
+- File open: Add recent files
+  
+- File open: Allow users to make directories and create new files: now, if you
+  make a new file, you first press New and then save it to correct
+  folder with wanted name.
 
 -------------------------------------------------------------------------------
 
 QUIRKS, FIX:
 
 - When computer goes sleep, coming back resets the window to default
-  size. Irritating. Get rid of that.
+  size. Irritating. Get rid of that. Happens at least on one laptop with
+  Ubuntu.
 
 - It is bit irritating that folding and unfolding cause buffer to become
   dirty, but it can't be helped now. Otherwise we are messing with undo/redo.
+
+- Revert dialog looks really strange and confusing, because of focus
+  style. "No" button is focused, but it looks like it is pressed down. Need
+  to find better ways for indicating focus.
 
 - Cut & paste folded scene headers has quirks: Consider these:
 
@@ -52,33 +102,18 @@ QUIRKS, FIX:
 - There are still quirks in folded content. It is possible to add new lines
   which will become hidden. Also, sometimes comment tags will get persistent.
 
+- Scroll to mark after unfold does not work.
+
 -------------------------------------------------------------------------------
 
 TODO:
 
-- It wouldn't be bad to have multiple windows. You could have several
-  windows for different "worksets", e.g. one window to organize ideas, and
-  other windows for stories related to each other (e.g. stories telling
-  about the same character, same world, or stories aimed for a same
-  writing competition)
-
-- Linking: Linking URLs and for example docx/rtf background documents to
-  a story.
-  
-- It wouldn't be bad to create "hub" documents or something like that: that
-  is, if you have background material for certain characters or worlds,
-  you could have a document/group collecting them together, so that you
-  can easily access the background material and stories related to same
-  character/world while sketching your stories.
-
-- Revert dialog looks really strange and confusing.
-
-- When converting from moe, the new file is not dirty and it is not asked
-  for saving. Should be fixed in longer run.
-
 - Code needs cleaning, refactoring and other such janitorial activities
   all over the place, to make room for new features. But let's schedule
   that work bit later.
+
+- Improvements to Open/New View: many current software have it nicely
+  decorated.
 
 - It could be good to add hotkeys to tooltips. And yes, menus have their
   purpose showing the hotkeys.
@@ -97,18 +132,10 @@ TODO:
     (4) XXX         + draft view/index (switch between index & edit)
     (5) notes view/index + XXX         (switch between index & edit)
 
-- Attempt to open a file that is already opened should just switch the tab.
-
-- DONE: Should be close "perfect" now: Moe file import is still not complete.
-
 - ESC in Open view to cancel opening.
 
 - Cursor marks? For example, Alt-1 to place a mark, and Shit-Alt-1 to go
   back.
-
-- PM: Asynchronous directory scan: in case it takes a lots of time.
-
-- PM: Add context menu to open folder and with text editor.
 
 - Export: Texifier to version control
 
@@ -116,31 +143,23 @@ TODO:
 
 - Revert: Make it load tree from file if doc has origin. This is for cases
   where file has changed in the disk.
+  
+- OnClose: Make it look if file was changed/deleted from disk.
 
 - We could preserve e.g. "## **" to 'chapter' header. In fact, we need to
   make chapters. Just to prevent me using scenes as decorating items.
-
-- FIX: Scroll to mark after unfold does not work.
 
 - Sticky pages? So that you could create your own checklists and such.
 
 - Author and nickname could be behind radiobuttons, so that you can quickly
   switch between them.
 
-- File open: Recursive file search like in nautilus
-
-- File open: Add recent files
-  
-- File open: Allow users to make directories and create new files: now, if you
-  make a new file, you first press New and then save it to correct
-  folder with wanted name.
-
 - When starting Mawe first time (no config yet), make it open user's guide.
 
 - Let user choose what tab to open on startup (where I left, open file,
   new, project manager)
 
-- Some sort of "loopback" device to test file saving and loading:
+- Some sort of "loopback" to test file saving and loading:
   save a file, and load it back to editor. It would be great if that
   would be as complete chain as possible. I have experience how nasty
   bugs are if they are in the document save part, making corrupted files.
@@ -148,38 +167,42 @@ TODO:
 - Drag'n'drop mawe and moe files to editor. In case you work with file
   manager or similar.
 
-- History entry to file: This can be used to track history, e.g.
-  writing competitions where the text has been sent. <notes> part
-  could be perfect for this!!!
-
 - Add error handling when loading documents
 
 - Separate configs to local and global ones. For example, you may want
   to store workset configurations to a shared drive, but keep window settings
   on local machine.
 
-- Improvements to Open/New View: many current software have it nicely
-  decorated.
+-------------------------------------------------------------------------------
+
+LARGER FEATURES:
+
+- Support for multi-part stories: Large stories - as well as their meta - may
+  be split to multiple parts. There is some work to be done to make the parts
+  to be managed fluently (splitting, merging, moving text between parts and
+  so on). Remember, that it would be great if you can also split and merge
+  stories themselves (to merge two stories together, or split a story to
+  two separate stories).
+
+- Versioning
+
+- Mix buffers from several documents together in one view. That is, it is
+  enough if we can choose between doc's draft and notes buffers.
+
+- Compressed format? .mawe.gz - use gzip module to pack and unpack.
 
 - A synopsis editor (and index cards) would be cool, I think. I already
   sketched it with moe, but it has been underused.
 
 -------------------------------------------------------------------------------
 
-POSTPONED:
-
-- We can now support just one-part files
-
-- We don't need versioning yet.
-
-- We can live without being able to mix buffers from several
-  documents together in one view. That is, it is enough if we can choose
-  between doc's draft and notes buffers.
-
-- Packed format: .mawe.gz - use gzip module to pack and unpack.
-
--------------------------------------------------------------------------------
-
 DONE:
+
+- DONE: When converting from moe, the new file is not dirty and it is not asked
+  for saving. Should be fixed in longer run.
+
+- DONE: Should be close "perfect" now: Moe file import is still not complete.
+
+- DONE: Attempt to open a file that is already opened should just switch the tab.
 
 

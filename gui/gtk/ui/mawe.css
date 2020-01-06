@@ -33,7 +33,7 @@ GtkEntry {
 }
 
 .button:focus {
-    background: @theme_bg_color;
+    /*background: @theme_bg_color;*/
     /*border: 2px solid @border;*/
 }
 
