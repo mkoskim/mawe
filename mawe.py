@@ -9,9 +9,11 @@
 
 import sys
 
-if sys.version_info < (3, 0):
-    print("You need Python 3.0 or higher.")
+if sys.version_info < (3, 5):
+    print("You need Python 3.5 or higher.")
     sys.exit(-1)
+
+print("Python: %d.%d" % (sys.version_info.major, sys.version_info.minor))
 
 from tools.error import *
 
