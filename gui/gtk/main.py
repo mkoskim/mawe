@@ -489,7 +489,7 @@ class DocView(DocPage):
     #--------------------------------------------------------------------------
 
     def can_close(self):
-        if self.get_dirty():
+        if self.get_dirty() or self.doc.filename is None:
             answer = dialog.SaveOrDiscard(self,
                 "'%s' not saved. Save or discard changes?" % self.buffers["./body/head/title"].get_text()
             )
