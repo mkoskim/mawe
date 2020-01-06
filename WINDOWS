@@ -1,0 +1,13 @@
+                               
+                               
+                               MAWE for WINDOWS
+                               
+In order to run Mawe on Windows machines, you will need:
+
+1. Python 3: See https://www.python.org/downloads/windows/
+
+2. GTK with Python bindings: It looks that with Wine, you will only
+   need to install Python 3 to make it work. I need to check on some
+   real Windows machine at some point.
+   
+

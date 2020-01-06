@@ -3,6 +3,11 @@ WORKLIST
 - Setting fonts & colors: its important for different computers with
   different screen sizes.
 
+  * Settings editor
+
+  * Style editor: font, colors, ... - would be great to tailor the view for
+    the computer (monitor size and so on)
+
 - Search and replace: it is very useful feature I have missed in moe a lot
 
 - Moving folded scenes around: Shift-Alt-up, Shift-Alt-down. We can allow
@@ -51,6 +56,21 @@ QUIRKS, FIX:
 
 TODO:
 
+- It wouldn't be bad to have multiple windows. You could have several
+  windows for different "worksets", e.g. one window to organize ideas, and
+  other windows for stories related to each other (e.g. stories telling
+  about the same character, same world, or stories aimed for a same
+  writing competition)
+
+- Linking: Linking URLs and for example docx/rtf background documents to
+  a story.
+  
+- It wouldn't be bad to create "hub" documents or something like that: that
+  is, if you have background material for certain characters or worlds,
+  you could have a document/group collecting them together, so that you
+  can easily access the background material and stories related to same
+  character/world while sketching your stories.
+
 - Revert dialog looks really strange and confusing.
 
 - When converting from moe, the new file is not dirty and it is not asked
@@ -79,7 +99,7 @@ TODO:
 
 - Attempt to open a file that is already opened should just switch the tab.
 
-- Moe file import is still not complete.
+- DONE: Should be close "perfect" now: Moe file import is still not complete.
 
 - ESC in Open view to cancel opening.
 
@@ -99,11 +119,6 @@ TODO:
 
 - We could preserve e.g. "## **" to 'chapter' header. In fact, we need to
   make chapters. Just to prevent me using scenes as decorating items.
-
-- Settings editor
-
-- Style editor: font, colors, ... - would be great to tailor the view for
-  the computer (monitor size and so on)
 
 - FIX: Scroll to mark after unfold does not work.
 
