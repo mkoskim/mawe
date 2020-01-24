@@ -44,13 +44,13 @@ class DocNotebook(Gtk.Notebook):
         self.openbtn.set_property("tooltip_text", "Open document")
 
         start = HBox(
-            #IconButton("open-menu-symbolic", "Open menu"),
-            (self.openbtn, False, 1),
-            StockButton("gtk-help", onclick = lambda w: self.ui_help()),
             visible = True,
         )
 
         end = HBox(
+            #IconButton("open-menu-symbolic", "Open menu"),
+            (self.openbtn, False, 1),
+            StockButton("gtk-help", onclick = lambda w: self.ui_help()),
             visible = True,
         )
 

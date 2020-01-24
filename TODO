@@ -71,6 +71,11 @@ PROJECTS AND PROGRESSING:
 
 QUIRKS, FIX:
 
+- Fix: When closing help file, editor asks if you want to save it.
+
+- Fix: Also, there is no need to ask to save a new file, if it has not
+  been changed.
+
 - When computer goes sleep, coming back resets the window to default
   size. Irritating. Get rid of that. Happens at least on one laptop with
   Ubuntu.
