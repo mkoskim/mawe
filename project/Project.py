@@ -183,10 +183,13 @@ class Moe(Base):
                 *element.findall("conflict"),
             )
 
-            for child in list(element.find("childs")):
-                if   child.tag == "SceneItem": parsescene(child, visible)
-                elif child.tag == "GroupItem": parsegroup(child, visible)
-                else: log("%s<group>: Unknown child '%s'" % (self.fullname, child.tag))
+            childs = element.find("childs")
+            
+            if not childs is None:
+                for child in childs:
+                    if   child.tag == "SceneItem": parsescene(child, visible)
+                    elif child.tag == "GroupItem": parsegroup(child, visible)
+                    else: log("%s<group>: Unknown child '%s'" % (self.fullname, child.tag))
         
         def parsetitle(element):
             head = mawe.find("./body/head")
