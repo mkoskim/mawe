@@ -40,8 +40,9 @@ class DocNotebook(Gtk.Notebook):
         self.popup_enable()
 
         self.opentab = OpenView(self)
-        self.openbtn = StockButton("gtk-open", onclick = lambda w: self.ui_open())
-        self.openbtn.set_property("tooltip_text", "Open document")
+        self.openbtn = Button("Open", onclick = lambda w: self.ui_open())
+        #self.openbtn = StockButton("gtk-open", onclick = lambda w: self.ui_open())
+        #self.openbtn.set_property("tooltip_text", "Open document")
 
         start = HBox(
             visible = True,
@@ -50,7 +51,7 @@ class DocNotebook(Gtk.Notebook):
         end = HBox(
             #IconButton("open-menu-symbolic", "Open menu"),
             (self.openbtn, False, 1),
-            StockButton("gtk-help", onclick = lambda w: self.ui_help()),
+            Button("Help", onclick = lambda w: self.ui_help()),
             visible = True,
         )
 
@@ -489,7 +490,8 @@ class DocView(DocPage):
     #--------------------------------------------------------------------------
 
     def can_close(self):
-        if self.get_dirty() or self.doc.filename is None:
+        imported = (self.doc.filename is None and not self.doc.origin is None)
+        if self.get_dirty() or imported:
             answer = dialog.SaveOrDiscard(self,
                 "'%s' not saved. Save or discard changes?" % self.buffers["./body/head/title"].get_text()
             )
