@@ -1,3 +1,9 @@
+WEEKEND:
+
+- RTF exporting
+
+-------------------------------------------------------------------------------
+
 WORKLIST
 
 - Setting fonts & colors: its important for different computers with
@@ -16,6 +22,9 @@ WORKLIST
 - Selecting & moving scenes in listview
 
 - When choosing with grab, show the selections in the listbox
+
+- File save / open: At the moment, when saving files, it does not set
+  directory to last used one. Fix it!
 
 -------------------------------------------------------------------------------
 
@@ -198,15 +207,4 @@ LARGER FEATURES:
 
 DONE:
 
-- DONE: When converting from moe, the new file is not dirty and it is not asked
-  for saving. Should be fixed in longer run.
-
-- DONE: Should be close "perfect" now: Moe file import is still not complete.
-
-- DONE: Attempt to open a file that is already opened should just switch the tab.
-
-- FIXED: Fix: When closing help file, editor asks if you want to save it.
-
-- FIXED: Fix: Also, there is no need to ask to save a new file, if it has not
-  been changed.
 

@@ -2,6 +2,22 @@
 
 DONE:
 
+- DONE: When converting from moe, the new file is not dirty and it is not asked
+  for saving. Should be fixed in longer run.
+
+- DONE: Should be close "perfect" now: Moe file import is still not complete.
+
+- DONE: Attempt to open a file that is already opened should just switch the tab.
+
+- FIXED: Fix: When closing help file, editor asks if you want to save it.
+
+- FIXED: Fix: Also, there is no need to ask to save a new file, if it has not
+  been changed.
+
+-------------------------------------------------------------------------------
+
+DONE:
+
 - DONE: We can not just switch buffer to textview - Undo/redo will not work in
   that case. Instead, when switching buffers, we need to create new views.
 
