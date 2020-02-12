@@ -7,6 +7,10 @@ NOW:
 - Convert _ and * to bold and italic in files.
 - Add separators (***)
 
+- Export now uses "store_buffers", which stores the content in GUI
+  buffers as document root. Problem: this clears dirty flag and
+  prevents Revert to work correctly. Fix it.
+
 -------------------------------------------------------------------------------
 
 WORKLIST
