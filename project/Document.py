@@ -65,6 +65,8 @@ class Document:
             self.root.set("uuid", uid)
         self.uuid = self.root.get("uuid")
 
+    #--------------------------------------------------------------------------
+
     @staticmethod
     def empty(title = None):
         tree = ET.parse(os.path.join(os.path.dirname(__file__), "Empty.mawe"))
@@ -84,9 +86,27 @@ class Document:
             for child in childs: parent.remove(child)
         return parent.append(elem)
 
+    #--------------------------------------------------------------------------
+
     def __str__(self):
         return "<Document %s @ %s>" % (self.title, self.filename)
 
+    #--------------------------------------------------------------------------
+
+    def export(self, filename = None, fmt = "rtf"):
+        import project.Export
+        
+        if filename is None:
+            if self.filename is None:
+                filename = self.origin
+            else:
+                filename = self.filename
+
+            path, ext = os.path.splitext(filename)
+            filename  = path + ".rtf"
+            
+        project.Export.RTF(self, filename)
+    
     #--------------------------------------------------------------------------
     # Try to save in pretty format, it helps debugging possible problems. We
     # do this by modifying the tag tails.

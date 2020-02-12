@@ -29,9 +29,28 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument("file", help="File or folder", type=str, nargs="*")
 parser.add_argument("--new", help="Open new document", action="store_true")
+parser.add_argument("--export", help="Export document")
 
 args = parser.parse_args()
 
+#------------------------------------------------------------------------------
+# Exporting files from command line
+#------------------------------------------------------------------------------
+
+if not args.export is None:
+    ERRORIF(args.export != "rtf", "Invalid export format: %s " % args.export)
+    for filename in args.file:
+        from project import *
+        project = Project.open(filename, True)
+        if project is None:
+            log("Invalid project: %s" % filename)
+            continue
+        doc = project.load()
+        doc.export()
+    sys.exit()
+
+#------------------------------------------------------------------------------
+# Opening files
 #------------------------------------------------------------------------------
 
 import project

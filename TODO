@@ -1,6 +1,7 @@
-WEEKEND:
+NOW:
 
-- RTF exporting
+- DONE: Initial RTF exporting
+- DONE: Handle nickname (doc load & save)
 
 -------------------------------------------------------------------------------
 
@@ -148,7 +149,7 @@ TODO:
 
 - Export: Texifier to version control
 
-- Export: File export: RTF, tex (for texifier)
+- Export: tex (for texifier)
 
 - Revert: Make it load tree from file if doc has origin. This is for cases
   where file has changed in the disk.
