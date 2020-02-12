@@ -29,17 +29,17 @@ def doEscape(s):
 # Element formatting
 #------------------------------------------------------------------------------
 
-class ElemFmt:
+class Wrap:
     def __init__(self, prefix, postfix):
         self.prefix = prefix
         self.postfix = postfix
 
-    def wrap(self, text, args = {}):
+    def __call__(self, text, args = {}):
         return (self.prefix % args) + text + (self.postfix % args) + "\n"
     
 #------------------------------------------------------------------------------
 
-docFmt = ElemFmt("\n".join([
+wrapDoc = Wrap("\n".join([
     r"{\rtf1\ansi",
     r"{\fonttbl\f0\froman\fcharset0 Times New Roman;}",
     r"{\info{\title %(title)s}{\author %(author)s}}",
@@ -53,82 +53,87 @@ docFmt = ElemFmt("\n".join([
     r"\headery851",
     r"\lang1035\f0\fs24\fi0\li0\ri0\rin0\lin0"
     r"{\header\lang1035",
-        r"\sl-440\tqr\tx8496 %(author)s: %(title)s",
+        r"\sl-440\tqr\tx8496 %(header)s",
         r"\tab Sivu %s (%s)" % (
             r"{\field{\*\fldinst PAGE}}",
             r"{\field{\*\fldinst NUMPAGES}}"
         ),
         r"\par}",
+    r"{\qc{\sa480\b\fs34 %(title)s\par}}",
     ""]),
     "\n".join([
         r"}",
     ])
 )
 
-paraFirstFmt = ElemFmt(r"{\lang1035\sl-440\sb480 ", "\par}\n\n")
-paraFmt      = ElemFmt(r"{\lang1035\sl-440\fi567 ", "\par}\n\n")
+wrapPara1 = Wrap(r"{\lang1035\sl-440\sb480 ", "\par}\n\n")
+wrapPara  = Wrap(r"{\lang1035\sl-440\fi567 ", "\par}\n\n")
 
 #------------------------------------------------------------------------------
-
-def fmtBreak(p):
-    return breakFmt.wrap("")
 
 def fmtParagraph(p, first = False):
     if not p.text: return ""
-    if first: return paraFirstFmt.wrap(p.text)
-    return paraFmt.wrap(p.text)
+    if first: return wrapPara1(p.text)
+    return wrapPara(p.text)
+
+def fmtScene(scene):
+    content = ""
+    first = True
+    for p in list(scene):
+        if p.tag == "br":
+            first = True
+        elif p.tag == "p":
+            content = content + fmtParagraph(p, first)
+            first = False
+        else:
+            pass
+    return content
 
 def fmtContent(body):
     content = ""
+    
     for scene in list(body):
-        paras = list(scene)
-        first = True
-        for p in list(scene):
-            if p.tag == "br":
-                first = True
-            elif p.tag == "p":
-                content = content + fmtParagraph(p, first)
-                first = False
-            else:
-                pass
+        text = fmtScene(scene)
+        if scene.get("name")[0] == "*":
+            content = content + r"{\sb480\qc * * *\par}" + "\n\n"
+        if text:
+            content = content + text
+
     return content
 
-#------------------------------------------------------------------------------
-
-def RTF(doc, filename):
+def fmtDoc(doc):
     root = doc.root
-
-    #--------------------------------------------------------------------------
-    # Get info
-    #--------------------------------------------------------------------------
 
     title    = root.find("./body/head/title").text
     subtitle = root.find("./body/head/subtitle").text
 
     nickname = root.find("./body/head/nickname")
-    if nickname is None:
+    if nickname is None or not nickname.text:
         nickname = root.find("./body/head/author").text
     else:
         nickname = nickname.text
 
-    #--------------------------------------------------------------------------
-    # do content
-    #--------------------------------------------------------------------------
+    if nickname:
+        header = "%s: %s" % (nickname, title)
+    else:
+        header = "%s" % (title)
 
-    content = docFmt.wrap(
+    content = wrapDoc(
         fmtContent(root.find(".body/part")),
         {
             "title": title,
             "subtitle": subtitle,
             "author": nickname,
+            "header": header,
         }
     )
     content = doEscape(content)
+    return content
 
-    #--------------------------------------------------------------------------
-    # Write file
-    #--------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
+def RTF(doc, filename):
+    content = fmtDoc(doc)
     f = open(filename, "w")
     f.write(content)
     f.close()
