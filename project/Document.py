@@ -106,7 +106,8 @@ class Document:
             filename  = path + ".rtf"
             
         project.Export.RTF(self, filename)
-    
+        return filename
+
     #--------------------------------------------------------------------------
     # Try to save in pretty format, it helps debugging possible problems. We
     # do this by modifying the tag tails.

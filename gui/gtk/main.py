@@ -542,6 +542,11 @@ class DocView(DocPage):
 
         self.folderbtn.enable()
 
+    def _export(self):
+        self.buffers_store()
+        filename = self.doc.export()
+        xdgopen(filename)
+
     def ui_revert(self):
         if self.get_dirty():
             answer = dialog.YesNo(self,
@@ -706,18 +711,18 @@ class DocView(DocPage):
             # - Close
             
             titleedit,  titleswitch  = titleeditor()
-            exportview, exportswitch = exportsettings()
+            #exportview, exportswitch = exportsettings()
+            exportswitch = Button("_Export", onclick = lambda w: self._export(), use_underline = True)
 
             toolbar = HBox(
                 #IconButton("open-menu-symbolic", "Open menu"),
                 self.right_notes,
                 VSeparator(),
                 titleswitch,
-                exportswitch,
-                VSeparator(),
 
                 (Label(""), True),
 
+                exportswitch,
                 VSeparator(),
                 self.folderbtn,
                 spacing = 1,
@@ -726,7 +731,7 @@ class DocView(DocPage):
             return VBox(
                 toolbar,
                 titleedit,
-                exportview,
+                #exportview,
             )
 
         def bottombar():
