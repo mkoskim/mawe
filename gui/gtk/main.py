@@ -367,6 +367,7 @@ class DocView(DocPage):
             "./body/head/title":    EntryBuffer(),
             "./body/head/subtitle": EntryBuffer(),
             "./body/head/author":   EntryBuffer(),
+            "./body/head/nickname": EntryBuffer(),
             "./body/head/status":   EntryBuffer(),
             "./body/head/deadline": EntryBuffer(),
         }
@@ -638,6 +639,7 @@ class DocView(DocPage):
                 (Label("Subtitle"), Edit("./body/head/subtitle")),
                 [(HSeparator(), 2, 1)],
                 (Label("Author"),   Edit("./body/head/author")),
+                (Label("Nickname"), Edit("./body/head/nickname")),
                 [(HSeparator(), 2, 1)],
                 (Label("Status"),   Edit("./body/head/status")),
                 (Label("Deadline"), Edit("./body/head/deadline")),
