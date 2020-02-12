@@ -2,6 +2,10 @@ NOW:
 
 - DONE: Initial RTF exporting
 - DONE: Handle nickname (doc load & save)
+- DONE: Skip <missing>, <comment> and <synopsis> when exporting
+
+- Convert _ and * to bold and italic in files.
+- Add separators (***)
 
 -------------------------------------------------------------------------------
 

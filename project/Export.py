@@ -86,9 +86,11 @@ def fmtContent(body):
         for p in list(scene):
             if p.tag == "br":
                 first = True
-            else:
+            elif p.tag == "p":
                 content = content + fmtParagraph(p, first)
                 first = False
+            else:
+                pass
     return content
 
 #------------------------------------------------------------------------------
