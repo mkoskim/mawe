@@ -1,19 +1,25 @@
-NOW:
+-------------------------------------------------------------------------------
 
-- DONE: Initial RTF exporting
-- DONE: Handle nickname (doc load & save)
-- DONE: Skip <missing>, <comment> and <synopsis> when exporting
+FEATURE IMPROVEMENTS:
 
-- Convert _ and * to bold and italic in files.
-- Add separators (***)
+- It should be possible to make a draft to a version, and get that version
+  besides the new one. This is needed when rewriting the story. It should
+  be possible to easily switch between old version, new version and notes.
+  
+- Improve moving text between draft and notes
 
-- Export now uses "store_buffers", which stores the content in GUI
-  buffers as document root. Problem: this clears dirty flag and
-  prevents Revert to work correctly. Fix it.
+- Improve notes. Notes are different to draft. Notes are more like a card
+  pile you want to keep organized.
 
 -------------------------------------------------------------------------------
 
 WORKLIST
+
+- Export: Convert _ and * to bold and italic in files.
+
+- Export: Export now uses "store_buffers", which stores the content in GUI
+  buffers as document root. Problem: this clears dirty flag and
+  prevents Revert to work correctly. Fix it.
 
 - Setting fonts & colors: its important for different computers with
   different screen sizes.
@@ -216,4 +222,9 @@ LARGER FEATURES:
 
 DONE:
 
+- DONE: Export: Initial RTF exporting
+- DONE: Export: Handle nickname (doc load & save)
+- DONE: Export: Skip <missing>, <comment> and <synopsis> when exporting
+- DONE: Export: Add separators (***)
+- DONE: Export: Add title
 
