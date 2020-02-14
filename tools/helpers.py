@@ -22,12 +22,10 @@ if os.name == "posix":
 elif os.name == "nt":
 
     def xdgopen(filename):
-        #os.system("xdg-open %s &" % (filename))
-        ERROR("Not implemented.")
+        os.system("start %s" % (filename))
 
     def xdgfolder(filename):
-        #xdgopen(os.path.dirname(filename))
-        ERROR("Not implemented.")
+        xdgopen(os.path.dirname(filename))
         
 else:
     ERROR("Unknown platform: %s" % os.name)

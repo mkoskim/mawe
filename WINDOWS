@@ -14,7 +14,6 @@ https://pygobject.readthedocs.io/en/latest/getting_started.html#windows-getting-
 Run MSYS2 shell either from command line, or use "MSYS2 MinGW 64-bit"
 option in the start menu. You can access Windows folders from "/c"
 folder, for example, your Windows home directory is "/c/Users/<account>"
-To ease the use, you may want to create symlinks to MSYS2 user folder.
 
 When you have installed Python and GTK3, install GTKSourceView:
 
