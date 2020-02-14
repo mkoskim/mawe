@@ -543,7 +543,11 @@ class DocView(DocPage):
         self.folderbtn.enable()
 
     def _export(self):
-        self.buffers_store()
+        #self.buffers_store()
+        self.ui_save()
+        #TODO: We should ask if we are exporting to an existing file, at
+        # first time. The xported file, like RTF, might be the one used to
+        # import the project.
         filename = self.doc.export()
         xdgopen(filename)
 
