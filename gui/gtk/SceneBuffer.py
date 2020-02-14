@@ -48,7 +48,6 @@ class SceneBuffer(GtkSource.Buffer):
 
         # Block tags
         self.create_tag("indent", indent = 30)
-        self.create_tag("text")
         self.create_tag("synopsis",
             paragraph_background = "#FFD",
         )
