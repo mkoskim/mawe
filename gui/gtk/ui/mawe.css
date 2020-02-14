@@ -2,7 +2,11 @@
 /* Textview */
 /* ------------------------------------------------------------------------- */
 
-#draftview { background: #F4F4F4; }
+#draftview {
+    font-family: Times;
+    font-size: 12;
+    background: #F4F4F4;
+}
 #draftview:focus {
     background: #FFF;
 }

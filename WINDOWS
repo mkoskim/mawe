@@ -2,17 +2,25 @@
                                
                                MAWE for WINDOWS
                                
-In order to run Mawe on Windows machines, you will need:
+In order to run Mawe on Windows machines, you will need Python3 with
+GTK3 libraries and bindings. Unfortunately it is not as straightforward
+as one could hope.
 
-1. Python 3.5 or higher: See https://www.python.org/downloads/windows/
+First, install MSYS2, with Python3 and GTK3. There are installation
+instructions at pygobject website:
 
-2. GTK+ 3 with Python bindings
+https://pygobject.readthedocs.io/en/latest/getting_started.html#windows-getting-started
 
--------------------------------------------------------------------------------
+Run MSYS2 shell either from command line, or use "MSYS2 MinGW 64-bit"
+option in the start menu. You can access Windows folders from "/c"
+folder, for example, your Windows home directory is "/c/Users/<account>"
+To ease the use, you may want to create symlinks to MSYS2 user folder.
 
-GTK+ 3 for Python 3:
+When you have installed Python and GTK3, install GTKSourceView:
 
-MSYS2... http://www.msys2.org/
+$ pacman -S mingw-w64-x86_64-gtksourceview4
 
-Well, not working on Wine... Need to check the issue later.
-
+Now you should be able to run the editor. Windows support is
+incomplete, but I try to improve it. For example, fonts may not work,
+and there are some quirks in SourceView cursor (it is invisible time
+to time).

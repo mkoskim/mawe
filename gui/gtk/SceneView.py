@@ -173,7 +173,7 @@ class SceneView(GtkSource.View):
         self.set_top_margin(30)
         self.set_bottom_margin(60)
 
-        if font: self.modify_font(Pango.FontDescription(font))
+        #if font: self.modify_font(Pango.FontDescription(font))
         #self.modify_font(Pango.FontDescription("Times 12"))
         #self.modify_font(Pango.FontDescription("Sans 12"))
         #self.modify_font(Pango.FontDescription("Serif 12"))
