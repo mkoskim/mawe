@@ -2,6 +2,8 @@ from gui.gtk import Gtk, Gdk, Pango, GtkSource, GObject
 from gui.gtk.SceneBuffer import SceneBuffer
 import os
 
+from tools import *
+
 ###############################################################################        
 
 class ScrolledSceneList(Gtk.ScrolledWindow):
@@ -164,14 +166,21 @@ class SceneView(GtkSource.View):
 
         self.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
 
-        self.set_pixels_inside_wrap(4)
-        self.set_pixels_above_lines(2)
-        self.set_pixels_below_lines(2)
-        
+        conf = config["TextView"]
+
         self.set_left_margin(30)
         self.set_right_margin(30)
         self.set_top_margin(30)
         self.set_bottom_margin(60)
+
+        self.set_pixels_inside_wrap(2 * conf["linespacing"])
+        self.set_pixels_above_lines(conf["linespacing"])
+        self.set_pixels_below_lines(conf["linespacing"])
+
+        font = Pango.FontDescription()
+        font.set_family(conf["family"])
+        font.set_size(conf["size"] * Pango.SCALE)
+        self.modify_font(font)
 
         #if font: self.modify_font(Pango.FontDescription(font))
         #self.modify_font(Pango.FontDescription("Times 12"))

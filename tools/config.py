@@ -23,6 +23,11 @@ defaults = {
         "Files": []
     },
     "ProjectDir": None,
+    "TextView": {
+        "font": "Times New Roman",
+        "size": 12,
+        "linespacing": 2,
+    }
 }
 
 # This does not work for system wide installations, but for user-only
@@ -55,6 +60,7 @@ def _migrate(config):
     if "OpenView" not in config:    get_default("OpenView")
     if "DocNotebook" not in config: get_default("DocNotebook")
     if "ProjectDir" not in config:  get_default("ProjectDir")
+    if "TextView" not in config:    get_default("TextView")
     return config
 
 #------------------------------------------------------------------------------
