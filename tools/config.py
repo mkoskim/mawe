@@ -24,7 +24,7 @@ defaults = {
     },
     "ProjectDir": None,
     "TextView": {
-        "font": "Times New Roman",
+        "family": "Times New Roman",
         "size": 12,
         "linespacing": 2,
     }
