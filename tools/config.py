@@ -9,7 +9,7 @@ import os, json
 config = None
 
 defaults = {
-    "ConfigVersion": 1,
+    "ConfigVersion": 2,
     "Window": {
         "Size": { "X": 800, "Y": 900 },
     },
@@ -17,12 +17,14 @@ defaults = {
         "Pane": -1
     },
     "OpenView": {
-        "Directory": os.getcwd(),
     },
     "DocNotebook": {
         "Files": []
     },
-    "ProjectDir": None,
+    "Directories": {
+        "Open": os.getcwd(),
+        "Projects": None,
+    },
     "TextView": {
         "family": "Times New Roman",
         "size": 12,
@@ -42,8 +44,9 @@ def config_load():
     
     try:
         config = _migrate(json.load(open(filename)))
-    except:
+    except Exception as e:
         config = defaults
+    #print(config)
 
 def config_save():
     global config
@@ -59,8 +62,18 @@ def _migrate(config):
 
     if "OpenView" not in config:    get_default("OpenView")
     if "DocNotebook" not in config: get_default("DocNotebook")
-    if "ProjectDir" not in config:  get_default("ProjectDir")
     if "TextView" not in config:    get_default("TextView")
+
+    # Version 1 --> Version 2
+    if config["ConfigVersion"] == 1:
+        get_default("Directories")
+        config["Directories"]["Open"] = config["OpenView"]["Directory"]
+        del config["OpenView"]["Directory"]
+        if "ProjectDir" in config:
+            config["Directories"]["Projects"] = config["ProjectDir"]
+            del config["ProjectDir"]
+        config["ConfigVersion"] = 2
+
     return config
 
 #------------------------------------------------------------------------------

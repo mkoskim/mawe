@@ -17,11 +17,7 @@ WORKLIST
 
 - Export: Convert _ and * to bold and italic in files.
 
-- Export: Export now uses "store_buffers", which stores the content in GUI
-  buffers as document root. Problem: this clears dirty flag and
-  prevents Revert to work correctly. Fix it.
-
-- Setting fonts & colors: its important for different computers with
+ Setting fonts & colors: its important for different computers with
   different screen sizes.
 
   * Settings editor
@@ -32,15 +28,12 @@ WORKLIST
 - Search and replace: it is very useful feature I have missed in moe a lot,
   for example when changing names in stories.
 
+- Selecting & moving scenes in listview
+
 - Moving folded scenes around: Shift-Alt-up, Shift-Alt-down. We can allow
   cutting entire folded scenes, but not parts of them.
 
-- Selecting & moving scenes in listview
-
 - When choosing with grab, show the selections in the listbox
-
-- File save / open: At the moment, when saving files, it does not set
-  directory to last used one. Fix it!
 
 -------------------------------------------------------------------------------
 
@@ -228,4 +221,11 @@ DONE:
 - DONE: Export: Skip <missing>, <comment> and <synopsis> when exporting
 - DONE: Export: Add separators (***)
 - DONE: Export: Add title
+
+- FIXED (Export now saves file before export) Export: Export now uses
+  "store_buffers", which stores the content in GUI buffers as document root.
+  Problem: this clears dirty flag and prevents Revert to work correctly. Fix it.
+
+- FIXED: File save / open: At the moment, when saving files, it does not set
+  directory to last used one. Fix it!
 

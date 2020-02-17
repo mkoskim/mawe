@@ -34,6 +34,13 @@ parser.add_argument("--export", help="Export document")
 args = parser.parse_args()
 
 #------------------------------------------------------------------------------
+# Get config
+#------------------------------------------------------------------------------
+
+from tools.config import *
+#config_load()
+
+#------------------------------------------------------------------------------
 # Exporting files from command line
 #------------------------------------------------------------------------------
 
@@ -54,9 +61,8 @@ if not args.export is None:
 #------------------------------------------------------------------------------
 
 import project
-from tools.config import *
 
-project.Manager.mount(config["ProjectDir"])
+#project.Manager.mount(config["ProjectDir"])
 workset = project.Manager.mount(*args.file)
 
 #------------------------------------------------------------------------------

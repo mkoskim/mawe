@@ -2,6 +2,23 @@
 
 DONE:
 
+- DONE: Export: Initial RTF exporting
+- DONE: Export: Handle nickname (doc load & save)
+- DONE: Export: Skip <missing>, <comment> and <synopsis> when exporting
+- DONE: Export: Add separators (***)
+- DONE: Export: Add title
+
+- FIXED (Export now saves file before export) Export: Export now uses
+  "store_buffers", which stores the content in GUI buffers as document root.
+  Problem: this clears dirty flag and prevents Revert to work correctly. Fix it.
+
+- FIXED: File save / open: At the moment, when saving files, it does not set
+  directory to last used one. Fix it!
+
+-------------------------------------------------------------------------------
+
+DONE:
+
 - DONE: When converting from moe, the new file is not dirty and it is not asked
   for saving. Should be fixed in longer run.
 

@@ -278,6 +278,8 @@ class OpenView(DocPage):
         self.config = config["OpenView"]
 
         chooser = Gtk.FileChooserWidget()
+        #chooser.set_current_folder(config["Directories"]["Open"])
+        self.dir_restore(chooser)
         chooser.set_create_folders(True)
         chooser.connect("file-activated", self.onChooser)
         chooser.connect("map", self.dir_restore)
@@ -313,10 +315,10 @@ class OpenView(DocPage):
         self.add(box)
         self.show_all()
 
-        if not config["ProjectDir"] is None:
-            stack.set_visible_child_name("projects")
-        else:
+        if config["Directories"]["Projects"] is None:
             stack.set_visible_child_name("files")
+        else:
+            stack.set_visible_child_name("projects")
 
     def onNew(self, widget):
         self.notebook.ui_new()
@@ -329,10 +331,10 @@ class OpenView(DocPage):
         self.onProjectSelect(chooser, filename)
 
     def dir_store(self, chooser):
-        self.config["Directory"] = chooser.get_current_folder()
+        config["Directories"]["Open"] = chooser.get_current_folder()
 
     def dir_restore(self, chooser):
-        chooser.set_current_folder(self.config["Directory"])
+        chooser.set_current_folder(config["Directories"]["Open"])
 
     def ui_refresh(self):
         if self.stack.get_visible_child_name() == "projects":
@@ -506,7 +508,10 @@ class DocView(DocPage):
             suggested = self.doc.origin
             if suggested is None:
                 suggested = self.buffers["./body/head/title"].get_text()
-            name = dialog.SaveAs(self, suggested)
+                directory = config["Directories"]["Open"]
+            else:
+                directory = os.path.dirname(suggested)
+            name = dialog.SaveAs(self, suggested, directory)
             if name is None: return False
             self._save(name)
         else:
@@ -514,7 +519,7 @@ class DocView(DocPage):
         return True
 
     def ui_saveas(self):
-        name = self.SaveAs(self, self.doc.origin)
+        name = dialog.SaveAs(self, self.doc.origin)
         if name is None: return False
         self._save(name)
         return True
@@ -800,6 +805,9 @@ class MainWindow(Gtk.Window):
         ])
 
         settings = config["Window"]
+        #print(settings)
+        #print(settings["Position"]["X"], settings["Position"]["Y"])
+        #print(settings["Size"]["X"], settings["Size"]["Y"])
         if "Position" in settings: self.move(
             settings["Position"]["X"],
             settings["Position"]["Y"]

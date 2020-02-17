@@ -52,11 +52,15 @@ class ProjectView(Gtk.Frame):
         self.emit("file-activated", filename)
         
     def refresh(self):
-        if not config["ProjectDir"]: return
+        try:
+            searchdir = config["Directories"]["Projects"]
+        except KeyError:
+            return
+        
+        if searchdir is None: return
 
-        Manager._scan(config["ProjectDir"])
+        Manager._scan(searchdir)
 
-        searchdir = config["ProjectDir"]
         self.store.clear()
         for path, doc in Manager.projects.items():
             self.store.append([

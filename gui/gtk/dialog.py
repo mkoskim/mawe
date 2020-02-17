@@ -12,7 +12,7 @@ import os
 
 #------------------------------------------------------------------------------
 
-def SaveAs(self, suggested):
+def SaveAs(self, suggested, directory):
     mainwindow = self.get_toplevel()
     
     dialog = Gtk.FileChooserDialog(
@@ -30,6 +30,9 @@ def SaveAs(self, suggested):
         suggested = os.path.splitext(suggested)[0] + ".mawe"
         dialog.set_filename(suggested)
         dialog.set_current_name(os.path.basename(suggested))
+
+    dialog.set_current_folder(directory)
+    # print(directory)
 
     answer = dialog.run()
     name   = dialog.get_filename()
