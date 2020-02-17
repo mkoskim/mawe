@@ -29,7 +29,8 @@ WORKLIST
   * Style editor: font, colors, ... - would be great to tailor the view for
     the computer (monitor size and so on)
 
-- Search and replace: it is very useful feature I have missed in moe a lot
+- Search and replace: it is very useful feature I have missed in moe a lot,
+  for example when changing names in stories.
 
 - Moving folded scenes around: Shift-Alt-up, Shift-Alt-down. We can allow
   cutting entire folded scenes, but not parts of them.
