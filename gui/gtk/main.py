@@ -498,9 +498,9 @@ class DocView(DocPage):
             answer = dialog.SaveOrDiscard(self,
                 "'%s' not saved. Save or discard changes?" % self.buffers["./body/head/title"].get_text()
             )
+            if answer == Gtk.ResponseType.CANCEL: return False
             if answer == Gtk.ResponseType.YES:
                 if not self.ui_save(): return False
-            if answer != Gtk.ResponseType.NO: return False
         return True
 
     def ui_save(self):

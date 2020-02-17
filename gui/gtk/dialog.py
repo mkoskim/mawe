@@ -32,7 +32,7 @@ def SaveAs(self, suggested, directory):
         dialog.set_current_name(os.path.basename(suggested))
 
     dialog.set_current_folder(directory)
-    # print(directory)
+    #print(suggested, directory)
 
     answer = dialog.run()
     name   = dialog.get_filename()
