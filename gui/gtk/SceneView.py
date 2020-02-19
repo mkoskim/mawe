@@ -182,11 +182,6 @@ class SceneView(GtkSource.View):
         font.set_size(conf["size"] * Pango.SCALE)
         self.modify_font(font)
 
-        #if font: self.modify_font(Pango.FontDescription(font))
-        #self.modify_font(Pango.FontDescription("Times 12"))
-        #self.modify_font(Pango.FontDescription("Sans 12"))
-        #self.modify_font(Pango.FontDescription("Serif 12"))
-
         #self.set_show_line_numbers(True)
         #self.set_show_right_margin(True)
         #self.set_show_line_marks(True)

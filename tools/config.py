@@ -29,6 +29,7 @@ defaults = {
         "family": "Times New Roman",
         "size": 12,
         "linespacing": 2,
+        "indent": 30,
     }
 }
 
@@ -46,7 +47,7 @@ def config_load():
         config = _migrate(json.load(open(filename)))
     except Exception as e:
         config = defaults
-    #print(config)
+    print(config)
 
 def config_save():
     global config
@@ -58,11 +59,23 @@ def config_save():
 def _migrate(config):
     global defaults
 
-    def get_default(key): config[key] = defaults[key]
+    # TODO: Improve getting defaults
 
-    if "OpenView" not in config:    get_default("OpenView")
-    if "DocNotebook" not in config: get_default("DocNotebook")
-    if "TextView" not in config:    get_default("TextView")
+    def get_default(*keys):
+        cnf = config
+        dfl = defaults
+        for key in keys:
+            dfl = dfl[key]
+            if not key in cnf:
+                cnf[key] = dfl
+            cnf = cnf[key]
+
+    get_default("OpenView")
+    get_default("DocNotebook")
+    get_default("TextView")
+    #if "OpenView" not in config:    get_default("OpenView")
+    #if "DocNotebook" not in config: get_default("DocNotebook")
+    #if "TextView" not in config:    get_default("TextView")
 
     # Version 1 --> Version 2
     if config["ConfigVersion"] == 1:
@@ -73,6 +86,8 @@ def _migrate(config):
             config["Directories"]["Projects"] = config["ProjectDir"]
             del config["ProjectDir"]
         config["ConfigVersion"] = 2
+
+    get_default("TextView", "indent")
 
     return config
 

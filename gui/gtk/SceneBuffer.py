@@ -41,13 +41,15 @@ class SceneBuffer(GtkSource.Buffer):
     
     def create_tags(self):
 
+        conf = config["TextView"]
+
         # Span tags
         self.create_tag("bold",   weight = Pango.Weight.BOLD)
         self.create_tag("italic", style  = Pango.Style.ITALIC)
         self.create_tag("pre",    background = "#DDD")
 
         # Block tags
-        self.create_tag("indent", indent = 30)
+        self.create_tag("indent", indent = conf["indent"])
         self.create_tag("synopsis",
             paragraph_background = "#FFD",
         )
