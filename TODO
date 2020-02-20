@@ -5,8 +5,13 @@ FEATURE IMPROVEMENTS:
 - It should be possible to make a draft to a version, and get that version
   besides the new one. This is needed when rewriting the story. It should
   be possible to easily switch between old version, new version and notes.
+
+- We'd need heavily improve parts and such. It should be possible to
+  write parts of the story separately, and then move it to draft. For
+  example, in many longer stories, you have a side path you want to write
+  separately, and then later merge it to main line.
   
-- Improve moving text between draft and notes
+- Improve moving text between parts (draft and notes)
 
 - Improve notes. Notes are different to draft. Notes are more like a card
   pile you want to keep organized.
