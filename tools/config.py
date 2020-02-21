@@ -46,6 +46,7 @@ def config_load():
     try:
         config = _migrate(json.load(open(filename)))
     except Exception as e:
+        # show exception
         config = defaults
     print(config)
 
@@ -73,11 +74,8 @@ def _migrate(config):
     get_default("OpenView")
     get_default("DocNotebook")
     get_default("TextView")
-    #if "OpenView" not in config:    get_default("OpenView")
-    #if "DocNotebook" not in config: get_default("DocNotebook")
-    #if "TextView" not in config:    get_default("TextView")
 
-    # Version 1 --> Version 2
+    # Convert: Version 1 --> Version 2
     if config["ConfigVersion"] == 1:
         get_default("Directories")
         config["Directories"]["Open"] = config["OpenView"]["Directory"]
