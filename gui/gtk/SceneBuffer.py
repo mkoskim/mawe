@@ -537,9 +537,9 @@ class SceneBuffer(GtkSource.Buffer):
             for paragraph in list(scene):
                 if   paragraph.tag == "p":        text = text + strip(paragraph.text) + "\n"
                 elif paragraph.tag == "br":       text = text + "\n"
-                elif paragraph.tag == "comment":  text = text + "//" + strip(paragraph.text) + "\n"
-                elif paragraph.tag == "synopsis": text = text + "<<" + strip(paragraph.text) + "\n"
-                elif paragraph.tag == "missing":  text = text + "!!" + strip(paragraph.text) + "\n"
+                elif paragraph.tag == "comment":  text = text + "// " + strip(paragraph.text) + "\n"
+                elif paragraph.tag == "synopsis": text = text + "<< " + strip(paragraph.text) + "\n"
+                elif paragraph.tag == "missing":  text = text + "!! " + strip(paragraph.text) + "\n"
                 else: log("Unknown paragraph type: %s" % paragraph.tag)
             return text
 
@@ -595,10 +595,10 @@ class SceneBuffer(GtkSource.Buffer):
             def addlines(subscene):
                 for line in subscene.split("\n"): 
                     line = re.sub(SceneBuffer.re_multispace, " ", line.strip())
-                    if   line[:2] == "<<": ET.SubElement(elem, "synopsis").text = line[2:]
-                    elif line[:2] == "//": ET.SubElement(elem, "comment").text = line[2:]
-                    elif line[:2] == "!!": ET.SubElement(elem, "missing").text = line[2:]
-                    elif len(line): ET.SubElement(elem, "p").text = line
+                    if   line[:2] == "<<": ET.SubElement(elem, "synopsis").text = line[2:].strip()
+                    elif line[:2] == "//": ET.SubElement(elem, "comment").text = line[2:].strip()
+                    elif line[:2] == "!!": ET.SubElement(elem, "missing").text = line[2:].strip()
+                    elif len(line): ET.SubElement(elem, "p").text = line.strip()
                     else: pass
 
             scene = scene.strip()
