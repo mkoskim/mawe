@@ -16,6 +16,12 @@ FEATURE IMPROVEMENTS:
 - Improve notes. Notes are different to draft. Notes are more like a card
   pile you want to keep organized.
 
+- Would there be some use for "lorem" -thingie, so that: you can set how
+  many words you want to write to certain scene. It will be filled by
+  lorem-generator, and that word count will be in grey. While you write, you
+  keep replacing lorem with your own words. This would be sort of
+  "visualization" of your word goals.
+
 -------------------------------------------------------------------------------
 
 WORKLIST
