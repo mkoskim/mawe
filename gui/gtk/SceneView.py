@@ -431,7 +431,7 @@ class SceneView(GtkSource.View):
         self.buffer.move_mark_by_name("selection_bound", self.buffer.scene_end_iter(scene))
 
         self.buffer.begin_user_action()
-        self.buffer.fold_on(scene)
+        # self.buffer.fold_on(scene)
         self.buffer.end_user_action()
         self.scroll_mark_onscreen(self.buffer.get_insert())
     
