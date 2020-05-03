@@ -233,7 +233,7 @@ class SceneBuffer(GtkSource.Buffer):
         def nextindent(line):
             line_start = self.make_iter_to_line(line)
             if self.is_empty_line(line_start): return False
-            if self.get_text_forward(line_start, 2) in ["##", "<<", "!!"]: return False
+            if self.get_text_forward(line_start, 2) in ["##", "<<"]: return False
             return True        
         
         if first_line > 0:
