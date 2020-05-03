@@ -251,7 +251,7 @@ class SceneBuffer(GtkSource.Buffer):
                 indentmode = False
             elif self.line_starts_with("##", line_start):
                 indentmode = False
-            elif self.get_text_forward(line_start, 2) in ["<<", "!!"]:
+            elif self.get_text_forward(line_start, 2) in ["<<"]:
                 self.update_spans(line_start, line_end)
                 indentmode = False
             else:

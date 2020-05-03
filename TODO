@@ -2,6 +2,9 @@
 
 FEATURE IMPROVEMENTS:
 
+- Put file name in to the Title section. Possibly make it possible to
+  rename the file from title.
+
 - It should be possible to make a draft to a version, and get that version
   besides the new one. This is needed when rewriting the story. It should
   be possible to easily switch between old version, new version and notes.
