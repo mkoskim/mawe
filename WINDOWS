@@ -15,9 +15,9 @@ Run MSYS2 shell either from command line, or use "MSYS2 MinGW 64-bit"
 option in the start menu. You can access Windows folders from "/c"
 folder, for example, your Windows home directory is "/c/Users/<account>"
 
-When you have installed Python and GTK3, install GTKSourceView:
+When you have installed Python and GTK3, install GTKSourceView (version 3):
 
-$ pacman -S mingw-w64-x86_64-gtksourceview4
+$ pacman -S mingw-w64-x86_64-gtksourceview3
 
 Now you should be able to run the editor. Windows support is
 incomplete, but I try to improve it. For example, fonts may not work,
