@@ -1,8 +1,18 @@
+#------------------------------------------------------------------------------
+# GUI
+#------------------------------------------------------------------------------
+
+import os
+guidir = os.path.dirname(__file__)
+
 import gi
 
 gi.require_version("Gtk", "3.0")
-gi.require_version("GtkSource", "3.0")
-#gi.require_version("WebKit", "3.0")
+#gi.require_version("GtkSource", "3.0")
+
+#------------------------------------------------------------------------------
+# GTK3 imports
+#------------------------------------------------------------------------------
 
 from gi.repository import (
     Gtk, Gdk, Gio, GObject,
@@ -11,17 +21,28 @@ from gi.repository import (
     GdkPixbuf
 )
 
-print("Gtk: %d.%d" % (Gtk.get_major_version(), Gtk.get_minor_version()))
+#------------------------------------------------------------------------------
+# Version info
+#------------------------------------------------------------------------------
 
-import os
-guidir = os.path.dirname(__file__)
+print("Gtk........:", Gtk._version)
+print("GtkSource..:", GtkSource._version)
 
-from gui.gtk.SceneBuffer import SceneBuffer
-from gui.gtk.SceneView   import (
-    SceneView, ScrolledSceneView,
-    SceneList, ScrolledSceneList,
-)
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+
 from gui.gtk.ProjectView import ProjectView
-
 import gui.gtk.dialog
 
+#------------------------------------------------------------------------------
+# GTKSource3 interface
+#------------------------------------------------------------------------------
+
+if GtkSource._version in ["3.0"]:
+    from gui.gtk.SceneBuffer import SceneBuffer
+    from gui.gtk.SceneView   import (
+        SceneView, ScrolledSceneView,
+        SceneList, ScrolledSceneList,
+    )
+else:
+    raise ImportError("GtkSource %s not supported." % GtkSource._version)
