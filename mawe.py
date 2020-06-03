@@ -9,11 +9,11 @@
 
 import sys
 
+print("Python: %d.%d" % (sys.version_info.major, sys.version_info.minor))
+
 if sys.version_info < (3, 5):
     print("You need Python 3.5 or higher.")
     sys.exit(-1)
-
-print("Python: %d.%d" % (sys.version_info.major, sys.version_info.minor))
 
 from tools.error import *
 
@@ -34,20 +34,13 @@ parser.add_argument("--export", help="Export document")
 args = parser.parse_args()
 
 #------------------------------------------------------------------------------
-# Get config
-#------------------------------------------------------------------------------
-
-from tools.config import *
-#config_load()
-
-#------------------------------------------------------------------------------
 # Exporting files from command line
 #------------------------------------------------------------------------------
 
 if not args.export is None:
     ERRORIF(args.export != "rtf", "Invalid export format: %s " % args.export)
     for filename in args.file:
-        from project import *
+        from project import Project
         project = Project.open(filename, True)
         if project is None:
             log("Invalid project: %s" % filename)
