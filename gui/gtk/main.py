@@ -188,6 +188,11 @@ class DocNotebook(Gtk.Notebook):
         if type(child) is DocView:
             child.ui_revert()
 
+    def ui_cancel(self):
+        child = self.get_current_child()
+        if not child is None:
+            child.ui_cancel()
+
     def ui_close(self, child = None):
         if child is None: child = self.get_current_child();
 
@@ -270,6 +275,8 @@ class DocPage(Gtk.Frame):
 
     def ui_refresh(self): pass
 
+    def ui_cancel(self): return False
+
 ###############################################################################
 #
 # Document open view
@@ -328,6 +335,11 @@ class OpenView(DocPage):
 
     def onProjectSelect(self, widget, filename):
         self.notebook.ui_new(filename)
+        return True
+
+    def ui_cancel(self):
+        self.notebook.ui_close(self)
+        return True
 
     def onChooser(self, chooser):
         filename = chooser.get_filename()
@@ -802,6 +814,8 @@ class MainWindow(Gtk.Window):
             ("<Ctrl>W", lambda *a: self.docs.ui_close()),
             
             ("<Alt>R",  lambda *a: self.docs.ui_revert()),
+
+            ("Escape", lambda *a: self.docs.ui_cancel()),
 
             ("F1", lambda *a: self.docs.ui_help()),
             ("F5", lambda *a: self.docs.ui_refresh()),
