@@ -373,9 +373,13 @@ class DocView(DocPage):
 
         self.doc = doc
         self.dirty = False
+        self.loaded = False
 
         #print("Filename:", doc.filename)
         #print("Origin:", doc.origin)
+
+        self.connect("map", self.onMap)
+        self.connect("unmap", self.onUnmap)
 
         self.buffers = {
             "./body/part": SceneBuffer(),
@@ -389,9 +393,6 @@ class DocView(DocPage):
             "./body/head/deadline": EntryBuffer(),
         }
 
-        self.buffers_revert()
-        self.buffers_connect()
-
         self.create_stacks()
 
         self.pane = Gtk.Paned()
@@ -400,11 +401,13 @@ class DocView(DocPage):
 
         self.add(self.pane)
 
-        self.connect("map", self.onMap)
-        self.connect("unmap", self.onUnmap)
+    def _load(self):
+        print("Loading:", self.doc.root.find("./body/head/title").text)
+        self.buffers_revert()
+        self.buffers_connect()
         self.connect("key-press-event", self.onKeyPress)
-
         self.right_focus[0].grab_focus()
+        self.loaded = True
 
     #--------------------------------------------------------------------------
 
@@ -479,6 +482,8 @@ class DocView(DocPage):
     #--------------------------------------------------------------------------
 
     def onMap(self, widget):
+        if not self.loaded: self._load()
+
         pos = int(config["DocView"]["Pane"])
         if pos < 0: return
         self.pane.set_position(pos)
