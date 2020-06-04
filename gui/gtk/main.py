@@ -158,7 +158,7 @@ class DocNotebook(Gtk.Notebook):
         
         # Call onUnmap to make it update its configuration
         child = self.get_current_child()
-        child.unmap()
+        if not child is None: child.unmap()
         return True
 
     def ui_help(self):
@@ -190,16 +190,21 @@ class DocNotebook(Gtk.Notebook):
 
     def ui_close(self, child = None):
         if child is None: child = self.get_current_child();
-        if child == self.opentab:
-            self.opentab.hide()
-            self.openbtn.enable()
-            return False
 
         if type(child) is DocView:
             if not child.can_close(): return False
             child.onUnmap(child)
+            self._remove_child(child)
+            if self.get_n_pages() == 1:
+                self.opentab.show()
+                self.openbtn.disable()
 
-        self._remove_child(child)
+        if child == self.opentab:
+            if self.get_n_pages() > 1:
+                self.opentab.hide()
+                self.openbtn.enable()
+            return False
+
         return True
 
     def _remove_child(self, child):

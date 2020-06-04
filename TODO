@@ -52,7 +52,8 @@ WORKLIST
 - Moving folded scenes around: Shift-Alt-up, Shift-Alt-down. We can allow
   cutting entire folded scenes, but not parts of them.
 
-- When choosing with grab, show the selections in the listbox
+- When choosing with grab, show the selections in the listbox? Or implement
+  a separate clipboard for cutted scenes?
 
 -------------------------------------------------------------------------------
 
@@ -108,10 +109,6 @@ PROJECTS AND PROGRESSING:
 
 QUIRKS, FIX:
 
-- When computer goes sleep, coming back resets the window to default
-  size. Irritating. Get rid of that. Happens at least on one laptop with
-  Ubuntu.
-
 - It is bit irritating that folding and unfolding cause buffer to become
   dirty, but it can't be helped now. Otherwise we are messing with undo/redo.
 
@@ -127,14 +124,8 @@ QUIRKS, FIX:
   * Except if selection bounds are at scene bounds, that is, you
     have selected entire scenes.
     
-- Make:
-
-  * DONE: Ctrl-up, Ctrl-down: move paragraph up / down
-  
-  * DONE: Alt-up, Alt-down: move scene up / down
-  
-  * if you have selections (preferably whole scenes), make Alt-Up/Down
-    move scenes with cursor.
+- If you have selections (preferably whole scenes), make Alt-Up/Down
+  move scenes with cursor.
 
 - There are still quirks in folded content. It is possible to add new lines
   which will become hidden. Also, sometimes comment tags will get persistent.
@@ -235,4 +226,14 @@ LARGER FEATURES:
 
 DONE:
 
+- REJECTED: When computer goes sleep, coming back resets the window to default
+  size. Irritating. Get rid of that. Happens at least on one laptop with
+  Ubuntu. - This is feature in computer side (Windows / Linux), when computer
+  goes sleep, it disconnects monitors, and all windows in other monitors are
+  reset to the main one.
 
+- DONE: Ctrl-up, Ctrl-down: move paragraph up / down
+  
+- DONE: Alt-up, Alt-down: move scene up / down
+  
+- DONE: If there are no open files in editor, keep "Open" tab visible
