@@ -15,6 +15,10 @@ from project.Document import ET
 
 #------------------------------------------------------------------------------
 
+Gdk.threads_init()
+
+#------------------------------------------------------------------------------
+
 def run(workset = None, new = False):
     global mainwindow
     MainWindow(workset, new = new).show_all()
@@ -372,8 +376,8 @@ class DocView(DocPage):
         )
 
         self.doc = doc
-        self.dirty = False
         self.loaded = False
+        self.dirty = False
 
         #print("Filename:", doc.filename)
         #print("Origin:", doc.origin)

@@ -96,8 +96,6 @@ PROJECTS AND PROGRESSING:
   can easily access the background material and stories related to same
   character/world while sketching your stories.
 
-- PM: Asynchronous directory scan: in case it takes a lots of time.
-
 - PM: Add context menu to open folder and with text editor.
 
 - File open: Recursive file search like in nautilus
@@ -244,3 +242,5 @@ DONE:
 - DONE: Esc closes open tab
 
 - DONE: Delayed loading
+
+- DONE: PM: Asynchronous directory scan: in case it takes a lots of time.

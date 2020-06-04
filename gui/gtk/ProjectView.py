@@ -16,7 +16,7 @@ from project import *
 from project.Document import ET
 from tools.config import *
 
-import os, time
+import threading, os, time
 
 #------------------------------------------------------------------------------
 
@@ -33,11 +33,11 @@ class ProjectView(Gtk.Frame):
 
         self.store = Gtk.ListStore(str, str, str, str, str, int, int, int, str, str)
 
-        projectlist = ProjectList(self.store) 
-        projectlist.connect("row-activated", self.onRowActivated)
+        self.projectlist = ProjectList(self.store) 
+        self.projectlist.connect("row-activated", self.onRowActivated)
         
         scrolled = Gtk.ScrolledWindow()
-        scrolled.add(projectlist)
+        scrolled.add(self.projectlist)
 
         box = VBox(
             (Label("Directory: %s" % config["Directories"]["Projects"])),
@@ -51,27 +51,37 @@ class ProjectView(Gtk.Frame):
     def onRowActivated(self, tree, path, col, *args):
         filename = tree.get_model()[path][0]
         self.emit("file-activated", filename)
-        
+
     def refresh(self):
+        if not self.worker is None: return
+
         try:
-            searchdir = config["Directories"]["Projects"]
+            self.searchdir = config["Directories"]["Projects"]
         except KeyError:
             return
-        
-        if searchdir is None: return
-        # return
 
-        Manager._scan(searchdir)
+        self.worker = threading.Thread(target = self.doScan)
+        self.worker.start()
+        #self.doScan()
 
+    def doScan(self):
+        Manager._scan(self.searchdir)
+
+        Gdk.threads_enter()
         self.store.clear()
+
         for path, doc in Manager.projects.items():
             self.store.append([
                 path,
                 doc.title,
                 doc.status, doc.deadline, doc.year,
                 doc.words[0], doc.words[1], doc.words[2],
-                doc.editor, os.path.relpath(path, searchdir),
+                doc.editor, os.path.relpath(path, self.searchdir),
             ])
+        self.projectlist.set_cursor(0)
+        Gdk.threads_leave()
+
+        self.worker = None
 
 #------------------------------------------------------------------------------
 
