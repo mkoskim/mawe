@@ -38,8 +38,9 @@ def mount(*files):
         elif os.path.isfile(filename):
             requested.append(os.path.abspath(filename))
         elif os.path.isdir(filename):
-            config["ProjectDir"] = filename
-            #_scan(filename)
+            # Directory tree is scanned when ProjectView is opened
+            config["Directories"]["Projects"] = filename
+            config["Directories"]["Open"] = filename
         else:
             ERROR("%s: Not a file/folder." % filename)
 

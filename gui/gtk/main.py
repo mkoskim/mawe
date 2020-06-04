@@ -147,17 +147,18 @@ class DocNotebook(Gtk.Notebook):
         pass
 
     def exit(self):
-        filelist = []
+        # filelist = []
 
+        # Check if we can close
         for pagenum in range(self.get_n_pages()):
             child = self.get_nth_page(pagenum)
             if not child.can_close(): return False
 
         config["DocNotebook"]["Files"] = self.listfiles()
         
-        # Call onUnmap to get pane position updated
+        # Call onUnmap to make it update its configuration
         child = self.get_current_child()
-        if type(child) is DocView: child.onUnmap(child)
+        child.unmap()
         return True
 
     def ui_help(self):
@@ -275,16 +276,13 @@ class OpenView(DocPage):
     def __init__(self, notebook):
         super(OpenView, self).__init__(notebook, "Open file")
 
-        self.config = config["OpenView"]
-
         chooser = Gtk.FileChooserWidget()
-        #chooser.set_current_folder(config["Directories"]["Open"])
-        self.dir_restore(chooser)
         chooser.set_create_folders(True)
         chooser.connect("file-activated", self.onChooser)
         chooser.connect("map", self.dir_restore)
         chooser.connect("unmap", self.dir_store)
 
+        #self.dir_restore(chooser)
         #chooser.set_extra_widget(Button("New", onclick = lambda w: self.openNew()))
 
         manager = ProjectView()

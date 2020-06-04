@@ -40,6 +40,7 @@ class ProjectView(Gtk.Frame):
         scrolled.add(projectlist)
 
         box = VBox(
+            (Label("Directory: %s" % config["Directories"]["Projects"])),
             (scrolled, True),
         )
         self.add(box)
@@ -58,6 +59,7 @@ class ProjectView(Gtk.Frame):
             return
         
         if searchdir is None: return
+        # return
 
         Manager._scan(searchdir)
 

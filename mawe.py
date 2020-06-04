@@ -55,7 +55,6 @@ if not args.export is None:
 
 import project
 
-#project.Manager.mount(config["ProjectDir"])
 workset = project.Manager.mount(*args.file)
 
 #------------------------------------------------------------------------------
