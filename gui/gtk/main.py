@@ -45,6 +45,7 @@ class DocNotebook(Gtk.Notebook):
 
         self.opentab = OpenView(self)
         self.openbtn = Button("Open", onclick = lambda w: self.ui_open())
+
         #self.openbtn = StockButton("gtk-open", onclick = lambda w: self.ui_open())
         #self.openbtn.set_property("tooltip_text", "Open document")
 
@@ -200,15 +201,15 @@ class DocNotebook(Gtk.Notebook):
     def ui_close(self, child = None):
         if child is None: child = self.get_current_child();
 
+        print("Pages:", self.get_n_pages())
+
         if type(child) is DocView:
             if not child.can_close(): return False
             child.onUnmap(child)
             self._remove_child(child)
-            if self.get_n_pages() == 1:
-                self.opentab.show()
-                self.openbtn.disable()
-
-        if child == self.opentab:
+            if len(self.listfiles()) == 0:
+                self.ui_open()
+        elif child == self.opentab:
             if self.get_n_pages() > 1:
                 self.opentab.hide()
                 self.openbtn.enable()
@@ -223,7 +224,7 @@ class DocNotebook(Gtk.Notebook):
     def ui_open(self):
         page = self.page_num(self.opentab)
         if page < 0:
-            self.add_page(self.opentab, prepend = False)
+            self.add_page(self.opentab)
         else:
             self.opentab.show()
             self.reorder_child(self.opentab, -1)
@@ -369,21 +370,27 @@ class DocView(DocPage):
 
     #--------------------------------------------------------------------------
 
-    def __init__(self, notebook, doc):
-        super(DocView, self).__init__(
-            notebook,
-            doc.root.find("./body/head/title").text
-        )
+    def title(self):
+        if self.loaded:
+            return self.buffers["./body/head/title"].get_text()
+        else:
+            return self.doc.root.find("./body/head/title").text
 
+    def __init__(self, notebook, doc):
         self.doc = doc
         self.loaded = False
         self.dirty = False
+
+        super(DocView, self).__init__(notebook, self.title())
 
         #print("Filename:", doc.filename)
         #print("Origin:", doc.origin)
 
         self.connect("map", self.onMap)
         self.connect("unmap", self.onUnmap)
+
+    def _load(self):
+        print("Loading:", self.title())
 
         self.buffers = {
             "./body/part": SceneBuffer(),
@@ -397,6 +404,9 @@ class DocView(DocPage):
             "./body/head/deadline": EntryBuffer(),
         }
 
+        self.buffers_revert()
+        self.buffers_connect()
+
         self.create_stacks()
 
         self.pane = Gtk.Paned()
@@ -405,12 +415,10 @@ class DocView(DocPage):
 
         self.add(self.pane)
 
-    def _load(self):
-        print("Loading:", self.doc.root.find("./body/head/title").text)
-        self.buffers_revert()
-        self.buffers_connect()
         self.connect("key-press-event", self.onKeyPress)
         self.right_focus[0].grab_focus()
+        self.show_all()
+
         self.loaded = True
 
     #--------------------------------------------------------------------------
@@ -494,6 +502,7 @@ class DocView(DocPage):
         #print("Set pos:", DocView.position)
 
     def onUnmap(self, widget):
+        if not self.loaded: return 
         config["DocView"]["Pane"] = self.pane.get_position()
         #print("Update pos:", DocView.position)
 
@@ -502,7 +511,7 @@ class DocView(DocPage):
     #--------------------------------------------------------------------------
     
     def set_name(self, text = None):
-        if text is None: text = self.buffers["./body/head/title"].get_text()
+        if text is None: text = self.title()
         super(DocView, self).set_name((self.get_dirty() and "*" or "") + text)
 
     def get_dirty(self): return self.dirty
@@ -517,10 +526,9 @@ class DocView(DocPage):
     #--------------------------------------------------------------------------
 
     def can_close(self):
-        imported = (self.doc.filename is None and not self.doc.origin is None)
-        if self.get_dirty() or imported:
+        if self.get_dirty() or self.doc.imported:
             answer = dialog.SaveOrDiscard(self,
-                "'%s' not saved. Save or discard changes?" % self.buffers["./body/head/title"].get_text()
+                "'%s' not saved. Save or discard changes?" % self.title()
             )
             if answer == Gtk.ResponseType.CANCEL: return False
             if answer == Gtk.ResponseType.YES:

@@ -37,6 +37,9 @@ WORKLIST
 - Generalize shortcut key binding implemented in SceneView to other
   classes, too.
 
+- Version number to cover page when exporting: would be great when
+  exchanging text with editors.
+
 - Export: Convert _ and * to bold and italic in files.
 
 - Setting fonts & colors: its important for different computers with

@@ -33,10 +33,11 @@ class FormatError(Exception):
 
 class Document:
 
-    def __init__(self, filename = None, tree = None, origin = None):
+    def __init__(self, filename = None, tree = None, origin = None, imported = False):
 
         self.filename = filename
         self.origin   = origin
+        self.imported = imported
 
         # TODO: It would be great if we could have "loopback" device for
         # file save testing.

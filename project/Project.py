@@ -219,7 +219,7 @@ class Moe(Base):
             elif child.tag == "settings":  pass # Safe to ignore, settings were moved to .moerc
             else: log("%s: <story>: Unknown child '%s'" % (self.fullname, child.tag))
 
-        return Document(tree = mawe, origin = self.fullname)
+        return Document(tree = mawe, origin = self.fullname, imported = True)
 
 ###############################################################################
 #
@@ -246,7 +246,8 @@ class Text(Base):
 
         return Document(
             tree = mawe,
-            origin = self.fullname
+            origin = self.fullname,
+            imported = True,
         )
 
 ###############################################################################
