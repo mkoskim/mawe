@@ -45,7 +45,7 @@ class SceneList(Gtk.TreeView):
         #- Words --------------------------------------------------------------
 
         column = Gtk.TreeViewColumn("Words")
-        self.append_column(column)
+        column.set_property("expand", False)
 
         renderer = Gtk.CellRendererText()
         renderer.set_alignment(1.0, 0.5)
@@ -64,11 +64,19 @@ class SceneList(Gtk.TreeView):
         column.pack_start(renderer, False)
         column.set_cell_data_func(renderer, dfNonZeros, 4)
 
+        self.append_column(column)
+
         #- Name ---------------------------------------------------------------
 
         renderer = Gtk.CellRendererText()
+        renderer.set_property("ellipsize", Pango.EllipsizeMode.END)
         column = Gtk.TreeViewColumn("Name", renderer, text = 1)
         column.set_property("expand", True)
+        #column.set_resizable(True)
+        #column.set_sizing(Gtk.TreeViewColumnSizing.AUTOSIZE)
+        #column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
+        #column.set_fixed_width(200)
+        #column.set_min_width(10)
         self.append_column(column)
 
         #----------------------------------------------------------------------

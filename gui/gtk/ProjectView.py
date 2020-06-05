@@ -40,7 +40,8 @@ class ProjectView(Gtk.Frame):
         scrolled.add(self.projectlist)
 
         box = VBox(
-            (Label("Directory: %s" % config["Directories"]["Projects"])),
+            (HSeparator(), 2),
+            Label("Directory: %s" % config["Directories"]["Projects"]),
             (scrolled, True),
         )
         self.add(box)
