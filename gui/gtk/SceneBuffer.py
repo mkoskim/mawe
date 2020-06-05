@@ -286,6 +286,8 @@ class SceneBuffer(GtkSource.Buffer):
 
         if text[:2] in SceneBuffer.block_styles:
             self.apply_tag_by_name(SceneBuffer.block_styles[text[:2]], start, end)
+        elif text == "...":
+            self.apply_tag_by_name("missing", start, end)
 
         def set_tags(tagname, regex):
             for m in regex.finditer(text):
@@ -506,7 +508,7 @@ class SceneBuffer(GtkSource.Buffer):
             comments = map(lambda wc: wc and wc or 1, comments)
             comments = sum(comments)
             
-            missing = filter(lambda s: s[:2] == "!!", text)
+            missing = filter(lambda s: s[:2] == "!!"  or s == "...", text)
             missing = map(lambda s: len(SceneBuffer.re_wc.findall(s)), missing)
             missing = map(lambda wc: wc and wc or 1, missing)
             missing = sum(missing)
