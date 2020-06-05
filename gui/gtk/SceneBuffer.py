@@ -502,12 +502,15 @@ class SceneBuffer(GtkSource.Buffer):
 
         if details:
             comments = filter(lambda s: s[:2] == "//", text)
-            comments = "\n".join(list(comments))
-            comments = len(SceneBuffer.re_wc.findall(comments))
+            comments = map(lambda s: len(SceneBuffer.re_wc.findall(s)), comments)
+            comments = map(lambda wc: wc and wc or 1, comments)
+            comments = sum(comments)
             
-            missing  = filter(lambda s: s[:2] == "!!", text)
-            missing  = "\n".join(list(missing))
-            missing  = len(SceneBuffer.re_wc.findall(missing))
+            missing = filter(lambda s: s[:2] == "!!", text)
+            missing = map(lambda s: len(SceneBuffer.re_wc.findall(s)), missing)
+            missing = map(lambda wc: wc and wc or 1, missing)
+            missing = sum(missing)
+            #if missing == 0 and hasMissing: missing = 1
         
         text  = filter(lambda s: s[:2] not in ["<<", "//", "!!", "##"], text)
         text  = "\n".join(list(text))
