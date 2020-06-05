@@ -35,8 +35,6 @@ def run(workset = None, new = False):
 
 class DocNotebook(Gtk.Notebook):
 
-    # TODO: When last file is closed, choose open tab? Without close button?
-
     def __init__(self):
         super(DocNotebook, self).__init__(name = "DocNotebook")
 
@@ -63,6 +61,13 @@ class DocNotebook(Gtk.Notebook):
         self.set_action_widget(start, Gtk.PackType.START)
         self.set_action_widget(end, Gtk.PackType.END)
         self.connect_after("switch-page", self.onSwitchPage)
+
+        ShortCut.bind(self, {
+            "<Ctrl>O": lambda *a: self.ui_open(),
+            "<Ctrl>W": lambda *a: self.ui_close(),
+
+            "F1": lambda *a: self.ui_help(),
+        })
 
     #--------------------------------------------------------------------------
     
@@ -161,7 +166,7 @@ class DocNotebook(Gtk.Notebook):
 
         config["DocNotebook"]["Files"] = self.listfiles()
         
-        # Call onUnmap to make it update its configuration
+        # Call onUnmap on currently visible page to make it update its configuration
         child = self.get_current_child()
         if not child is None: child.unmap()
         return True
@@ -178,25 +183,6 @@ class DocNotebook(Gtk.Notebook):
         else:
             doc = project.Document(tree = project.Document.empty("New Story"))
         self.add(doc)
-
-    def ui_save(self):
-        child = self.get_current_child()
-        if type(child) is DocView:
-            child.ui_save()
-
-    def ui_refresh(self):
-        child = self.get_current_child()
-        child.ui_refresh()
-
-    def ui_revert(self):
-        child = self.get_current_child()
-        if type(child) is DocView:
-            child.ui_revert()
-
-    def ui_cancel(self):
-        child = self.get_current_child()
-        if not child is None:
-            child.ui_cancel()
 
     def ui_close(self, child = None):
         if child is None: child = self.get_current_child();
@@ -238,6 +224,7 @@ class DocNotebook(Gtk.Notebook):
             self.opentab.hide()
             self.openbtn.enable()
         self.set_window_title()
+        
 
     def set_window_title(self):
         child = self.get_current_child()
@@ -277,10 +264,6 @@ class DocPage(Gtk.Frame):
         self.update_title()
 
     def can_close(self): return True
-
-    def ui_refresh(self): pass
-
-    def ui_cancel(self): return False
 
 ###############################################################################
 #
@@ -335,15 +318,17 @@ class OpenView(DocPage):
         else:
             stack.set_visible_child_name("projects")
 
+        ShortCut.bind(self, {
+            # "<Ctrl>S": lambda *a: self.ui_save(),
+            "Escape": lambda *a: self.ui_cancel(),
+            "F5": lambda *a: self.ui_refresh(),
+        })
+
     def onNew(self, widget):
         self.notebook.ui_new()
 
     def onProjectSelect(self, widget, filename):
         self.notebook.ui_new(filename)
-        return True
-
-    def ui_cancel(self):
-        self.notebook.ui_close(self)
         return True
 
     def onChooser(self, chooser):
@@ -356,9 +341,14 @@ class OpenView(DocPage):
     def dir_restore(self, chooser):
         chooser.set_current_folder(config["Directories"]["Open"])
 
+    def ui_cancel(self):
+        self.notebook.ui_close(self)
+        return True
+
     def ui_refresh(self):
         if self.stack.get_visible_child_name() == "projects":
             self.stack.get_visible_child().refresh()
+        return True
 
 ###############################################################################
 #
@@ -415,7 +405,14 @@ class DocView(DocPage):
 
         self.add(self.pane)
 
-        self.connect("key-press-event", self.onKeyPress)
+        ShortCut.bind(self, {
+            "<Ctrl>S": lambda *a: self.ui_save(),
+            #"Escape": lambda *a: self.ui_cancel(),
+            #"F5": lambda *a: self.ui_refresh(),
+            "<Alt>Left": lambda widget, *a: self.onFocusLeft(widget),
+            "<Alt>Right": lambda widget, *a: self.onFocusRight(widget),
+        })
+
         self.right_focus[0].grab_focus()
         self.show_all()
 
@@ -435,15 +432,6 @@ class DocView(DocPage):
         
     def onFocusRight(self, widget, *args):
         return self.choose_focus(self.right_focus)
-
-    def onKeyPress(self, widget, event):
-        mods = event.state & Gtk.accelerator_get_default_mod_mask()
-        key = Gtk.accelerator_name(event.keyval, mods)
-        
-        if key == "<Alt>Left":
-            return self.onFocusLeft(widget)
-        elif key == "<Alt>Right":
-            return self.onFocusRight(widget)
 
     #--------------------------------------------------------------------------
     # Buffers to XML tree. TODO: This does not work with multi-part bodies.
@@ -796,14 +784,6 @@ class DocView(DocPage):
 #
 ###############################################################################
 
-def add_shortcuts(widget, table):
-    accel = Gtk.AccelGroup()
-    widget.add_accel_group(accel)
-
-    for shortcut, fn in table:
-        key, mod = Gtk.accelerator_parse(shortcut)
-        accel.connect(key, mod, 0, fn)
-
 class MainWindow(Gtk.Window):
 
     def __init__(self, workset, new = False):
@@ -823,20 +803,9 @@ class MainWindow(Gtk.Window):
 
         self.connect("delete-event", lambda w, e: self.onDelete(w))
 
-        add_shortcuts(self, [
-            ("<Ctrl>Q", lambda *a: self.onDelete(self)),
-
-            ("<Ctrl>O", lambda *a: self.docs.ui_open()),
-            ("<Ctrl>S", lambda *a: self.docs.ui_save()),
-            ("<Ctrl>W", lambda *a: self.docs.ui_close()),
-            
-            ("<Alt>R",  lambda *a: self.docs.ui_revert()),
-
-            ("Escape", lambda *a: self.docs.ui_cancel()),
-
-            ("F1", lambda *a: self.docs.ui_help()),
-            ("F5", lambda *a: self.docs.ui_refresh()),
-        ])
+        ShortCut.bind(self, {
+            "<Ctrl>Q": lambda *a: self.onDelete(self),
+        })
 
         settings = config["Window"]
         #print(settings)
@@ -879,4 +848,3 @@ class MainWindow(Gtk.Window):
             import traceback
             print(traceback.format_exc())
         Gtk.main_quit()
-

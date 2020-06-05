@@ -2,6 +2,31 @@
 
 DONE:
 
+- REJECTED: When computer goes sleep, coming back resets the window to default
+  size. Irritating. Get rid of that. Happens at least on one laptop with
+  Ubuntu. - This is feature in computer side (Windows / Linux), when computer
+  goes sleep, it disconnects monitors, and all windows in other monitors are
+  reset to the main one.
+
+- DONE: Ctrl-up, Ctrl-down: move paragraph up / down
+  
+- DONE: Alt-up, Alt-down: move scene up / down
+  
+- DONE: If there are no open files in editor, keep "Open" tab visible
+
+- DONE: ESC in Open view to cancel opening.
+
+- DONE: Delayed loading
+
+- DONE: PM: Asynchronous directory scan: in case it takes a lots of time.
+
+- DONE: Generalize shortcut key binding implemented in SceneView to other
+  classes, too.
+
+-------------------------------------------------------------------------------
+
+DONE:
+
 - DONE: Export: Initial RTF exporting
 - DONE: Export: Handle nickname (doc load & save)
 - DONE: Export: Skip <missing>, <comment> and <synopsis> when exporting

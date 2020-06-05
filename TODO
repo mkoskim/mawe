@@ -6,7 +6,7 @@ FEATURE IMPROVEMENTS:
   rename the file from title.
 
 - It should be possible to make a draft to a version, and get that version
-  besides the new one. This is needed when rewriting the story. It should
+  sided with the new one. This is needed when rewriting the story. It should
   be possible to easily switch between old version, new version and notes.
 
 - We'd need heavily improve parts and such. It should be possible to
@@ -16,8 +16,8 @@ FEATURE IMPROVEMENTS:
   
 - Improve moving text between parts (draft and notes)
 
-- Improve notes. Notes are different to draft. Notes are more like a card
-  pile you want to keep organized.
+- Improve notes. Notes are - or can be - different to draft. Notes are more
+  like a card pile you want to keep organized.
 
 - Would there be some use for "lorem" -thingie, so that: you can set how
   many words you want to write to certain scene. It will be filled by
@@ -33,9 +33,6 @@ FEATURE IMPROVEMENTS:
 -------------------------------------------------------------------------------
 
 WORKLIST
-
-- Generalize shortcut key binding implemented in SceneView to other
-  classes, too.
 
 - Version number to cover page when exporting: would be great when
   exchanging text with editors.
@@ -113,6 +110,10 @@ PROJECTS AND PROGRESSING:
 
 QUIRKS, FIX:
 
+- There is focusing problem at the moment in different places: for example,
+  when closing tabs and so on. Now when shortcuts are bind to tab child, it
+  is clearly visible.
+
 - It is bit irritating that folding and unfolding cause buffer to become
   dirty, but it can't be helped now. Otherwise we are messing with undo/redo.
 
@@ -163,8 +164,6 @@ TODO:
 
     (4) XXX         + draft view/index (switch between index & edit)
     (5) notes view/index + XXX         (switch between index & edit)
-
-- ESC in Open view to cancel opening.
 
 - Cursor marks? For example, Alt-1 to place a mark, and Shit-Alt-1 to go
   back.
@@ -229,21 +228,3 @@ LARGER FEATURES:
 -------------------------------------------------------------------------------
 
 DONE:
-
-- REJECTED: When computer goes sleep, coming back resets the window to default
-  size. Irritating. Get rid of that. Happens at least on one laptop with
-  Ubuntu. - This is feature in computer side (Windows / Linux), when computer
-  goes sleep, it disconnects monitors, and all windows in other monitors are
-  reset to the main one.
-
-- DONE: Ctrl-up, Ctrl-down: move paragraph up / down
-  
-- DONE: Alt-up, Alt-down: move scene up / down
-  
-- DONE: If there are no open files in editor, keep "Open" tab visible
-
-- DONE: Esc closes open tab
-
-- DONE: Delayed loading
-
-- DONE: PM: Asynchronous directory scan: in case it takes a lots of time.

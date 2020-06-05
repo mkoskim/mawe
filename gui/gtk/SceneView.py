@@ -6,6 +6,8 @@ from tools import *
 
 ###############################################################################        
 
+###############################################################################        
+
 class ScrolledSceneList(Gtk.ScrolledWindow):
 
     def __init__(self, buffer, view = None):
@@ -219,7 +221,8 @@ class SceneView(GtkSource.View):
             self.buffer.redo()
             return True
 
-        self._parse_keys({
+        from gui.gtk.factory import ShortCut
+        ShortCut.bind(self, {
             "<Ctrl>Z": undo,
             "<Ctrl><Shift>Z": redo,
             
@@ -252,46 +255,6 @@ class SceneView(GtkSource.View):
             "Return": self.unfold_current,
             "space":  self.unfold_current,
         })
-
-    #--------------------------------------------------------------------------
-    
-    def _parse_keys(self, table):
-
-        def parse_table(table):
-            lookup = { }
-            for shortcut, item in table.items():
-                key = Gtk.accelerator_parse(shortcut)
-                if type(item) is dict:
-                    lookup[key] = parse_table(item)
-                else:
-                    lookup[key] = item
-            return lookup
-            
-        self.combokeys = parse_table(table)
-        self.combokey = None
-        self.connect("key-press-event", self.onKeyPress)
-
-    def onKeyPress(self, widget, event):
-        mod = event.state & Gtk.accelerator_get_default_mod_mask()
-        key = (event.keyval, mod)
-
-        #print(Gtk.accelerator_name(event.keyval, mod))
-
-        if self.combokey is None:
-            if not key in self.combokeys: return False
-            if type(self.combokeys[key]) is dict:
-                self.combokey = self.combokeys[key]
-                return True
-            elif self.combokeys[key] is None:
-                #self.parent.emit("key-press-event", event.copy())
-                return True
-            else:
-                return self.combokeys[key](mod, key)
-        else:
-            combo = self.combokey
-            self.combokey = None
-            if key in combo:
-                return combo[key](mod, key)
 
     #--------------------------------------------------------------------------
     

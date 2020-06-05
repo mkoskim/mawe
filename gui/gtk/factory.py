@@ -7,6 +7,54 @@
 from gui.gtk import (Gtk, Gdk, Gio, GObject)
 
 #------------------------------------------------------------------------------
+# Shortcut binding
+#------------------------------------------------------------------------------
+
+class ShortCut:
+
+    @staticmethod
+    def bind(widget, table):
+
+        def parse_table(table):
+            lookup = { }
+            for shortcut, item in table.items():
+                key = Gtk.accelerator_parse(shortcut)
+                if type(item) is dict:
+                    lookup[key] = parse_table(item)
+                else:
+                    lookup[key] = item
+            return lookup
+            
+        widget.combokeys = parse_table(table)
+        widget.combokey = None
+        widget.connect("key-press-event", ShortCut.onKeyPress)
+
+    @staticmethod
+    def onKeyPress(widget, event):
+        mod = event.state & Gtk.accelerator_get_default_mod_mask()
+        key = (event.keyval, mod)
+
+        # print(Gtk.accelerator_name(event.keyval, mod))
+
+        if widget.combokey is None:
+            if not key in widget.combokeys: return False
+            if type(widget.combokeys[key]) is dict:
+                widget.combokey = widget.combokeys[key]
+                return True
+            elif widget.combokeys[key] is None:
+                #self.parent.emit("key-press-event", event.copy())
+                return True
+            else:
+                return widget.combokeys[key](mod, key)
+        else:
+            combo = widget.combokey
+            widget.combokey = None
+            if key in combo:
+                return combo[key](mod, key)
+            else:
+                return False
+
+#------------------------------------------------------------------------------
 
 def _extract_arg(kwargs, name, default = None):
     if name in kwargs:
