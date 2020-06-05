@@ -69,15 +69,23 @@ class DocNotebook(Gtk.Notebook):
             "F1": lambda *a: self.ui_help(),
         })
 
+        self.connect_after("map", lambda w: self.onMap())
+
     #--------------------------------------------------------------------------
-    
-    def listfiles(self):
-        files = []
+
+    def onMap(self):
+        if len(self.listdocs()) == 0:
+            self.ui_open()
+
+    def listdocs(self):
+        docs = []
         for pagenum in range(self.get_n_pages()):
             child = self.get_nth_page(pagenum)
-            if not type(child) is DocView: continue
-            if child.doc.origin: files.append(child.doc.origin)
-        return files
+            if type(child) is DocView: docs.append(child.doc)
+        return docs
+
+    def listfiles(self):
+        return list(filter(lambda f: not f is None, [x.origin for x in self.listdocs()]))
 
     def findpage(self, filename):
         if filename is None: return None
@@ -187,13 +195,11 @@ class DocNotebook(Gtk.Notebook):
     def ui_close(self, child = None):
         if child is None: child = self.get_current_child();
 
-        print("Pages:", self.get_n_pages())
-
         if type(child) is DocView:
             if not child.can_close(): return False
             child.onUnmap(child)
             self._remove_child(child)
-            if len(self.listfiles()) == 0:
+            if len(self.listdocs()) == 0:
                 self.ui_open()
         elif child == self.opentab:
             if self.get_n_pages() > 1:
@@ -224,7 +230,6 @@ class DocNotebook(Gtk.Notebook):
             self.opentab.hide()
             self.openbtn.enable()
         self.set_window_title()
-        
 
     def set_window_title(self):
         child = self.get_current_child()
@@ -821,12 +826,7 @@ class MainWindow(Gtk.Window):
         )
 
         workset = self.docs.open_defaults(workset)
-        if workset:
-            pass
-        elif new:
-            self.docs.ui_new()
-        else:
-            self.docs.ui_open()
+        if new: self.docs.ui_new()
 
     #--------------------------------------------------------------------------
     
