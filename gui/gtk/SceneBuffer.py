@@ -510,7 +510,6 @@ class SceneBuffer(GtkSource.Buffer):
             missing = map(lambda s: len(SceneBuffer.re_wc.findall(s)), missing)
             missing = map(lambda wc: wc and wc or 1, missing)
             missing = sum(missing)
-            #if missing == 0 and hasMissing: missing = 1
         
         text  = filter(lambda s: s[:2] not in ["<<", "//", "!!", "##"], text)
         text  = "\n".join(list(text))
