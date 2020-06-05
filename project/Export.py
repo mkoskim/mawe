@@ -107,14 +107,14 @@ def fmtDoc(doc):
     title    = root.find("./body/head/title").text
     subtitle = root.find("./body/head/subtitle").text
 
-    nickname = root.find("./body/head/nickname")
-    if nickname is None or not nickname.text:
-        nickname = root.find("./body/head/author").text
+    author = root.find("./body/head/nickname")
+    if author is None or not author.text:
+        author = root.find("./body/head/author").text
     else:
-        nickname = nickname.text
+        author = author.text
 
-    if nickname:
-        header = "%s: %s" % (nickname, title)
+    if author:
+        header = "%s: %s" % (author, title)
     else:
         header = "%s" % (title)
 
@@ -123,7 +123,7 @@ def fmtDoc(doc):
         {
             "title": title,
             "subtitle": subtitle,
-            "author": nickname,
+            "author": author,
             "header": header,
         }
     )

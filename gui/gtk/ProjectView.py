@@ -62,27 +62,27 @@ class ProjectView(Gtk.Frame):
 
         if self.searchdir is None: return
 
-        self.worker = threading.Thread(target = self.doScan)
+        def scan():
+            Manager._scan(self.searchdir)
+
+            Gdk.threads_enter()
+            self.store.clear()
+
+            for path, doc in Manager.projects.items():
+                self.store.append([
+                    path,
+                    doc.title,
+                    doc.status, doc.deadline, doc.year,
+                    doc.words[0], doc.words[1], doc.words[2],
+                    doc.editor, os.path.relpath(path, self.searchdir),
+                ])
+            self.projectlist.set_cursor(0)
+            Gdk.threads_leave()
+
+            self.worker = None
+
+        self.worker = threading.Thread(target = scan)
         self.worker.start()
-
-    def doScan(self):
-        Manager._scan(self.searchdir)
-
-        Gdk.threads_enter()
-        self.store.clear()
-
-        for path, doc in Manager.projects.items():
-            self.store.append([
-                path,
-                doc.title,
-                doc.status, doc.deadline, doc.year,
-                doc.words[0], doc.words[1], doc.words[2],
-                doc.editor, os.path.relpath(path, self.searchdir),
-            ])
-        self.projectlist.set_cursor(0)
-        Gdk.threads_leave()
-
-        self.worker = None
 
 #------------------------------------------------------------------------------
 
