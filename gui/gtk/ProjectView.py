@@ -60,9 +60,10 @@ class ProjectView(Gtk.Frame):
         except KeyError:
             return
 
+        if self.searchdir is None: return
+
         self.worker = threading.Thread(target = self.doScan)
         self.worker.start()
-        #self.doScan()
 
     def doScan(self):
         Manager._scan(self.searchdir)
