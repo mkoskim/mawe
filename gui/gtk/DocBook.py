@@ -4,11 +4,15 @@
 #
 ###############################################################################
 
-from gui.gtk import Gtk, Gdk, Pango, GtkSource, GObject
-from gui.gtk import OpenTab, DocTab
+from gui.gtk import (
+    Gtk, Gdk, Pango, GtkSource, GObject,
+    OpenTab, DocTab,
+    guidir,
+)
 from tools import *
 from gui.gtk.factory import *
 import project
+import os
 
 class DocBook(Gtk.Notebook):
 
