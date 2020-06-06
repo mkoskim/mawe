@@ -29,12 +29,6 @@ print("Gtk........:", Gtk._version)
 print("GtkSource..:", GtkSource._version)
 
 #------------------------------------------------------------------------------
-#------------------------------------------------------------------------------
-
-from gui.gtk.ProjectView import ProjectView
-import gui.gtk.dialog
-
-#------------------------------------------------------------------------------
 # GTKSource3 interface
 #------------------------------------------------------------------------------
 
@@ -46,3 +40,15 @@ if GtkSource._version in ["3.0"]:
     )
 else:
     raise ImportError("GtkSource %s not supported." % GtkSource._version)
+
+#------------------------------------------------------------------------------
+
+import gui.gtk.dialog
+
+from gui.gtk.ProjectView import ProjectView
+
+from gui.gtk.DocBookPage import DocBookPage
+from gui.gtk.OpenTab import OpenTab
+from gui.gtk.DocTab import DocTab
+from gui.gtk.DocBook import DocBook
+
