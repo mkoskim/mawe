@@ -1,5 +1,44 @@
 -------------------------------------------------------------------------------
 
+WORKLIST
+
+- Clipboard? Try out clipboard (Alt-X to move scene in it, Alt-V to paste scenes
+  from clipboard) to ease scene moving. Store clipboard to file (notes section?).
+
+- Bake synopses to scene header? For example "Scene: Synopsis" - I thought to
+  give writer a freedom to place synopses anywhere s/he likes, but it could
+  be better to keep them with scene header? Currently, synopses are heavily
+  underused feature.
+
+- A synopsis editor (and index cards) for outlining the story structure would be cool,
+  I think. I already sketched it with moe, but it has been underused.
+
+- Export: Version number to cover page when exporting: would be great when
+  exchanging text with editors.
+
+- Export: Convert _ and * to bold and italic in files.
+
+- Setting fonts & colors: its important for different computers with
+  different screen sizes.
+
+  * Settings editor
+
+  * Style editor: font, colors, ... - would be great to tailor the view for
+    the computer (monitor size and so on)
+
+- Search and replace: it is very useful feature I have missed in moe a lot,
+  for example when changing names in stories.
+
+- Selecting & moving scenes in listview
+
+- Moving folded scenes around: Shift-Alt-up, Shift-Alt-down. We can allow
+  cutting entire folded scenes, but not parts of them.
+
+- When choosing with grab, show the selections in the listbox? Or implement
+  a separate clipboard for cutted scenes?
+
+-------------------------------------------------------------------------------
+
 FEATURE IMPROVEMENTS:
 
 - Put file name in to the Title section. Possibly make it possible to
@@ -29,34 +68,6 @@ FEATURE IMPROVEMENTS:
   buffers, like this: (1) select a text, (2) switch to left/right side, (3)
   locate a good place, (4) move selection to that place. It would be great
   when cutting text to be used later, and then moving it back to text.
-
--------------------------------------------------------------------------------
-
-WORKLIST
-
-- Version number to cover page when exporting: would be great when
-  exchanging text with editors.
-
-- Export: Convert _ and * to bold and italic in files.
-
-- Setting fonts & colors: its important for different computers with
-  different screen sizes.
-
-  * Settings editor
-
-  * Style editor: font, colors, ... - would be great to tailor the view for
-    the computer (monitor size and so on)
-
-- Search and replace: it is very useful feature I have missed in moe a lot,
-  for example when changing names in stories.
-
-- Selecting & moving scenes in listview
-
-- Moving folded scenes around: Shift-Alt-up, Shift-Alt-down. We can allow
-  cutting entire folded scenes, but not parts of them.
-
-- When choosing with grab, show the selections in the listbox? Or implement
-  a separate clipboard for cutted scenes?
 
 -------------------------------------------------------------------------------
 
@@ -221,9 +232,6 @@ LARGER FEATURES:
   enough if we can choose between doc's draft and notes buffers.
 
 - Compressed format? .mawe.gz - use gzip module to pack and unpack.
-
-- A synopsis editor (and index cards) would be cool, I think. I already
-  sketched it with moe, but it has been underused.
 
 -------------------------------------------------------------------------------
 

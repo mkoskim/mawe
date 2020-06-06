@@ -107,7 +107,7 @@ class Button(Gtk.Button):
 
         Button.geticon(kwargs)
         onclick = Button.getarg(kwargs, "onclick")
-        
+
         super(Button, self).__init__(label, **kwargs)
 
         if onclick: self.connect("clicked", onclick)
@@ -128,16 +128,16 @@ def StockButton(label, **kwargs):
 def IconButton(icon, tooltip, **kwargs):
     return Button(None, icon = icon, tooltip_text = tooltip, **kwargs)
 
-def MenuButton(label, **kwargs):
+def MenuButton(label, popover, **kwargs):
     if "visible" not in kwargs: kwargs["visible"] = True
     btn = Gtk.MenuButton(label, **kwargs)
+    btn.set_popover(popover)
 
-    if label:
-        btn.set_image(Button.icon2image("pan-down-symbolic"))
-        btn.set_image_position(Gtk.PositionType.RIGHT)
-
-    _set_relief(self, kwargs)
-    btn.set_always_show_image(True)
+    #if label:
+    #    btn.set_image(Button.icon2image("pan-down-symbolic"))
+    #    btn.set_image_position(Gtk.PositionType.RIGHT)
+    #btn.set_always_show_image(True)
+    _set_relief(btn, kwargs)
     return btn
 
 class ToggleButton(Gtk.ToggleButton):
@@ -172,7 +172,9 @@ def _Boxed(box, *widgets, **kwargs):
     def pack(widget, spacing = 0):
         packtype, expand, pad = Gtk.PackType.START, False, spacing
         
-        if type(widget) == tuple:
+        if widget is None:
+            return
+        elif type(widget) == tuple:
             widget, args = widget[0], widget[1:]
 
             for arg in args:
@@ -211,7 +213,9 @@ def Grid(*widgets, **kwargs):
 
     for y, row in enumerate(widgets):
         for x, cell in enumerate(row):
-            if type(cell) is tuple:
+            if cell is None:
+                continue
+            elif type(cell) is tuple:
                 cell, width, height = cell
             else:
                 cell, width, height = (cell, 1, 1)
@@ -241,6 +245,22 @@ def DuoStack(label, page1, page2, **kwargs):
     switcher.connect("toggled", lambda w: switchStack(w, stack))
 
     return stack, switcher
+
+#------------------------------------------------------------------------------
+
+def Popover(widget, **kwargs):
+    popover = Gtk.Popover(**kwargs)
+    popover.add(widget)
+    widget.show_all()
+    return popover
+
+#------------------------------------------------------------------------------
+
+def Paned(widget1, widget2, **kwargs):
+    pane = Gtk.Paned(**kwargs)
+    pane.add1(widget1)
+    pane.add2(widget2)
+    return pane
 
 #------------------------------------------------------------------------------
 

@@ -404,11 +404,17 @@ class DocView(DocPage):
 
         self.create_stacks()
 
-        self.pane = Gtk.Paned()
-        self.pane.add1(self.create_left())
-        self.pane.add2(self.create_right())
+        self.pane = Paned(
+            self.create_left(),
+            self.create_right()
+        )
 
-        self.add(self.pane)
+        self.add(VBox(
+            self.create_toolbar(),
+            HSeparator(),
+            (self.pane, True),
+            self.create_statusbar(),
+        ))
 
         ShortCut.bind(self, {
             "<Ctrl>S": lambda *a: self.ui_save(),
@@ -639,6 +645,63 @@ class DocView(DocPage):
         
     #--------------------------------------------------------------------------
 
+    def create_toolbar(self):
+
+        def Edit(key): return Gtk.Entry(buffer = self.buffers[key])
+            
+        def titleeditor():
+        
+            grid = Grid(
+                (Label("Title"),    Edit("./body/head/title")),
+                (Label("Subtitle"), Edit("./body/head/subtitle")),
+                [(HSeparator(), 2, 1)],
+                (Label("Author"),   Edit("./body/head/author")),
+                (Label("Nickname"), Edit("./body/head/nickname")),
+                [(HSeparator(), 2, 1)],
+                (Label("Status"),   Edit("./body/head/status")),
+                (Label("Deadline"), Edit("./body/head/deadline")),
+                column_spacing = 10,
+                row_spacing = 2,
+                expand_column = 1,
+            )
+            return Popover(grid)
+
+        self.folderbtn = Button(
+            "Folder",
+            tooltip_text="Open document folder",
+            onclick = lambda w: xdgfolder(self.doc.filename and self.doc.filename or self.doc.origin)
+        )
+        if self.doc.filename is None and self.doc.origin is None:
+            self.folderbtn.disable()
+
+        exportswitch = Button("_Export", onclick = lambda w: self._export(), use_underline = True)
+
+        return HBox(
+            MenuButton("_Title", titleeditor(),
+                use_underline = True,
+                tooltip_text = "Edit story header info",
+            ),
+
+            (Label(""), True),
+            VSeparator(),
+
+            Button("_Revert", use_underline = True, onclick = lambda w: self.ui_revert()),
+            exportswitch,
+            self.folderbtn,
+
+            (VSeparator(), 8),
+
+            (self.buffers["./body/part"].stats.words, 2),
+            (self.buffers["./body/part"].stats.chars, 4),
+
+            spacing = 1,
+            )
+
+    def create_statusbar(self):
+        pass
+
+    #--------------------------------------------------------------------------
+
     def create_left(self):
 
         def topbar(switcher):
@@ -646,10 +709,7 @@ class DocView(DocPage):
                 (switcher, 1),
             )
 
-        def bottombar():
-            return HBox(
-                Button("xxx"),
-            )
+        def bottombar(): pass
 
         stack, switcher = DuoStack("_1 - Notes", self.indexstack, self.notesview, can_focus = False)
 
@@ -666,46 +726,6 @@ class DocView(DocPage):
     #--------------------------------------------------------------------------
 
     def create_right(self):
-
-        #----------------------------------------------------------------------
-        
-        def titleeditor():
-        
-            def Edit(key): return Gtk.Entry(buffer = self.buffers[key])
-            
-            grid = Grid(
-                (Label("Title"),    Edit("./body/head/title")),
-                (Label("Subtitle"), Edit("./body/head/subtitle")),
-                [(HSeparator(), 2, 1)],
-                (Label("Author"),   Edit("./body/head/author")),
-                (Label("Nickname"), Edit("./body/head/nickname")),
-                [(HSeparator(), 2, 1)],
-                (Label("Status"),   Edit("./body/head/status")),
-                (Label("Deadline"), Edit("./body/head/deadline")),
-                column_spacing = 10,
-                row_spacing = 2,
-                expand_column = 1,
-            )
-            frame = Gtk.Frame(name = "embeddeddialog")
-            frame.add(grid)
-            return frame, HideControl(
-                "_Title",
-                frame,
-                use_underline = True,
-                tooltip_text = "Edit story header info"
-            )
-
-        #----------------------------------------------------------------------
-        
-        def exportsettings():
-            # Add backcover text here. Remember to store it, too.
-            # Add selection of author and nickname
-            # Add story type (short / long) and other formatting options
-            titleedit = Gtk.Frame()
-            titleedit.set_shadow_type(Gtk.ShadowType.IN)
-            titleedit.set_border_width(1)
-            titleedit.add(Label("Export"))
-            return titleedit, HideControl("_Export", titleedit, use_underline = True)
 
         #----------------------------------------------------------------------
         
@@ -726,55 +746,25 @@ class DocView(DocPage):
                 can_focus = False,
             )
 
-            self.folderbtn = Button(
-                "Folder",
-                tooltip_text="Open document folder",
-                onclick = lambda w: xdgfolder(self.doc.filename and self.doc.filename or self.doc.origin)
-            )
-            if self.doc.filename is None and self.doc.origin is None:
-                self.folderbtn.disable()
-
-
-            # Menu items. REMEMBER! We can use left side, too, for example for exporting,
-            # history entries and so on!
-            # - Export
-            # - Open containing folder
-            # - Save
-            # - Save as
-            # - Revert
-            # - Close
-            
-            titleedit,  titleswitch  = titleeditor()
-            #exportview, exportswitch = exportsettings()
-            exportswitch = Button("_Export", onclick = lambda w: self._export(), use_underline = True)
-
             toolbar = HBox(
                 #IconButton("open-menu-symbolic", "Open menu"),
                 self.right_notes,
                 VSeparator(),
-                titleswitch,
+                # titleswitch,
 
                 (Label(""), True),
 
-                exportswitch,
                 VSeparator(),
-                self.folderbtn,
                 spacing = 1,
             )
 
             return VBox(
                 toolbar,
-                titleedit,
+                #titleedit,
                 #exportview,
             )
 
-        def bottombar():
-            return HBox(
-                Button("_Revert", use_underline = True, onclick = lambda w: self.ui_revert()),
-                (Label(""), True),
-                (self.buffers["./body/part"].stats.words, 2),
-                (self.buffers["./body/part"].stats.chars, 4)
-            )
+        def bottombar(): pass
 
         return VBox(
             topbar(),
