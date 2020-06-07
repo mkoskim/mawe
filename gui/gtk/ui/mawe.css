@@ -29,8 +29,8 @@ GtkEntry {
 .button {
     padding-top:    2px;
     padding-bottom: 2px;
-    padding-left:   10px;
-    padding-right:  10px;
+    padding-left:   6px;
+    padding-right:  6px;
     /*border-width: 2px;*/
 }
 
@@ -43,17 +43,20 @@ GtkEntry {
 /* Main notebook */
 /* ------------------------------------------------------------------------- */
 
-#DocNotebook.frame      { border: 0px solid; }
-#DocNotebook.header.top { border-bottom: 1px solid @border; }
-#DocNotebook tab        { border-bottom: 1px solid @border; }
-#DocNotebook tab:active { border-bottom: 0px; }
+#DocBook.frame      { border: 0px solid; }
+#DocBook.header.top { border-bottom: 1px solid @border; }
+#DocBook tab        { border-bottom: 1px solid @border; }
+#DocBook tab:active { border-bottom: 0px; }
 
 /* Round buttons for tab close */
 #round-btn       { border: 1px solid transparent; border-radius: 50%; padding: 1pt; }
 #round-btn:hover { border: 1px solid @border; background: @theme_bg_color; }
 
 /* Labels in tabs */
-#tablabel { padding-left: 10px; padding-right: 10px; }
+#tablabel {
+    padding-left: 6px;
+    padding-right: 0px;
+}
 
 /* ------------------------------------------------------------------------- */
 /* Document page */

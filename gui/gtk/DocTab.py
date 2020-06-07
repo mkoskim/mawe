@@ -406,14 +406,13 @@ class DocTab(DocBookPage):
             )
 
             toolbar = HBox(
-                #IconButton("open-menu-symbolic", "Open menu"),
                 self.right_notes,
                 VSeparator(),
                 # titleswitch,
 
                 (Label(""), True),
 
-                VSeparator(),
+                #VSeparator(),
                 spacing = 1,
             )
 

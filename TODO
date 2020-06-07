@@ -15,6 +15,17 @@ WORKLIST
 
 - F2 to rename doc (or file?)
 
+- As title can be very long, add "work name" for stories
+
+- Limit name length in tab (how?)
+
+- Store active tab to setup (currently, last tab is activated at startup)
+
+- Shortcuts for (1) comment on/off - comments are heavily used features, it would be
+  great to turn blocks to comments or uncommenting them quickly.
+
+- Make styles configurable (put them into config file)
+
 - Export: Version number to cover page when exporting: would be great when
   exchanging text with editors.
 

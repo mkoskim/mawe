@@ -17,7 +17,7 @@ import os
 class DocBook(Gtk.Notebook):
 
     def __init__(self):
-        super(DocBook, self).__init__()
+        super(DocBook, self).__init__(name = "DocBook")
 
         self.set_scrollable(True)
         self.popup_enable()
