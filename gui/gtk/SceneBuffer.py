@@ -273,6 +273,7 @@ class SceneBuffer(GtkSource.Buffer):
         "//": "comment",
         "!!": "missing",
         "**": "scene:heading",
+        "##": "scene:heading",
     }
 
     def update_spans(self, start, end):
@@ -399,7 +400,7 @@ class SceneBuffer(GtkSource.Buffer):
         at = self.get_line_start(start)
         
         while at.compare(end) < 1:
-            if self.get_text_forward(at, 2) == "##":
+            if self.get_text_forward(at, 2) in ["##", "**"]:
                 mark = self.create_source_mark(None, "scene", at)
                 marks_to_update.append(mark)
 
@@ -513,7 +514,7 @@ class SceneBuffer(GtkSource.Buffer):
             missing = map(lambda wc: wc and wc or 1, missing)
             missing = sum(missing)
         
-        text  = filter(lambda s: s[:2] not in ["<<", "//", "!!", "##"], text)
+        text  = filter(lambda s: s[:2] not in ["<<", "//", "!!", "##", "**"], text)
         text  = "\n".join(list(text))
         chars = len(text)
         words = len(SceneBuffer.re_wc.findall(text))
