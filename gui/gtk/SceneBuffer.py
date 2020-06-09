@@ -54,11 +54,11 @@ class SceneBuffer(GtkSource.Buffer):
             paragraph_background = "#FFD",
         )
         self.create_tag("comment",
-            #foreground = "#474",
-            paragraph_background = "#DFD",
+            foreground = "#272",
+            #paragraph_background = "#DFD",
         )
         self.create_tag("missing",
-            foreground = "#B22",
+            foreground = "#A22",
         )
 
         # Heading tags
