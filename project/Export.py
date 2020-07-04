@@ -94,7 +94,8 @@ def fmtContent(body):
     
     for scene in list(body):
         text = fmtScene(scene)
-        if scene.get("name")[0] == "*":
+        name = scene.get("name")
+        if len(name) > 0 and name[0] == "*":
             content = content + r"{\sb480\qc * * *\par}" + "\n\n"
         if text:
             content = content + text
