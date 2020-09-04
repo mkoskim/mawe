@@ -34,7 +34,6 @@ class OpenTab(DocBookPage):
         toolbar = HBox(
             StackSwitcher(stack),
             #(Button("Recent", relief = Gtk.ReliefStyle.NORMAL), False, 6),
-            StockButton("gtk-new", relief = Gtk.ReliefStyle.NORMAL, onclick = self.onNew),
             #(VSeparator(), False, 2),
             #(Label("Search:"), False, 6),
             #Gtk.Entry(text = config["ProjectDir"]),
@@ -62,8 +61,8 @@ class OpenTab(DocBookPage):
             "F5": lambda *a: self.ui_refresh(),
         })
 
-    def onNew(self, widget):
-        self.notebook.ui_new()
+    #def onNew(self, widget):
+    #    self.notebook.ui_new()
 
     def onProjectSelect(self, widget, filename):
         self.notebook.ui_new(filename)

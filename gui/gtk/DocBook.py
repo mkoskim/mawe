@@ -48,6 +48,7 @@ class DocBook(Gtk.Notebook):
         start = HBox(
             #IconButton("open-menu-symbolic", "Open menu"),
             (self.openbtn, False, 1),
+            Button("New", onclick = lambda *a: self.ui_new()),
             visible = True,
         )
         end = HBox(
