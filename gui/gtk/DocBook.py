@@ -30,20 +30,7 @@ class DocBook(Gtk.Notebook):
 
         self.set_tab_pos(Gtk.PositionType.LEFT)
         self.set_show_border(False)
-        
-        end = HBox(
-            visible = True,
-        )
 
-        start = HBox(
-            #IconButton("open-menu-symbolic", "Open menu"),
-            (self.openbtn, False, 1),
-            Button("Help", onclick = lambda w: self.ui_help()),
-            visible = True,
-        )
-
-        self.set_action_widget(start, Gtk.PackType.START)
-        self.set_action_widget(end, Gtk.PackType.END)
         self.connect_after("switch-page", self.onSwitchPage)
 
         ShortCut.bind(self, {
@@ -54,6 +41,29 @@ class DocBook(Gtk.Notebook):
         })
 
         self.connect_after("map", lambda w: self.onMap())
+
+    #--------------------------------------------------------------------------
+
+    def get_header_bar(self):
+        start = HBox(
+            #IconButton("open-menu-symbolic", "Open menu"),
+            (self.openbtn, False, 1),
+            visible = True,
+        )
+        end = HBox(
+            Button("Help", onclick = lambda w: self.ui_help()),
+            visible = True,
+        )
+
+        #self.set_action_widget(start, Gtk.PackType.START)
+        #self.set_action_widget(end, Gtk.PackType.END)
+
+        headerbar = Gtk.HeaderBar()
+        headerbar.set_show_close_button(True)
+        headerbar.pack_start(start)
+        headerbar.pack_end(end)
+
+        return headerbar
 
     #--------------------------------------------------------------------------
 

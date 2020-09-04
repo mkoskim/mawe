@@ -31,6 +31,7 @@ class MainWindow(Gtk.Window):
 
         self.docs = DocBook()
         self.add(self.docs)
+        self.set_titlebar(self.docs.get_header_bar())
 
         self.connect("delete-event", lambda w, e: self.onDelete(w))
 
