@@ -43,17 +43,19 @@ GtkEntry {
 /* Main notebook */
 /* ------------------------------------------------------------------------- */
 
+/*
 #DocBook.frame      { border: 0px solid; }
 #DocBook.header.top { border-bottom: 1px solid @border; }
 #DocBook tab        { border-bottom: 1px solid @border; }
 #DocBook tab:active { border-bottom: 0px; }
+*/
 
 /* Round buttons for tab close */
 #round-btn       { border: 1px solid transparent; border-radius: 50%; padding: 1pt; }
 #round-btn:hover { border: 1px solid @border; background: @theme_bg_color; }
 
 /* Labels in tabs */
-#tablabel {
+#xtablabel {
     padding-left: 6px;
     padding-right: 0px;
 }
@@ -66,7 +68,7 @@ GtkEntry {
     padding: 0px;
     border: 0px solid;
     /* border-top: 1px dashed rgba(0,0,0,0.10); */
-    padding-top: 1px;
+    /*padding-top: 1px;*/
 }
 
 #embeddeddialog {

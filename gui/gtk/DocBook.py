@@ -28,11 +28,14 @@ class DocBook(Gtk.Notebook):
         #self.openbtn = StockButton("gtk-open", onclick = lambda w: self.ui_open())
         #self.openbtn.set_property("tooltip_text", "Open document")
 
-        start = HBox(
+        self.set_tab_pos(Gtk.PositionType.LEFT)
+        self.set_show_border(False)
+        
+        end = HBox(
             visible = True,
         )
 
-        end = HBox(
+        start = HBox(
             #IconButton("open-menu-symbolic", "Open menu"),
             (self.openbtn, False, 1),
             Button("Help", onclick = lambda w: self.ui_help()),
