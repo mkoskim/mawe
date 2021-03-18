@@ -47,7 +47,7 @@ class DocBook(Gtk.Notebook):
     def get_header_bar(self):
         start = HBox(
             #IconButton("open-menu-symbolic", "Open menu"),
-            (self.openbtn, False, 1),
+            self.openbtn,
             Button("New", onclick = lambda *a: self.ui_new()),
             visible = True,
         )
@@ -218,6 +218,7 @@ class DocBook(Gtk.Notebook):
             self.set_current_page(-1)
 
         self.openbtn.disable()
+        self.opentab.grab_focus()
 
     def onSwitchPage(self, notebook, child, pagenum):
         if child == self.opentab: return
