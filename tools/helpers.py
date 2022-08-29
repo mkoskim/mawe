@@ -14,7 +14,7 @@ if os.name == "posix":
 
     # Open folders, text files, RTF, doc, links, PDF, EPUB, ...
     def xdgopen(filename):
-        os.system("xdg-open %s &" % (filename))
+        os.system("xdg-open \"%s\" &" % (filename))
 
     def xdgfolder(filename):
         xdgopen(os.path.dirname(filename))
@@ -26,7 +26,7 @@ elif os.name == "nt":
 
     def xdgfolder(filename):
         xdgopen(os.path.dirname(filename))
-        
+
 else:
     ERROR("Unknown platform: %s" % os.name)
 
@@ -48,7 +48,7 @@ def readfile(filename):
             except UnicodeDecodeError: pass
         ERROR("%s: Unknown encoding." % filename)
 
-    return decode(content)    
+    return decode(content)
 
 def writefile(filename, content):
     f = open(filename, "w")
@@ -66,7 +66,7 @@ def writefile(filename, content):
 #
 #    def __init__(self):
 #        pass
-#        
+#
 #    def install(self, package):
 #        pipmain(["install", package])
 #
