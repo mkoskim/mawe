@@ -24,7 +24,7 @@ def doEscape(s):
     for char in escaped.keys():
         s = s.replace(char, escaped[char])
     return s
-    
+
 #------------------------------------------------------------------------------
 # Element formatting
 #------------------------------------------------------------------------------
@@ -36,7 +36,7 @@ class Wrap:
 
     def __call__(self, text, args = {}):
         return (self.prefix % args) + text + (self.postfix % args) + "\n"
-    
+
 #------------------------------------------------------------------------------
 
 wrapDoc = Wrap("\n".join([
@@ -91,14 +91,17 @@ def fmtScene(scene):
 
 def fmtContent(body):
     content = ""
-    
+
     for scene in list(body):
-        text = fmtScene(scene)
         name = scene.get("name")
-        if len(name) > 0 and name[0] == "*":
+
+        if content and len(name) > 0 and name[0] == "*":
             content = content + r"{\sb480\qc * * *\par}" + "\n\n"
-        if text:
-            content = content + text
+
+        if name[0:5] != "skip:":
+            text = fmtScene(scene)
+            if text:
+                content = content + text
 
     return content
 
