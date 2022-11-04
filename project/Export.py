@@ -103,7 +103,7 @@ def fmtContent(body):
         if content and len(name) > 0 and name[0] == "*":
             content = content + r"{\sb480\qc * * *\par}" + "\n\n"
 
-        if name[0:5] != "skip:":
+        if name[0:2] != "//":
             text = fmtScene(scene)
             if text:
                 content = content + text
