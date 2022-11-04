@@ -35,13 +35,14 @@ class Wrap:
         self.postfix = postfix
 
     def __call__(self, text, args = {}):
-        return (self.prefix % args) + text + (self.postfix % args) + "\n"
+        return (self.prefix % args) + text + (self.postfix) + "\n"
 
 #------------------------------------------------------------------------------
 
 wrapDoc = Wrap("\n".join([
     r"{\rtf1\ansi",
     r"{\fonttbl\f0\froman\fcharset0 Times New Roman;}",
+    r"{\colortbl;\red0\green0\blue0;\red180\green20\blue20;}",
     r"{\info{\title %(title)s}{\author %(author)s}}",
     r"\deflang1035",
     r"\paperh16837\paperw11905",
@@ -66,15 +67,16 @@ wrapDoc = Wrap("\n".join([
     ])
 )
 
-wrapPara1 = Wrap(r"{\lang1035\sl-440\sb480 ", "\par}\n\n")
-wrapPara  = Wrap(r"{\lang1035\sl-440\fi567 ", "\par}\n\n")
+wrapPara1 = Wrap(r"{\lang1035\sl-440\sb480%s ", "\par}\n\n")
+wrapPara  = Wrap(r"{\lang1035\sl-440\fi567%s ", "\par}\n\n")
 
 #------------------------------------------------------------------------------
 
-def fmtParagraph(p, first = False):
-    if not p.text: return ""
-    if first: return wrapPara1(p.text)
-    return wrapPara(p.text)
+def fmtParagraph(text, first = False, missing = False):
+    if not text: return ""
+    color = missing and "\\cf2" or "\\cf1"
+    if first: return wrapPara1(text, color)
+    return wrapPara(text, color)
 
 def fmtScene(scene):
     content = ""
@@ -83,7 +85,10 @@ def fmtScene(scene):
         if p.tag == "br":
             first = True
         elif p.tag == "p":
-            content = content + fmtParagraph(p, first)
+            content = content + fmtParagraph(p.text, first)
+            first = False
+        elif p.tag == "missing":
+            content = content + fmtParagraph(p.text, first, missing = True)
             first = False
         else:
             pass
